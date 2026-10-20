@@ -1,0 +1,2087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2K17 NBA Stats Database</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#0a0c10;--bg2:#111318;--bg3:#1a1d24;--border:#2a2d35;--accent:#f5a623;--accent2:#e8335a;--text:#e8eaf0;--text2:#8a8d9a;--text3:#5a5d6a;--gold:#f5c842;--green:#2ecc71;--blue:#3b9eff;--purple:#a855f7;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;min-height:100vh;}
+/* LOAD OVERLAY */
+#loadOverlay{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;}
+#loadOverlay h2{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900;color:var(--accent);letter-spacing:3px;}
+#loadOverlay .subtitle{color:var(--text2);font-size:13px;letter-spacing:1px;}
+.drop-zone{border:2px dashed var(--accent);padding:48px 72px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(245,166,35,0.03);}
+.drop-zone:hover,.drop-zone.drag-over{background:rgba(245,166,35,0.09);border-color:var(--gold);}
+.drop-zone .dz-icon{font-size:44px;margin-bottom:14px;}
+.drop-zone h3{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--text);margin-bottom:8px;letter-spacing:1px;}
+.drop-zone p{color:var(--text3);font-size:12px;line-height:1.6;}
+.drop-zone .file-btn{display:inline-block;margin-top:14px;background:var(--accent);color:#000;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;padding:8px 20px;cursor:pointer;}
+#progressMsg{color:var(--text2);font-size:13px;min-height:20px;}
+#errorMsg{color:var(--accent2);font-size:12px;max-width:400px;text-align:center;display:none;}
+/* HEADER */
+header{background:linear-gradient(135deg,#0a0c10,#141820,#0f1118);border-bottom:2px solid var(--accent);padding:0 28px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:200;}
+.logo{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:24px;letter-spacing:2px;color:var(--accent);}
+.logo span{color:var(--text2);font-weight:400;font-size:13px;margin-left:8px;letter-spacing:1px;}
+.season-badge{background:var(--accent);color:#000;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;padding:4px 10px;letter-spacing:1px;}
+.reload-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text2);font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;padding:6px 12px;cursor:pointer;transition:all .2s;}
+.reload-btn:hover{border-color:var(--accent);color:var(--accent);}
+/* NAV */
+nav{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;gap:2px;padding:0 28px;overflow-x:auto;}
+nav button{background:none;border:none;color:var(--text2);font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:13px;letter-spacing:1px;text-transform:uppercase;padding:13px 16px;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;}
+nav button:hover{color:var(--text);}
+nav button.active{color:var(--accent);border-bottom-color:var(--accent);}
+/* MAIN */
+main{padding:24px 28px;max-width:1700px;margin:0 auto;}
+.section{display:none;}.section.active{display:block;animation:fadeIn .25s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.section-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:26px;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;}
+.section-sub{color:var(--text3);font-size:12px;margin-bottom:22px;letter-spacing:1px;text-transform:uppercase;}
+.stats-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px;}
+.stat-card{background:var(--bg2);border:1px solid var(--border);padding:18px 18px 14px;position:relative;overflow:hidden;}
+.stat-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--accent);}
+.stat-card .label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
+.stat-card .value{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900;color:var(--gold);line-height:1;}
+.stat-card .sub{font-size:11px;color:var(--text2);margin-top:3px;}
+/* TOOLBAR */
+.toolbar{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:center;}
+.search-wrap{position:relative;flex:1;min-width:180px;}
+.search-wrap input{width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:'Barlow',sans-serif;font-size:13px;padding:9px 12px 9px 34px;outline:none;transition:border-color .2s;}
+.search-wrap input:focus{border-color:var(--accent);}
+.search-wrap .icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px;}
+select{background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:'Barlow',sans-serif;font-size:12px;padding:9px 12px;outline:none;cursor:pointer;}
+select:focus{border-color:var(--accent);}
+.results-count{color:var(--text3);font-size:11px;letter-spacing:1px;text-transform:uppercase;}
+.icon-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text2);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;padding:8px 16px;cursor:pointer;text-transform:uppercase;transition:all .2s;}
+.icon-btn:hover{border-color:var(--text3);color:var(--text);}
+.icon-btn.active{background:var(--accent);border-color:var(--accent);color:#000;}
+/* TABLE */
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+thead tr{background:var(--bg3);border-bottom:2px solid var(--accent);}
+thead th{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);padding:11px 12px;text-align:left;white-space:nowrap;cursor:pointer;user-select:none;transition:color .2s;}
+thead th:hover{color:var(--accent);}
+tbody tr{border-bottom:1px solid var(--border);transition:background .12s;}
+tbody tr:hover{background:var(--bg3);}
+tbody td{padding:10px 12px;color:var(--text);white-space:nowrap;}
+td.num{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:600;}
+td.highlight{color:var(--gold);font-weight:600;}
+.rank-cell{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:17px;color:var(--text3);}
+.rank-cell.top1{color:var(--gold);}.rank-cell.top2{color:#c0c0c0;}.rank-cell.top3{color:#cd7f32;}
+.player-link{cursor:pointer;color:var(--text);transition:color .15s;font-weight:600;font-size:13px;}
+.player-link:hover{color:var(--accent);text-decoration:underline;}
+.pos-badge{display:inline-block;padding:2px 7px;font-size:10px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;border-radius:2px;margin-right:3px;}
+.pos-PG{background:#1a3a5c;color:var(--blue);}.pos-SG{background:#2d1a3a;color:var(--purple);}
+.pos-SF{background:#1a3a2a;color:var(--green);}.pos-PF{background:#3a2a1a;color:#f97316;}
+.pos-C{background:#3a1a1a;color:var(--accent2);}
+.team-tag{color:var(--text3);font-size:11px;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;}
+/* PAGINATION */
+.pagination{display:flex;align-items:center;gap:6px;margin-top:14px;flex-wrap:wrap;}
+.pagination button{background:var(--bg2);border:1px solid var(--border);color:var(--text2);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;padding:6px 12px;cursor:pointer;transition:all .2s;}
+.pagination button:hover,.pagination button.active-page{border-color:var(--accent);color:var(--accent);}
+.pagination button:disabled{opacity:.3;cursor:default;}
+.page-info{color:var(--text3);font-size:11px;}
+/* SUB TABS */
+.sub-tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;}
+.sub-tab{background:var(--bg2);border:1px solid var(--border);color:var(--text2);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;letter-spacing:1px;padding:7px 16px;cursor:pointer;text-transform:uppercase;transition:all .2s;}
+.sub-tab:hover{border-color:var(--text3);color:var(--text);}
+.sub-tab.active{background:var(--accent);border-color:var(--accent);color:#000;}
+/* CHARTS / BARS */
+.chart-card{background:var(--bg2);border:1px solid var(--border);padding:20px;margin-bottom:16px;}
+.chart-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:var(--text2);margin-bottom:14px;}
+.bar-chart{display:flex;flex-direction:column;gap:7px;}
+.bar-row{display:flex;align-items:center;gap:8px;}
+.bar-label{width:140px;font-size:11px;color:var(--text2);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;}
+.bar-label:hover{color:var(--accent);}
+.bar-track{flex:1;height:18px;background:var(--bg3);position:relative;}
+.bar-fill{height:100%;transition:width .7s ease;position:relative;}
+.bar-val{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:#fff;white-space:nowrap;}
+.bar-fill-pts{background:linear-gradient(90deg,#e8335a,#f5a623);}
+.bar-fill-reb{background:linear-gradient(90deg,#2ecc71,#3b9eff);}
+.bar-fill-ast{background:linear-gradient(90deg,#3b9eff,#a855f7);}
+.bar-fill-champ{background:linear-gradient(90deg,var(--gold),#f97316);}
+.bar-fill-mvp{background:linear-gradient(90deg,#f5c842,#f5a623);}
+.bar-fill-fmvp{background:linear-gradient(90deg,#a855f7,#e8335a);}
+.bar-fill-doty{background:linear-gradient(90deg,#3b9eff,#2ecc71);}
+.bar-fill-generic{background:linear-gradient(90deg,#5a5d6a,#8a8d9a);}
+/* TEAMS */
+.team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
+.team-card{background:var(--bg2);border:1px solid var(--border);padding:18px;transition:border-color .2s;cursor:pointer;}
+.team-card:hover{border-color:var(--accent);}
+.team-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+.team-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:17px;}
+.conf-badge{font-size:10px;font-weight:700;letter-spacing:1px;padding:3px 7px;font-family:'Barlow Condensed',sans-serif;}
+.conf-WEST{background:#1a2a3a;color:var(--blue);border:1px solid #1a3a5c;}
+.conf-EAST{background:#2a1a1a;color:var(--accent2);border:1px solid #3a1a1a;}
+.team-stats-row{display:flex;gap:12px;margin-top:8px;}
+.team-stat{flex:1;text-align:center;}
+.team-stat .tv{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:var(--gold);}
+.team-stat .tl{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-top:1px;}
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:500;overflow-y:auto;}
+.modal-overlay.open{display:flex;align-items:flex-start;justify-content:center;padding:20px;}
+.modal{background:var(--bg2);border:1px solid var(--accent);width:100%;max-width:900px;position:relative;margin-top:20px;}
+.modal-header{background:var(--bg3);padding:24px 28px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;}
+.modal-player-name{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:32px;letter-spacing:1px;}
+.modal-meta{color:var(--text2);font-size:13px;margin-top:4px;}
+.modal-close{background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;padding:4px 8px;}
+.modal-close:hover{color:var(--accent);}
+.modal-body{padding:24px 28px;}
+.modal-section{margin-bottom:22px;}
+.modal-section-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px;}
+.stat-box{background:var(--bg3);padding:10px 12px;}
+.stat-box.avg-box{background:rgba(46,204,113,0.07);border-left:2px solid var(--green);}
+.stat-box .sv{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:var(--gold);}
+.stat-box .sl{font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
+.award-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;}
+.award-box{background:var(--bg3);padding:8px 12px;display:flex;justify-content:space-between;align-items:center;}
+.award-box .an{font-size:11px;color:var(--text2);}
+.award-box .av{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;color:var(--gold);}
+/* HISTORY */
+.hist-champion{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--gold);letter-spacing:1px;}
+.star-link{cursor:pointer;color:var(--text2);font-size:12px;transition:color .15s;}
+.star-link:hover{color:var(--accent);}
+/* ATR tabs */
+.atr-section{display:none;}.atr-section.active{display:block;}
+.atr-tabs{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;}
+.atr-tab{background:var(--bg2);border:1px solid var(--border);color:var(--text2);font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;padding:6px 14px;cursor:pointer;text-transform:uppercase;transition:all .2s;}
+.atr-tab.active{background:var(--accent);border-color:var(--accent);color:#000;}
+/* DECADE */
+.decade-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:20px;}
+.decade-card{background:var(--bg2);border:1px solid var(--border);padding:22px;}
+.decade-name{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;color:var(--accent);letter-spacing:1px;margin-bottom:14px;}
+.decade-player-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;}
+.decade-chip{background:var(--bg3);padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;transition:color .15s;}
+.decade-chip:hover{color:var(--accent);}
+.decade-chip.starter{border-left:2px solid var(--gold);}
+.decade-chip.sub{border-left:2px solid var(--border);}
+.decade-info{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
+.decade-info-item{background:var(--bg3);padding:8px 10px;}
+.decade-info-item .di-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:3px;}
+.decade-info-item .di-val{font-size:12px;font-weight:600;color:var(--text2);}
+/* ALL NBA */
+.allnba-season{margin-bottom:28px;}
+.allnba-season-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;color:var(--accent);letter-spacing:1px;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.allnba-team-row{display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+.allnba-team-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;color:var(--text3);width:60px;text-align:right;}
+.allnba-slot{background:var(--bg3);padding:6px 12px;display:inline-flex;align-items:center;gap:6px;margin:2px;}
+.allnba-pos{font-size:9px;font-weight:700;color:var(--text3);font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;}
+.allnba-player{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:600;}
+/* TEAM MODAL */
+.team-modal-header{background:linear-gradient(135deg,var(--bg3),var(--bg2));padding:26px 30px;border-bottom:2px solid var(--accent);display:flex;justify-content:space-between;align-items:flex-start;}
+.team-modal-name{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:34px;letter-spacing:1px;}
+.standings-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;}
+.standings-table th{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);padding:7px 10px;text-align:left;background:var(--bg3);border-bottom:1px solid var(--border);}
+.standings-table td{padding:7px 10px;border-bottom:1px solid var(--border);font-size:12px;}
+.standings-table tr:hover td{background:var(--bg3);}
+.standings-table .champion-row td{background:rgba(245,168,35,0.08);}
+.champ-year{background:var(--bg3);border:1px solid var(--gold);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;padding:5px 12px;letter-spacing:1px;display:inline-block;margin:3px;}
+/* COMPARE */
+.cmp-table{width:100%;border-collapse:collapse;font-size:13px;border:1px solid var(--border);}
+.cmp-table th{padding:11px 16px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:900;min-width:140px;}
+.cmp-table td{padding:9px 16px;border-bottom:1px solid var(--border);}
+.cmp-table td:first-child{font-size:12px;color:var(--text2);font-weight:600;border-right:1px solid var(--border);min-width:180px;}
+.cmp-table .section-header td{padding:9px 16px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);background:rgba(245,166,35,0.06);border-top:2px solid var(--accent);border-bottom:1px solid rgba(245,166,35,0.25);font-family:'Barlow Condensed',sans-serif;font-weight:700;}
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;height:5px;}::-webkit-scrollbar-track{background:var(--bg2);}::-webkit-scrollbar-thumb{background:var(--border);}::-webkit-scrollbar-thumb:hover{background:var(--text3);}
+@media(max-width:768px){header{padding:0 14px;}main{padding:14px;}nav{padding:0 14px;}.decade-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<!-- LOAD OVERLAY -->
+<div id="loadOverlay">
+  <h2>2K17 NBA Stats Database</h2>
+  <p class="subtitle">DROP YOUR EXCEL FILE TO LOAD THE DASHBOARD</p>
+  <div class="drop-zone" id="dropZone">
+    <div class="dz-icon">📊</div>
+    <h3>Drop 2K17.xlsm here</h3>
+    <p>Drag and drop your Excel file onto this box<br>or click the button below to browse</p>
+    <label class="file-btn">
+      BROWSE FILE
+      <input type="file" id="fileInput" accept=".xlsm,.xlsx,.xls" style="display:none">
+    </label>
+  </div>
+  <p id="progressMsg"></p>
+  <p id="errorMsg"></p>
+  <p style="color:var(--text3);font-size:11px;margin-top:8px;">Every time you update the Excel file, just drop it again to refresh the dashboard</p>
+</div>
+
+<!-- MAIN APP (hidden until file loaded) -->
+<div id="app" style="display:none">
+<header>
+  <div class="logo">2K17 <span>NBA Stats Database</span></div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <span class="season-badge" id="seasonBadge">LOADING...</span>
+    <button class="reload-btn" onclick="showLoadOverlay()">↻ RELOAD FILE</button>
+  </div>
+</header>
+
+<nav id="mainNav">
+  <button class="active" onclick="showSection('overview')">Overview</button>
+  <button onclick="showSection('players')">All Players</button>
+  <button onclick="showSection('top20')">Top 20</button>
+  <button onclick="showSection('bypos')">Positional Rankings</button>
+  <button onclick="showSection('teams')">Teams</button>
+  <button onclick="showSection('history')">History</button>
+  <button onclick="showSection('statleaders')">Stat Leaders</button>
+  <button onclick="showSection('current')">Active Players</button>
+  <button onclick="showSection('allnba')">All-NBA Teams</button>
+  <button onclick="showSection('decades')">Decade Teams</button>
+  <button onclick="showSection('compare')">Compare Players</button>
+</nav>
+
+<main>
+<!-- OVERVIEW -->
+<div id="sec-overview" class="section active">
+  <div class="section-title">League Overview</div>
+  <div class="section-sub" id="overviewSub">2K17 Franchise Database</div>
+  <div class="stats-cards" id="overviewCards"></div>
+  <div style="margin-bottom:24px;">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:var(--text2);margin-bottom:14px;">🏆 All-Time Award Records</div>
+    <div class="atr-tabs" id="atrTabs"></div>
+    <div id="atrContent"></div>
+  </div>
+  <div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:var(--text2);margin-bottom:14px;">📊 All-Time Statistical Leaders</div>
+    <div class="atr-tabs" id="statTabs"></div>
+    <div id="statContent"></div>
+  </div>
+</div>
+
+<!-- ALL PLAYERS -->
+<div id="sec-players" class="section">
+  <div class="section-title">All Players</div>
+  <div class="section-sub" id="playersSub">Career Stats</div>
+  <div class="toolbar">
+    <div class="search-wrap"><span class="icon">🔍</span><input type="text" id="playerSearch" placeholder="Search players..." oninput="filterPlayers()"></div>
+    <select id="playerPosFilter" onchange="filterPlayers()"><option value="">All Positions</option><option>PG</option><option>SG</option><option>SF</option><option>PF</option><option>C</option></select>
+    <button class="icon-btn" id="playersModeBtn" onclick="toggleMode('players')">AVERAGES</button>
+    <button class="icon-btn" id="playersExpandBtn" onclick="toggleExpand('players')">+ MORE COLS</button>
+    <span class="results-count" id="playerCount"></span>
+  </div>
+  <div class="table-wrap"><table><thead><tr id="playersHead"></tr></thead><tbody id="playersBody"></tbody></table></div>
+  <div class="pagination" id="playersPag"></div>
+</div>
+
+<!-- TOP 20 -->
+<div id="sec-top20" class="section">
+  <div class="section-title">Top 20 Players</div>
+  <div class="section-sub">All-Time Franchise Rankings</div>
+  <div class="toolbar">
+    <div class="search-wrap"><span class="icon">🔍</span><input type="text" id="top20Search" placeholder="Search..." oninput="filterTop20()"></div>
+    <button class="icon-btn" id="top20ModeBtn" onclick="toggleMode('top20')">TOTALS</button>
+    <button class="icon-btn" id="top20ExpandBtn" onclick="toggleExpand('top20')">+ MORE COLS</button>
+    <span class="results-count" id="top20Count"></span>
+  </div>
+  <div class="table-wrap"><table><thead><tr id="top20Head"></tr></thead><tbody id="top20Body"></tbody></table></div>
+  <div class="pagination" id="top20Pag"></div>
+</div>
+
+<!-- BY POSITION -->
+<div id="sec-bypos" class="section">
+  <div class="section-title">Positional Rankings</div>
+  <div class="section-sub">Rankings & Full Stats</div>
+  <div class="sub-tabs" id="posTabs">
+    <button class="sub-tab active" onclick="switchPos('PG')">PG <span id="cnt-PG"></span></button>
+    <button class="sub-tab" onclick="switchPos('SG')">SG <span id="cnt-SG"></span></button>
+    <button class="sub-tab" onclick="switchPos('SF')">SF <span id="cnt-SF"></span></button>
+    <button class="sub-tab" onclick="switchPos('PF')">PF <span id="cnt-PF"></span></button>
+    <button class="sub-tab" onclick="switchPos('C')">C <span id="cnt-C"></span></button>
+  </div>
+  <div class="toolbar">
+    <div class="search-wrap"><span class="icon">🔍</span><input type="text" id="posSearch" placeholder="Search players..." oninput="filterPos()"></div>
+    <button class="icon-btn" id="posModeBtn" onclick="toggleMode('pos')">AVERAGES</button>
+    <button class="icon-btn" id="posExpandBtn" onclick="toggleExpand('pos')">+ MORE COLS</button>
+  </div>
+  <div class="table-wrap"><table><thead><tr id="posHead"></tr></thead><tbody id="posBody"></tbody></table></div>
+  <div class="pagination" id="posPag"></div>
+</div>
+
+<!-- TEAMS -->
+<div id="sec-teams" class="section">
+  <div class="section-title">Team Records</div>
+  <div class="section-sub" id="teamsSub">All-Time Franchise Performance</div>
+  <div class="toolbar">
+    <div class="search-wrap"><span class="icon">🔍</span><input type="text" id="teamSearch" placeholder="Search teams..." oninput="filterTeams()"></div>
+    <select id="teamConfFilter" onchange="filterTeams()"><option value="">All Conferences</option><option value="EAST">East</option><option value="WEST">West</option></select>
+    <select id="teamSortFilter" onchange="filterTeams()"><option value="Glory Score">Glory Score</option><option value="Championship">Championships</option><option value="Playoffs">Playoffs</option></select>
+  </div>
+  <div class="team-grid" id="teamGrid"></div>
+</div>
+
+<!-- HISTORY -->
+<div id="sec-history" class="section">
+  <div class="section-title">NBA History</div>
+  <div class="section-sub">Season-by-Season Awards & Champions</div>
+  <div class="sub-tabs" style="margin-bottom:18px;">
+    <button class="sub-tab active" onclick="switchHistView('history')">League History</button>
+    <button class="sub-tab" onclick="switchHistView('standings')">Season Standings</button>
+  </div>
+  <div id="historyView">
+    <div class="toolbar">
+      <div class="search-wrap"><span class="icon">🔍</span><input type="text" id="histSearch" placeholder="Search season, player, team..." oninput="filterHistory()"></div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr>
+        <th onclick="sortHist('Season')">Season</th>
+        <th onclick="sortHist('MVP')">MVP</th>
+        <th>Champion</th><th>Finals Series</th>
+        <th onclick="sortHist('FMVP')">Finals MVP</th>
+        <th onclick="sortHist('DPOY')">DPOY</th>
+        <th>Top Star 1</th><th>Top Star 2</th><th>Top Star 3</th>
+      </tr></thead>
+      <tbody id="histBody"></tbody>
+    </table></div>
+    <div class="pagination" id="histPag"></div>
+  </div>
+  <div id="standingsView" style="display:none;">
+    <div class="toolbar">
+      <select id="standingsSeason" onchange="renderStandings()" style="font-size:14px;padding:9px 14px;"></select>
+      <select id="standingsConf" onchange="renderStandings()">
+        <option value="">Full League</option>
+        <option value="SPLIT">East + West (split)</option>
+        <option value="EAST">East only</option>
+        <option value="WEST">West only</option>
+      </select>
+    </div>
+    <div id="standingsContent"></div>
+  </div>
+</div>
+
+<!-- STAT LEADERS -->
+<div id="sec-statleaders" class="section">
+  <div class="section-title">Season Stat Leaders</div>
+  <div class="section-sub">Yearly Statistical Leaders</div>
+  <div class="toolbar">
+    <div class="search-wrap"><span class="icon">🔍</span><input type="text" id="statSearch" placeholder="Search season or player..." oninput="filterStat()"></div>
+    <span class="results-count" id="statCount"></span>
+  </div>
+  <div class="table-wrap"><table>
+    <thead><tr>
+      <th>Season</th><th>Pts Leader</th><th>Team</th><th>PPG</th>
+      <th>Reb Leader</th><th>Team</th><th>RPG</th>
+      <th>Ast Leader</th><th>Team</th><th>APG</th>
+      <th>Stl Leader</th><th>SPG</th><th>Blk Leader</th><th>BPG</th>
+    </tr></thead>
+    <tbody id="statBody"></tbody>
+  </table></div>
+  <div class="pagination" id="statPag"></div>
+</div>
+
+<!-- CURRENT PLAYERS -->
+<div id="sec-current" class="section">
+  <div class="section-title">Active Players</div>
+  <div class="section-sub" id="currentSub">Active This Season</div>
+  <div class="toolbar">
+    <div class="search-wrap"><span class="icon">🔍</span><input type="text" id="curSearch" placeholder="Search players..." oninput="filterCurrent()"></div>
+    <select id="curPosFilter" onchange="filterCurrent()"><option value="">All Positions</option><option>PG</option><option>SG</option><option>SF</option><option>PF</option><option>C</option></select>
+    <span class="results-count" id="curCount"></span>
+  </div>
+  <div class="table-wrap"><table><thead><tr id="curHead"></tr></thead><tbody id="curBody"></tbody></table></div>
+  <div class="pagination" id="curPag"></div>
+</div>
+
+<!-- ALL NBA TEAMS -->
+<div id="sec-allnba" class="section">
+  <div class="section-title">All-NBA Teams</div>
+  <div class="section-sub">Season-by-Season All-NBA Selections</div>
+  <div class="toolbar">
+    <div class="search-wrap"><span class="icon">🔍</span><input type="text" id="allnbaSearch" placeholder="Search player or season..." oninput="filterAllNba()"></div>
+  </div>
+  <div id="allNbaContent"></div>
+  <div class="pagination" id="allNbaPag"></div>
+</div>
+
+<!-- DECADE TEAMS -->
+<div id="sec-decades" class="section">
+  <div class="section-title">Decade Teams</div>
+  <div class="section-sub">Best Players of Each Era</div>
+  <div class="decade-grid" id="decadeGrid"></div>
+</div>
+
+<!-- COMPARE -->
+<div id="sec-compare" class="section">
+  <div class="section-title">Compare Players</div>
+  <div class="section-sub">Side-by-Side Player Comparison</div>
+  <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:flex-end;">
+    <div>
+      <div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:6px">Player 1</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <div class="search-wrap" style="min-width:220px;"><span class="icon">🔍</span><input type="text" id="cmpSearch1" placeholder="Search player..." oninput="cmpSuggest(1)" autocomplete="off"></div>
+        <div id="cmpSelected1" style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--accent);min-width:100px;"></div>
+      </div>
+      <div id="cmpDropdown1" style="position:relative;"></div>
+    </div>
+    <div>
+      <div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:6px">Player 2</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <div class="search-wrap" style="min-width:220px;"><span class="icon">🔍</span><input type="text" id="cmpSearch2" placeholder="Search player..." oninput="cmpSuggest(2)" autocomplete="off"></div>
+        <div id="cmpSelected2" style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--blue);min-width:100px;"></div>
+      </div>
+      <div id="cmpDropdown2" style="position:relative;"></div>
+    </div>
+    <div>
+      <div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:6px">Player 3 (optional)</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <div class="search-wrap" style="min-width:220px;"><span class="icon">🔍</span><input type="text" id="cmpSearch3" placeholder="Search player..." oninput="cmpSuggest(3)" autocomplete="off"></div>
+        <div id="cmpSelected3" style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--green);min-width:100px;"></div>
+      </div>
+      <div id="cmpDropdown3" style="position:relative;"></div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button onclick="renderCompare()" style="background:var(--accent);border:none;color:#000;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;padding:10px 20px;cursor:pointer;">COMPARE</button>
+      <button id="cmpModeBtn" onclick="toggleCmpMode()" class="icon-btn">AVERAGES</button>
+      <button onclick="clearCompare()" class="icon-btn">Clear</button>
+    </div>
+  </div>
+  <div id="cmpResult"></div>
+</div>
+</main>
+</div>
+
+<!-- PLAYER MODAL -->
+<div class="modal-overlay" id="playerModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<script>
+// =====================================================================
+// DATA STORE
+// =====================================================================
+let DB = {
+  allPlayers: [], top20: [], positions: {PG:[],SG:[],SF:[],PF:[],C:[]},
+  teams: [], history: [], statLeaders: [], currentPlayers: [],
+  allNbaSeasons: [], decades: [], awardRecords: [], allTimeStats: []
+};
+
+// =====================================================================
+// FILE LOADING
+// =====================================================================
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const progressMsg = document.getElementById('progressMsg');
+const errorMsg = document.getElementById('errorMsg');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); handleFile(e.dataTransfer.files[0]); });
+fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+
+function showLoadOverlay() {
+  document.getElementById('loadOverlay').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+
+function setProgress(msg) { progressMsg.textContent = msg; }
+
+function handleFile(file) {
+  if (!file) return;
+  errorMsg.style.display = 'none';
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (!['xlsm','xlsx','xls'].includes(ext)) {
+    errorMsg.textContent = 'Please drop an Excel file (.xlsm, .xlsx, or .xls)';
+    errorMsg.style.display = 'block';
+    return;
+  }
+  setProgress('Reading file...');
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      setProgress('Parsing Excel data...');
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, { type: 'array', cellDates: true });
+      setProgress('Processing sheets...');
+      parseWorkbook(wb);
+      setProgress('Building dashboard...');
+      setTimeout(() => {
+        initDashboard();
+        document.getElementById('loadOverlay').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        setProgress('');
+      }, 100);
+    } catch(err) {
+      errorMsg.textContent = 'Error reading file: ' + err.message;
+      errorMsg.style.display = 'block';
+      setProgress('');
+      console.error(err);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// =====================================================================
+// EXCEL PARSING
+// =====================================================================
+function sheetToArr(ws) {
+  const ref = ws['!ref'];
+  if (!ref) return [];
+  const range = XLSX.utils.decode_range(ref);
+  const rows = [];
+  for (let r = range.s.r; r <= range.e.r; r++) {
+    const row = [];
+    for (let c = range.s.c; c <= range.e.c; c++) {
+      const cell = ws[XLSX.utils.encode_cell({r, c})];
+      row.push(cell ? cell.v : null);
+    }
+    rows.push(row);
+  }
+  return rows;
+}
+
+function rowsToObjects(rows) {
+  if (!rows || rows.length < 2) return [];
+  const headers = rows[0].map((h, i) => h !== null && h !== undefined ? String(h) : `col_${i}`);
+  return rows.slice(1)
+    .filter(r => r.some(v => v !== null && v !== undefined))
+    .map(r => {
+      const obj = {};
+      headers.forEach((h, i) => { obj[h] = (r[i] !== undefined && r[i] !== null) ? r[i] : null; });
+      return obj;
+    });
+}
+
+function parseWorkbook(wb) {
+  setProgress('Loading All Players...');
+  DB.allPlayers = rowsToObjects(sheetToArr(wb.Sheets['All Players'] || wb.Sheets[wb.SheetNames[0]]));
+
+  setProgress('Loading Positional rankings...');
+  ['PG','SG','SF','PF','C'].forEach(pos => {
+    if (wb.Sheets[pos]) DB.positions[pos] = rowsToObjects(sheetToArr(wb.Sheets[pos]));
+  });
+
+  setProgress('Loading Top 20...');
+  if (wb.Sheets['Top 20']) DB.top20 = rowsToObjects(sheetToArr(wb.Sheets['Top 20']));
+
+  setProgress('Loading History...');
+  if (wb.Sheets['NBA History']) {
+    const rows = sheetToArr(wb.Sheets['NBA History']);
+    DB.history = rows.slice(1)
+      .filter(r => r[0] !== null && r[0] !== undefined)
+      .map(r => ({
+        Season: r[0], MVP: r[2], FMVP: r[3], Finals: r[5], DPOY: r[7],
+        Star1: r[9], Star2: r[10], Star3: r[11]
+      }));
+  }
+
+  setProgress('Loading Teams...');
+  if (wb.Sheets['Team Record']) {
+    const rows = sheetToArr(wb.Sheets['Team Record']);
+    const headers = rows[0];
+    // Season columns: numeric headers > 2000 (years like 2051, 2052 ... 2076)
+    const seasonCols = [];
+    headers.forEach((h, i) => {
+      if (h !== null && h !== undefined) {
+        const num = typeof h === 'number' ? h : parseFloat(h);
+        if (!isNaN(num) && num > 2000 && num < 3000) seasonCols.push({idx: i, year: Math.round(num)});
+      }
+    });
+    DB.teams = rows.slice(1, 33)
+      .filter(r => r[0] !== null && r[0] !== undefined && r[1] !== null && r[1] !== undefined)
+      .map(r => {
+        const t = {
+          Rank: r[0], Team: r[1], Conference: r[2], Championship: r[3],
+          'Conference Titles': r[4], 'Division Titles': r[5], Playoffs: r[6],
+          'Glory Score': r[7], 'Last Title': r[8], 'Last Finals': r[9],
+          'Last Playoffs': r[10], 'Est. Date': r[11],
+          'Avg. W Last 5Y': r[12], 'Avg. W Last 10Y': r[13],
+          seasonRecords: {}
+        };
+        seasonCols.forEach(sc => {
+          const raw = r[sc.idx];
+          if (raw !== null && raw !== undefined) {
+            // Some values have .01 added as a tiebreaker indicator - floor to get real wins
+            const rawNum = parseFloat(raw);
+            const w = Math.floor(rawNum);
+            if (!isNaN(w) && w >= 0) {
+              t.seasonRecords[sc.year] = { w, l: 82 - w, rawW: rawNum };
+            }
+          }
+        });
+        return t;
+      });
+  }
+
+  setProgress('Loading Stat Leaders...');
+  if (wb.Sheets['Season Stat Leader']) {
+    const rows = sheetToArr(wb.Sheets['Season Stat Leader']);
+    DB.statLeaders = rows.slice(1)
+      .filter(r => r[0] !== null)
+      .map(r => ({
+        Season: r[0], PtsTeam: r[1], PtsLeader: r[2], PPG: r[3],
+        RebTeam: r[4], RebLeader: r[5], RPG: r[6],
+        AstTeam: r[7], AstLeader: r[8], APG: r[9],
+        StlTeam: r[10], StlLeader: r[11], SPG: r[12],
+        BlkTeam: r[13], BlkLeader: r[14], BPG: r[15]
+      }));
+  }
+
+  setProgress('Loading Current Players...');
+  if (wb.Sheets['Current Player']) {
+    const cpRows = sheetToArr(wb.Sheets['Current Player']);
+    // Only take rows 1-34 (row 0 = header, rows 1-34 = players, row 35+ = notes)
+    const cpHeaders = cpRows[0].map((h,i) => h !== null && h !== undefined ? String(h) : `col_${i}`);
+    DB.currentPlayers = cpRows.slice(1, 35)
+      .filter(r => r[1] !== null && r[1] !== undefined)
+      .map(r => {
+        const obj = {};
+        cpHeaders.forEach((h, i) => { obj[h] = (r[i] !== undefined && r[i] !== null) ? r[i] : null; });
+        return obj;
+      });
+  }
+
+  setProgress('Loading All-NBA Teams...');
+  if (wb.Sheets['All NBA Team']) {
+    DB.allNbaSeasons = parseAllNbaTeams(sheetToArr(wb.Sheets['All NBA Team']));
+  }
+
+  setProgress('Loading Decade Teams...');
+  if (wb.Sheets['Decade NBA Team']) {
+    DB.decades = parseDecades(sheetToArr(wb.Sheets['Decade NBA Team']));
+  }
+
+  setProgress('Loading All-Time Records...');
+  if (wb.Sheets['NBA All-Time Record']) {
+    parseAllTimeRecords(sheetToArr(wb.Sheets['NBA All-Time Record']));
+  }
+
+  // Find latest season
+  const latestSeason = DB.history.length > 0 ? DB.history[0].Season : '—';
+  document.getElementById('seasonBadge').textContent = `SEASON ${latestSeason}–${String(Number(latestSeason)+1).slice(-2)}`;
+}
+
+function parseAllNbaTeams(rows) {
+  const seasons = [];
+  const POSITIONS = ['G','G','F','F','C'];
+  // Block every 7 rows: row0=seasons, row1=positions, rows2-4=teams1-3, rows5-6=blank
+  for (let blockStart = 0; blockStart < rows.length; blockStart += 7) {
+    const r0 = rows[blockStart];
+    if (!r0) continue;
+    // Left block: col3 = season year, cols 0-5 = team data
+    // Right block: col11 = season year, cols 8-13 = team data
+    [[3, [0,1,2,3,4,5]], [11, [8,9,10,11,12,13]]].forEach(([yearCol, dataCols]) => {
+      const yr = r0[yearCol];
+      if (!yr || typeof yr !== 'number' || yr < 2000) return;
+      const teams = [];
+      for (let ti = 0; ti < 3; ti++) {
+        const dataRow = rows[blockStart + 2 + ti];
+        if (!dataRow) continue;
+        const slots = [];
+        // Players are in dataCols[1..5], positions are fixed G,G,F,F,C
+        for (let pi = 1; pi <= 5; pi++) {
+          const playerName = dataRow[dataCols[pi]];
+          if (playerName) slots.push({ pos: POSITIONS[pi-1], player: String(playerName) });
+        }
+        if (slots.length > 0) teams.push({ team: ti + 1, slots });
+      }
+      if (teams.length > 0) seasons.push({ season: yr, teams });
+    });
+  }
+  return seasons.sort((a, b) => b.season - a.season);
+}
+
+function parseDecades(rows) {
+  const decades = [];
+  let current = null;
+  rows.forEach(r => {
+    if (!r || r.every(v => v === null)) { current = null; return; }
+    // Detect era header: col3 or col4 contains era name
+    const eraName = r[4];
+    const decadeName = r[3];
+    if (typeof decadeName === 'string' && decadeName.includes('Era') && !r[0]) {
+      current = {
+        decade: decadeName, era: eraName || '', positions: ['G','G','F','F','C'],
+        starter: [], subs: [], info: {}
+      };
+      decades.push(current);
+      return;
+    }
+    if (!current) return;
+    // Starter row
+    if (r[0] === 'Starter') {
+      current.starter = [r[1],r[2],r[3],r[4],r[5]].filter(v => v !== null && v !== undefined);
+      return;
+    }
+    // Subs row
+    if (r[0] === 'Subs') {
+      current.subs = [r[1],r[2],r[3],r[4],r[5]].filter(v => v !== null && v !== undefined);
+      return;
+    }
+    // More subs (continuation row - no label, just player names in cols 1-5)
+    if (r[0] === null && (r[1] !== null || r[2] !== null) && current.starter.length > 0) {
+      const moreSubs = [r[1],r[2],r[3],r[4],r[5]].filter(v => v !== null && v !== undefined && typeof v === 'string');
+      if (moreSubs.length > 0) current.subs.push(...moreSubs);
+    }
+    // Info rows: col7 = label, col8 = value1, col9 = value2
+    if (r[7]) {
+      const label = String(r[7]).toLowerCase().replace(/\s+/g,'_');
+      const val1 = r[8] ? String(r[8]) : '';
+      const val2 = r[9] ? String(r[9]) : '';
+      if (label.includes('franchise') || label.includes('best_franchise')) {
+        current.info.franchise1 = val1 || null;
+        current.info.franchise2 = val2 || null;
+      } else if (label.includes('mvp')) {
+        current.info.mvpList = [val1, val2].filter(Boolean);
+      } else if (label.includes('doty') || label.includes('dpoy')) {
+        current.info.dotyList = [val1, val2].filter(Boolean);
+      }
+    }
+  });
+  return decades.reverse();
+}
+
+function parseAllTimeRecords(rows) {
+  // AWARD RECORDS - 4 columns (rows 1-20): MVP, Champions, FMVP, DOTY
+  const awardDefs = [
+    {name:'MVP',       pCol:1, vCol:2},
+    {name:'Champions', pCol:5, vCol:6},
+    {name:'FMVP',      pCol:9, vCol:10},
+    {name:'DOTY',      pCol:13,vCol:14},
+  ];
+  DB.awardRecords = awardDefs.map(d => ({name: d.name, entries: []}));
+
+  // STAT RECORDS - 4 blocks of rows
+  // Block 2 (header row2=23): PTS(0-2), REB(4-6), AST(8-10), STL(12-14)
+  // Block 3 (header row3=46): BLK(0-2), DD2(4-6), TD3(8-10), TO(12-14)
+  // Block 4 (header row4=69): FGM(0-2), 3PM(4-6), FTM(8-10), MIN(12-14)
+  // Block 5 (header row5=92): GP(0-2) only
+  const statDefs = [
+    {name:'PTS', pCol:1, vCol:2}, {name:'REB', pCol:5, vCol:6}, {name:'AST', pCol:9,  vCol:10}, {name:'STL', pCol:13,vCol:14},
+    {name:'BLK', pCol:1, vCol:2}, {name:'DD2', pCol:5, vCol:6}, {name:'TD3', pCol:9,  vCol:10}, {name:'TO',  pCol:13,vCol:14},
+    {name:'FGM', pCol:1, vCol:2}, {name:'3PM', pCol:5, vCol:6}, {name:'FTM', pCol:9,  vCol:10}, {name:'MIN', pCol:13,vCol:14},
+    {name:'GP',  pCol:1, vCol:2},
+  ];
+  DB.allTimeStats = statDefs.map(d => ({name: d.name, entries: []}));
+
+  // Determine which block each row belongs to by tracking header rows
+  let section = 'awards'; // 'awards', 'block2', 'block3', 'block4', 'block5'
+  let blockIdx = -1; // index into 4-wide or 1-wide defs per block
+
+  const blockHeaders = {
+    'PTS': {section:'block2', startIdx:0},
+    'BLK': {section:'block3', startIdx:4},
+    'FGM': {section:'block4', startIdx:8},
+    'GP':  {section:'block5', startIdx:12},
+  };
+
+  rows.forEach(r => {
+    if (!r || r.every(v => v === null || v === undefined)) return;
+    const c0 = r[0], c2 = r[2];
+
+    // Check for block header rows
+    if (c0 === 'Rank' && (c2 === 'PTS' || c2 === 'BLK' || c2 === 'FGM' || c2 === 'GP')) {
+      const bh = blockHeaders[c2];
+      section = bh.section;
+      blockIdx = bh.startIdx;
+      return;
+    }
+    if (c0 === 'Rank' && c2 === 'MVP') { section = 'awards'; return; }
+
+    if (section === 'awards') {
+      awardDefs.forEach((d, ci) => {
+        const player = r[d.pCol], val = r[d.vCol];
+        if (player && val !== null && val !== undefined) {
+          DB.awardRecords[ci].entries.push({rank: r[d.pCol-1], player: String(player), value: String(val)});
+        }
+      });
+    } else if (section === 'block5') {
+      // GP only - single column
+      const player = r[1], val = r[2];
+      if (player && val !== null && val !== undefined) {
+        DB.allTimeStats[12].entries.push({rank: r[0], player: String(player), value: numFmt(val)});
+      }
+    } else {
+      // 4-column stat block
+      const count = section === 'block2' ? 4 : section === 'block3' ? 4 : 4;
+      const cols = [{pCol:1,vCol:2},{pCol:5,vCol:6},{pCol:9,vCol:10},{pCol:13,vCol:14}];
+      cols.forEach((dc, ci) => {
+        const idx = blockIdx + ci;
+        if (idx >= DB.allTimeStats.length) return;
+        const player = r[dc.pCol], val = r[dc.vCol];
+        if (player && val !== null && val !== undefined) {
+          DB.allTimeStats[idx].entries.push({rank: r[dc.pCol-1], player: String(player), value: numFmt(val)});
+        }
+      });
+    }
+  });
+}
+
+// =====================================================================
+// HELPERS
+// =====================================================================
+function n(v) { return (v === null || v === undefined || v === '-' || v === '') ? null : parseFloat(v); }
+function numFmt(v) {
+  if (v === null || v === undefined || v === '' || v === '-') return '-';
+  const num = parseFloat(v);
+  if (isNaN(num)) return String(v);
+  return num.toLocaleString();
+}
+function pctFmt(v) {
+  if (v === null || v === undefined || v === '-' || v === '') return '-';
+  const num = parseFloat(v);
+  return isNaN(num) ? '-' : num.toFixed(1) + '%';
+}
+function getNum(v) { const x = parseFloat(v); return isNaN(x) ? -Infinity : x; }
+function posBadge(pos) { return pos ? `<span class="pos-badge pos-${pos}">${pos}</span>` : ''; }
+function teamTags(row) {
+  const teams = [];
+  for (let i = 1; i <= 11; i++) {
+    const k = i === 1 ? 'Team' : `Team${i}`;
+    if (row[k]) teams.push(row[k]);
+  }
+  return [...new Set(teams)].map(t => `<span class="team-tag">${t}</span>`).join(' ');
+}
+function retiredNums(row) {
+  return ['# Retired','# Retired2','# Retired3'].map(k => row[k]).filter(v => v && v !== 0 && v !== '');
+}
+function rankCls(r) { return r === 1 ? 'top1' : r === 2 ? 'top2' : r === 3 ? 'top3' : ''; }
+function plink(name) {
+  return `<span class="player-link" onclick="openPlayerModal('${String(name).replace(/'/g,"\\'")}')"><span>${name}</span></span>`;
+}
+function extractChampTeam(finals) {
+  if (!finals) return '';
+  const m = String(finals).match(/^([A-Z]{2,4})\s+4/);
+  return m ? m[1] : '';
+}
+function extractLoserTeam(finals) {
+  if (!finals) return '';
+  // Format: "WINNER 4-N LOSER" or "WINNER 4–N LOSER" (en-dash variant)
+  // Split on whitespace and take last non-empty token
+  const parts = String(finals).trim().split(/\s+/);
+  return parts.length >= 3 ? parts[parts.length - 1] : '';
+}
+const TEAM_NAMES = {
+  ATL:'Atlanta Hawks',BOS:'Boston Celtics',BYN:'Brooklyn Nets',BKN:'Brooklyn Nets',
+  CHA:'Charlotte Hornets',CHI:'Chicago Bulls',CLE:'Cleveland Cavaliers',DAL:'Dallas Mavericks',
+  DEN:'Denver Nuggets',DET:'Detroit Pistons',GSW:'Golden State Warriors',GS:'Golden State Warriors',
+  HOU:'Houston Rockets',IND:'Indiana Pacers',LAC:'Los Angeles Clippers',LAL:'Los Angeles Lakers',
+  MEM:'Memphis Grizzlies',MIA:'Miami Heat',MIL:'Milwaukee Bucks',MIN:'Minnesota Timberwolves',
+  NOP:'New Orleans Pelicans',NO:'New Orleans Pelicans',NYK:'New York Knicks',NY:'New York Knicks',
+  OKC:'Oklahoma City Thunder',ORL:'Orlando Magic',PHI:'Philadelphia 76ers',PHX:'Phoenix Suns',
+  POR:'Portland Trail Blazers',SAC:'Sacramento Kings',SA:'San Antonio Spurs',SAS:'San Antonio Spurs',
+  TOR:'Toronto Raptors',UTA:'Utah Jazz',WAS:'Washington Wizards',SD:'San Diego Surf',KC:'Kansas City Knights'
+};
+function fullTeamName(abbr) { return TEAM_NAMES[abbr] || abbr; }
+
+// =====================================================================
+// SORTING & PAGINATION
+// =====================================================================
+let sortStates = {};
+function sortArr(arr, col, dir) {
+  if (!col) return arr;
+  return [...arr].sort((a, b) => {
+    const av = getNum(a[col]), bv = getNum(b[col]);
+    if (av !== -Infinity || bv !== -Infinity) return (av - bv) * dir;
+    return String(a[col]||'').localeCompare(String(b[col]||'')) * dir;
+  });
+}
+function toggleSortState(key, col) {
+  const prev = sortStates[key];
+  if (prev && prev.col === col) { sortStates[key] = {col, dir: prev.dir * -1}; }
+  else { sortStates[key] = {col, dir: -1}; }
+}
+function renderPag(id, total, perPage, cur, cb) {
+  const pages = Math.ceil(total / perPage);
+  const el = document.getElementById(id);
+  if (!el) return;
+  let h = `<button ${cur <= 1 ? 'disabled' : ''} onclick="${cb}(${cur-1})">← Prev</button>`;
+  const range = [];
+  for (let i = 1; i <= pages; i++) {
+    if (i===1||i===pages||Math.abs(i-cur)<=2) range.push(i);
+    else if (range[range.length-1]!=='...') range.push('...');
+  }
+  for (const p of range) {
+    if (p==='...') h += `<span style="color:var(--text3);padding:0 4px">…</span>`;
+    else h += `<button class="${p===cur?'active-page':''}" onclick="${cb}(${p})">${p}</button>`;
+  }
+  h += `<button ${cur>=pages?'disabled':''} onclick="${cb}(${cur+1})">Next →</button>`;
+  h += `<span class="page-info">${(cur-1)*perPage+1}–${Math.min(cur*perPage,total)} of ${total}</span>`;
+  el.innerHTML = h;
+}
+
+// =====================================================================
+// MODE TOGGLES (avg/total)
+// =====================================================================
+const modes = {players: 'avg', top20: 'total', pos: 'avg'};
+const expanded = {players: false, top20: false, pos: false};
+function toggleMode(key) {
+  modes[key] = modes[key] === 'avg' ? 'total' : 'avg';
+  const btn = document.getElementById(key + 'ModeBtn');
+  if (btn) btn.textContent = modes[key] === 'avg' ? 'AVERAGES' : 'TOTALS';
+  if (key === 'players') renderPlayers();
+  else if (key === 'top20') renderTop20();
+  else if (key === 'pos') renderPos();
+}
+function toggleExpand(key) {
+  expanded[key] = !expanded[key];
+  const btn = document.getElementById(key + 'ExpandBtn');
+  if (btn) btn.textContent = expanded[key] ? '- LESS COLS' : '+ MORE COLS';
+  if (key === 'players') renderPlayers();
+  else if (key === 'top20') renderTop20();
+  else if (key === 'pos') renderPos();
+}
+function getStatVal(row, key, mode) {
+  const raw = getNum(row[key]);
+  if (raw === -Infinity) return null;
+  const gp = Math.max(getNum(row['GP']) || 1, 1);
+  return mode === 'avg' ? raw / gp : raw;
+}
+function fmtStatVal(row, key, mode) {
+  const v = getStatVal(row, key, mode);
+  if (v === null) return '-';
+  return mode === 'avg' ? v.toFixed(1) : Math.round(v).toLocaleString();
+}
+
+// =====================================================================
+// PLAYER TABLE HEADER & ROW
+// =====================================================================
+function buildPlayerHead(tblKey, mode, extraCols) {
+  const s = sortStates[tblKey] || {};
+  const si = col => s.col === col ? (s.dir > 0 ? ' ↑' : ' ↓') : '';
+  const th = (col, label) =>
+    `<th onclick="onSort('${tblKey}','${col}')">${label}${si(col)}</th>`;
+  const ptsL = mode==='avg'?'PPG':'PTS', rebL=mode==='avg'?'RPG':'REB';
+  const astL = mode==='avg'?'APG':'AST', stlL=mode==='avg'?'SPG':'STL', blkL=mode==='avg'?'BPG':'BLK';
+  const exp = expanded[tblKey] || false;
+  return `${extraCols||''}
+    ${th('GP','GP')} ${th('PTS',ptsL)} ${th('REB',rebL)} ${th('AST',astL)}
+    ${th('STL',stlL)} ${th('BLK',blkL)} ${th('FG%','FG%')} ${th('3P%','3P%')} ${th('FT%','FT%')}
+    ${th('DD2','DD2')} ${th('TD3','TD3')}
+    ${exp ? th('MIN','MIN')+th('TOV','TOV')+th('FGM','FGM')+th('FGA','FGA')+th('3PM','3PM')+th('3PA','3PA')+th('FTM','FTM')+th('FTA','FTA') : ''}
+    ${th('Finals App','Finals')}
+    ${th('MVP','MVP')} ${th('Champions','Champ')} ${th('FMVP','FMVP')}
+    ${th('All Stars','All-Stars')} ${th('All NBA Team','All-NBA')}
+    ${exp ? th('1st Team','1st')+th('2nd Team','2nd')+th('3rd Team','3rd') : ''}
+    ${th('1st D Team','D-Team')}
+    ${exp ? th('1st D Team','1st-D')+th('2nd D Team','2nd-D') : ''}
+    ${th('DPOY','DPOY')}
+    <th>Retired#</th><th>Teams</th>`;
+}
+function buildPlayerRow(row, rank, mode) {
+  const v = key => fmtStatVal(row, key, mode);
+  const retired = retiredNums(row).join(' · ') || '—';
+  return `<tr>
+    <td class="rank-cell ${rankCls(rank)}">${rank}</td>
+    <td>${plink(row.Player || '—')}</td>
+    <td style="color:var(--text2);font-size:11px">${row.Season||'—'}</td>
+    <td class="num">${numFmt(row.GP)}</td>
+    <td class="num highlight">${v('PTS')}</td>
+    <td class="num">${v('REB')}</td>
+    <td class="num">${v('AST')}</td>
+    <td class="num">${v('STL')}</td>
+    <td class="num">${v('BLK')}</td>
+    <td class="num">${pctFmt(row['FG%'])}</td>
+    <td class="num">${pctFmt(row['3P%'])}</td>
+    <td class="num">${pctFmt(row['FT%'])}</td>
+    <td class="num">${numFmt(row.DD2)}</td>
+    <td class="num">${numFmt(row.TD3)}</td>
+    <td class="num">${row['Finals App']||0}</td>
+    <td class="num" style="color:var(--gold)">${row.MVP||0}</td>
+    <td class="num" style="color:var(--green)">${row.Champions||0}</td>
+    <td class="num">${row.FMVP||0}</td>
+    <td class="num">${row['All Stars']||0}</td>
+    <td class="num">${row['All NBA Team']||0}</td>
+    <td class="num">${row.DPOY||0}</td>
+    <td style="color:var(--accent);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700">${retired}</td>
+    <td>${teamTags(row)}</td>
+  </tr>`;
+}
+function sortedByMode(arr, key, mode) {
+  const s = sortStates[key];
+  if (!s || !s.col) return arr;
+  const col = s.col, dir = s.dir;
+  const statCols = ['PTS','REB','AST','STL','BLK'];
+  return [...arr].sort((a, b) => {
+    if (mode && statCols.includes(col)) {
+      const av = getStatVal(a, col, mode), bv = getStatVal(b, col, mode);
+      if (av !== null && bv !== null) return (av - bv) * dir;
+    }
+    // Season column: sort by the numeric year part (e.g. "2004-24" -> 2004)
+    if (col === 'Season') {
+      const ay = parseInt(String(a[col]||'0').split('-')[0]) || 0;
+      const by = parseInt(String(b[col]||'0').split('-')[0]) || 0;
+      return (ay - by) * dir;
+    }
+    return (getNum(a[col]) - getNum(b[col])) * dir || String(a[col]||'').localeCompare(String(b[col]||'')) * dir;
+  });
+}
+function onSort(key, col) {
+  toggleSortState(key, col);
+  if (key === 'players') renderPlayers();
+  else if (key === 'top20') renderTop20();
+  else if (key === 'pos') renderPos();
+  else if (key === 'hist') renderHistory();
+}
+
+// =====================================================================
+// SECTION NAVIGATION
+// =====================================================================
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('#mainNav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  const idx = ['overview','players','top20','bypos','teams','history','statleaders','current','allnba','decades','compare'];
+  const btns = document.querySelectorAll('#mainNav button');
+  if (btns[idx.indexOf(id)]) btns[idx.indexOf(id)].classList.add('active');
+}
+
+// =====================================================================
+// OVERVIEW
+// =====================================================================
+function initOverview() {
+  const players = DB.allPlayers;
+  const maxPts = Math.max(...players.map(p => getNum(p.PTS)));
+  const ptLeader = players.find(p => getNum(p.PTS) === maxPts);
+  const maxRings = Math.max(...players.map(p => getNum(p.Champions)));
+  const ringLeader = players.find(p => getNum(p.Champions) === maxRings);
+  const maxMvp = Math.max(...players.map(p => getNum(p.MVP)));
+  const mvpLeader = players.find(p => getNum(p.MVP) === maxMvp);
+
+  document.getElementById('overviewSub').textContent = `2K17 Franchise Database — ${players.length} Players`;
+  document.getElementById('playersSub').textContent = `${players.length} Players — Career Stats`;
+  document.getElementById('teamsSub').textContent = `All-Time Franchise Performance — ${DB.teams.length} Teams`;
+
+  document.getElementById('overviewCards').innerHTML = [
+    {label:'Total Players', value: players.length, sub:'In database'},
+    {label:'Points Leader', value: ptLeader ? ptLeader.Player.split(' ').pop() : '—', sub: maxPts.toLocaleString() + ' career pts'},
+    {label:'Most Rings', value: maxRings, sub: ringLeader ? ringLeader.Player.split(' ').pop() : '—'},
+    {label:'Most MVPs', value: maxMvp, sub: mvpLeader ? mvpLeader.Player.split(' ').pop() : '—'},
+    {label:'Teams', value: DB.teams.length, sub:'Active franchises'},
+    {label:'Seasons', value: DB.history.length, sub:'In history books'},
+  ].map(c => `<div class="stat-card"><div class="label">${c.label}</div><div class="value">${c.value}</div><div class="sub">${c.sub}</div></div>`).join('');
+
+  // Award records charts
+  const atrTabs = document.getElementById('atrTabs');
+  const atrContent = document.getElementById('atrContent');
+  atrTabs.innerHTML = ''; atrContent.innerHTML = '';
+  const icons = {MVP:'🏆',Champions:'💍',FMVP:'🥇',DOTY:'🛡️'};
+  const colors = ['bar-fill-mvp','bar-fill-champ','bar-fill-fmvp','bar-fill-doty'];
+  DB.awardRecords.forEach((cat, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'atr-tab' + (i===0?' active':'');
+    btn.textContent = (icons[cat.name]||'📊') + ' ' + cat.name;
+    btn.onclick = () => {
+      document.querySelectorAll('#atrTabs .atr-tab').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('#atrContent .atr-section').forEach(s=>s.classList.remove('active'));
+      document.getElementById(`atr-${i}`).classList.add('active');
+    };
+    atrTabs.appendChild(btn);
+    const div = document.createElement('div');
+    div.className = 'atr-section' + (i===0?' active':'');
+    div.id = `atr-${i}`;
+    const maxVal = Math.max(...cat.entries.map(e => parseFloat(e.value)||0));
+    div.innerHTML = `<div class="chart-card"><div class="bar-chart">${
+      cat.entries.slice(0,20).map(e => `<div class="bar-row">
+        <div class="bar-label" onclick="openPlayerModal('${String(e.player).replace(/'/g,"\\'")}') ">${e.player}</div>
+        <div class="bar-track"><div class="bar-fill ${colors[i]}" style="width:${maxVal>0?((parseFloat(e.value)||0)/maxVal*100).toFixed(1):0}%">
+          <span class="bar-val">${e.value}</span></div></div>
+      </div>`).join('')
+    }</div></div>`;
+    atrContent.appendChild(div);
+  });
+
+  // Stat records
+  const statTabs = document.getElementById('statTabs');
+  const statContent = document.getElementById('statContent');
+  statTabs.innerHTML = ''; statContent.innerHTML = '';
+  const statIcons = {PTS:'🏀',REB:'📦',AST:'🎯',STL:'🤚',BLK:'🛡️',GP:'📅',MIN:'⏱️',FGM:'🎳',FTM:'🎾','3PM':'🎪',DD2:'✌️',TD3:'🔱'};
+  const statColors = ['bar-fill-pts','bar-fill-reb','bar-fill-ast','bar-fill-doty','bar-fill-mvp','bar-fill-generic','bar-fill-champ','bar-fill-fmvp','bar-fill-pts','bar-fill-reb','bar-fill-ast','bar-fill-ast'];
+  DB.allTimeStats.forEach((cat, i) => {
+    if (!cat.entries.length) return;
+    const btn = document.createElement('button');
+    btn.className = 'atr-tab' + (i===0?' active':'');
+    btn.textContent = (statIcons[cat.name]||'📊') + ' ' + cat.name;
+    btn.onclick = () => {
+      document.querySelectorAll('#statTabs .atr-tab').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('#statContent .atr-section').forEach(s=>s.classList.remove('active'));
+      document.getElementById(`stat-${i}`).classList.add('active');
+    };
+    statTabs.appendChild(btn);
+    const div = document.createElement('div');
+    div.className = 'atr-section' + (i===0?' active':'');
+    div.id = `stat-${i}`;
+    const maxVal = Math.max(...cat.entries.map(e => parseFloat(String(e.value).replace(/,/g,''))||0));
+    div.innerHTML = `<div class="chart-card"><div class="bar-chart">${
+      cat.entries.slice(0,20).map(e => `<div class="bar-row">
+        <div class="bar-label" onclick="openPlayerModal('${String(e.player).replace(/'/g,"\\'")}') ">${e.player}</div>
+        <div class="bar-track"><div class="bar-fill ${statColors[i%statColors.length]}" style="width:${maxVal>0?((parseFloat(String(e.value).replace(/,/g,''))||0)/maxVal*100).toFixed(1):0}%">
+          <span class="bar-val">${e.value}</span></div></div>
+      </div>`).join('')
+    }</div></div>`;
+    statContent.appendChild(div);
+  });
+}
+
+// =====================================================================
+// ALL PLAYERS
+// =====================================================================
+let playersState = { filtered: [], page: 1, perPage: 30 };
+function filterPlayers() {
+  const q = document.getElementById('playerSearch').value.toLowerCase();
+  const pos = document.getElementById('playerPosFilter').value;
+  playersState.filtered = DB.allPlayers.filter(p =>
+    (!q || String(p.Player||'').toLowerCase().includes(q) || String(p.Team||'').toLowerCase().includes(q)) &&
+    (!pos || p.Position === pos)
+  );
+  playersState.page = 1;
+  document.getElementById('playerCount').textContent = playersState.filtered.length + ' players';
+  renderPlayers();
+}
+function renderPlayers() {
+  const { filtered, page, perPage } = playersState;
+  const mode = modes.players;
+  const sorted = sortedByMode(filtered, 'players', mode);
+  const slice = sorted.slice((page-1)*perPage, page*perPage);
+  const si = col => { const s = sortStates.players||{}; return s.col===col?(s.dir>0?' ↑':' ↓'):''; };
+  const si_p = col => { const s2 = sortStates.players||{}; return s2.col===col?(s2.dir>0?' ↑':' ↓'):''; };
+  document.getElementById('playersHead').innerHTML = `
+    <th onclick="onSort('players','Player')">Rank</th>
+    <th onclick="onSort('players','Player')">Player${si_p('Player')}</th>
+    <th>Pos</th>
+    <th onclick="onSort('players','Season')">Season${si_p('Season')}</th>
+    ${buildPlayerHead('players', mode)}`;
+  document.getElementById('playersBody').innerHTML = slice.map((p, i) =>
+    `<tr><td class="rank-cell ${rankCls((page-1)*perPage+i+1)}">${(page-1)*perPage+i+1}</td>
+     <td>${plink(p.Player||'—')}</td>
+     <td>${posBadge(p.Position)}</td>
+     <td style="color:var(--text2);font-size:11px">${p.Season||'—'}</td>
+     <td class="num">${numFmt(p.GP)}</td>
+     <td class="num highlight">${fmtStatVal(p,'PTS',mode)}</td>
+     <td class="num">${fmtStatVal(p,'REB',mode)}</td>
+     <td class="num">${fmtStatVal(p,'AST',mode)}</td>
+     <td class="num">${fmtStatVal(p,'STL',mode)}</td>
+     <td class="num">${fmtStatVal(p,'BLK',mode)}</td>
+     <td class="num">${pctFmt(p['FG%'])}</td>
+     <td class="num">${pctFmt(p['3P%'])}</td>
+     <td class="num">${pctFmt(p['FT%'])}</td>
+     <td class="num">${numFmt(p.DD2)}</td>
+     <td class="num">${numFmt(p.TD3)}</td>
+     ${expanded.players ? `<td class="num">${numFmt(p.MIN)}</td><td class="num">${p.TOV||'-'}</td><td class="num">${numFmt(p.FGM)}</td><td class="num">${numFmt(p.FGA)}</td><td class="num">${numFmt(p['3PM'])}</td><td class="num">${numFmt(p['3PA'])}</td><td class="num">${numFmt(p.FTM)}</td><td class="num">${numFmt(p.FTA)}</td>` : ''}
+     <td class="num">${p['Finals App']||0}</td>
+     <td class="num" style="color:var(--gold)">${p.MVP||0}</td>
+     <td class="num" style="color:var(--green)">${p.Champions||0}</td>
+     <td class="num">${p.FMVP||0}</td>
+     <td class="num">${p['All Stars']||0}</td>
+     <td class="num">${p['All NBA Team']||0}</td>
+     ${expanded.players ? `<td class="num">${p['1st Team']||0}</td><td class="num">${p['2nd Team']||0}</td><td class="num">${p['3rd Team']||0}</td>` : ''}
+     <td class="num">${(getNum(p['1st D Team'])+getNum(p['2nd D Team'])).toString().replace('-Infinity','0')||0}</td>
+     ${expanded.players ? `<td class="num">${p['1st D Team']||0}</td><td class="num">${p['2nd D Team']||0}</td>` : ''}
+     <td class="num">${p.DPOY||0}</td>
+     <td style="color:var(--accent);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700">${retiredNums(p).join(' · ')||'—'}</td>
+     <td>${teamTags(p)}</td></tr>`).join('');
+  renderPag('playersPag', filtered.length, perPage, page, 'goPlayersPage');
+}
+function goPlayersPage(p) { playersState.page = p; renderPlayers(); }
+
+// =====================================================================
+// TOP 20
+// =====================================================================
+let top20State = { filtered: [], page: 1, perPage: 20 };
+function filterTop20() {
+  const q = document.getElementById('top20Search').value.toLowerCase();
+  top20State.filtered = DB.top20.filter(p => !q || String(p.Player||'').toLowerCase().includes(q));
+  top20State.page = 1;
+  document.getElementById('top20Count').textContent = top20State.filtered.length + ' players';
+  renderTop20();
+}
+function renderTop20() {
+  const { filtered, page, perPage } = top20State;
+  const mode = modes.top20;
+  const sorted = sortedByMode(filtered, 'top20', mode);
+  const slice = sorted.slice((page-1)*perPage, page*perPage);
+  const si = col => { const s = sortStates.top20||{}; return s.col===col?(s.dir>0?' ↑':' ↓'):''; };
+  document.getElementById('top20Head').innerHTML = `<th onclick="onSort('top20','Rank')">Rank${si('Rank')}</th>
+    <th onclick="onSort('top20','Player')">Player${si('Player')}</th>
+    <th onclick="onSort('top20','Season')">Season${si('Season')}</th>
+    ${buildPlayerHead('top20', mode)}`;
+  document.getElementById('top20Body').innerHTML = slice.map(p => {
+    const rank = p.Rank || '—';
+    return `<tr>
+      <td class="rank-cell ${rankCls(rank)}">${rank}</td>
+      <td>${plink(p.Player||'—')}</td>
+      <td style="color:var(--text2);font-size:11px">${p.Season||'—'}</td>
+      <td class="num">${numFmt(p.GP)}</td>
+      <td class="num highlight">${fmtStatVal(p,'PTS',mode)}</td>
+      <td class="num">${fmtStatVal(p,'REB',mode)}</td>
+      <td class="num">${fmtStatVal(p,'AST',mode)}</td>
+      <td class="num">${fmtStatVal(p,'STL',mode)}</td>
+      <td class="num">${fmtStatVal(p,'BLK',mode)}</td>
+      <td class="num">${pctFmt(p['FG%'])}</td>
+      <td class="num">${pctFmt(p['3P%'])}</td>
+      <td class="num">${pctFmt(p['FT%'])}</td>
+      <td class="num">${numFmt(p.DD2)}</td>
+      <td class="num">${numFmt(p.TD3)}</td>
+      ${expanded.top20 ? `<td class="num">${numFmt(p.MIN)}</td><td class="num">${p.TOV||'-'}</td><td class="num">${numFmt(p.FGM)}</td><td class="num">${numFmt(p.FGA)}</td><td class="num">${numFmt(p['3PM'])}</td><td class="num">${numFmt(p['3PA'])}</td><td class="num">${numFmt(p.FTM)}</td><td class="num">${numFmt(p.FTA)}</td>` : ''}
+      <td class="num">${p['Finals App']||0}</td>
+      <td class="num" style="color:var(--gold)">${p.MVP||0}</td>
+      <td class="num" style="color:var(--green)">${p.Champions||0}</td>
+      <td class="num">${p.FMVP||0}</td>
+      <td class="num">${p['All Stars']||0}</td>
+      <td class="num">${p['All NBA Team']||0}</td>
+      ${expanded.top20 ? `<td class="num">${p['1st Team']||0}</td><td class="num">${p['2nd Team']||0}</td><td class="num">${p['3rd Team']||0}</td>` : ''}
+      <td class="num">${(getNum(p['1st D Team'])+getNum(p['2nd D Team'])).toString().replace('-Infinity','0')||0}</td>
+      ${expanded.top20 ? `<td class="num">${p['1st D Team']||0}</td><td class="num">${p['2nd D Team']||0}</td>` : ''}
+      <td class="num">${p.DPOY||0}</td>
+      <td style="color:var(--accent);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700">${retiredNums(p).join(' · ')||'—'}</td>
+      <td>${teamTags(p)}</td></tr>`;
+  }).join('');
+  renderPag('top20Pag', filtered.length, perPage, page, 'goTop20Page');
+}
+function goTop20Page(p) { top20State.page = p; renderTop20(); }
+
+// =====================================================================
+// BY POSITION
+// =====================================================================
+let posState = { cur: 'PG', filtered: [], page: 1, perPage: 25 };
+function initPos() {
+  ['PG','SG','SF','PF','C'].forEach(pos => {
+    const el = document.getElementById('cnt-' + pos);
+    if (el) el.textContent = '(' + (DB.positions[pos]||[]).length + ')';
+  });
+  switchPos('PG');
+}
+function switchPos(pos) {
+  posState.cur = pos; posState.page = 1;
+  document.querySelectorAll('#posTabs .sub-tab').forEach((b,i) =>
+    b.classList.toggle('active', ['PG','SG','SF','PF','C'][i] === pos));
+  filterPos();
+}
+function filterPos() {
+  const q = document.getElementById('posSearch').value.toLowerCase();
+  posState.filtered = (DB.positions[posState.cur]||[]).filter(p =>
+    !q || String(p.Player||'').toLowerCase().includes(q));
+  posState.page = 1;
+  renderPos();
+}
+function renderPos() {
+  const { filtered, page, perPage } = posState;
+  const mode = modes.pos;
+  const sorted = sortedByMode(filtered, 'pos', mode);
+  const slice = sorted.slice((page-1)*perPage, page*perPage);
+  const si = col => { const s = sortStates.pos||{}; return s.col===col?(s.dir>0?' ↑':' ↓'):''; };
+  document.getElementById('posHead').innerHTML = `<th onclick="onSort('pos','Rank')">Rank${si('Rank')}</th>
+    <th onclick="onSort('pos','Player')">Player${si('Player')}</th>
+    <th onclick="onSort('pos','Season')">Season${si('Season')}</th>
+    ${buildPlayerHead('pos', mode)}`;
+  document.getElementById('posBody').innerHTML = slice.map(p => {
+    const rank = p.Rank || '—';
+    return `<tr>
+      <td class="rank-cell ${rankCls(rank)}">${rank}</td>
+      <td>${plink(p.Player||'—')}</td>
+      <td style="color:var(--text2);font-size:11px">${p.Season||'—'}</td>
+      <td class="num">${numFmt(p.GP)}</td>
+      <td class="num highlight">${fmtStatVal(p,'PTS',mode)}</td>
+      <td class="num">${fmtStatVal(p,'REB',mode)}</td>
+      <td class="num">${fmtStatVal(p,'AST',mode)}</td>
+      <td class="num">${fmtStatVal(p,'STL',mode)}</td>
+      <td class="num">${fmtStatVal(p,'BLK',mode)}</td>
+      <td class="num">${pctFmt(p['FG%'])}</td>
+      <td class="num">${pctFmt(p['3P%'])}</td>
+      <td class="num">${pctFmt(p['FT%'])}</td>
+      <td class="num">${numFmt(p.DD2)}</td>
+      <td class="num">${numFmt(p.TD3)}</td>
+      ${expanded.pos ? `<td class="num">${numFmt(p.MIN)}</td><td class="num">${p.TOV||'-'}</td><td class="num">${numFmt(p.FGM)}</td><td class="num">${numFmt(p.FGA)}</td><td class="num">${numFmt(p['3PM'])}</td><td class="num">${numFmt(p['3PA'])}</td><td class="num">${numFmt(p.FTM)}</td><td class="num">${numFmt(p.FTA)}</td>` : ''}
+      <td class="num">${p['Finals App']||0}</td>
+      <td class="num" style="color:var(--gold)">${p.MVP||0}</td>
+      <td class="num" style="color:var(--green)">${p.Champions||0}</td>
+      <td class="num">${p.FMVP||0}</td>
+      <td class="num">${p['All Stars']||0}</td>
+      <td class="num">${p['All NBA Team']||0}</td>
+      ${expanded.pos ? `<td class="num">${p['1st Team']||0}</td><td class="num">${p['2nd Team']||0}</td><td class="num">${p['3rd Team']||0}</td>` : ''}
+      <td class="num">${(getNum(p['1st D Team'])+getNum(p['2nd D Team'])).toString().replace('-Infinity','0')||0}</td>
+      ${expanded.pos ? `<td class="num">${p['1st D Team']||0}</td><td class="num">${p['2nd D Team']||0}</td>` : ''}
+      <td class="num">${p.DPOY||0}</td>
+      <td style="color:var(--accent);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700">${retiredNums(p).join(' · ')||'—'}</td>
+      <td>${teamTags(p)}</td></tr>`;
+  }).join('');
+  renderPag('posPag', filtered.length, perPage, page, 'goPosPage');
+}
+function goPosPage(p) { posState.page = p; renderPos(); }
+
+// =====================================================================
+// TEAMS
+// =====================================================================
+function filterTeams() {
+  const q = document.getElementById('teamSearch').value.toLowerCase();
+  const conf = document.getElementById('teamConfFilter').value;
+  const sc = document.getElementById('teamSortFilter').value || 'Glory Score';
+  let arr = DB.teams.filter(t => t.Team &&
+    (!q || String(t.Team).toLowerCase().includes(q)) &&
+    (!conf || t.Conference === conf));
+  arr = [...arr].sort((a, b) => getNum(b[sc]) - getNum(a[sc]));
+  const latestSeason = DB.history.length > 0 ? DB.history[0].Season : null;
+  const seasons = latestSeason ? Object.keys(arr[0]?.seasonRecords||{}).sort((a,b)=>b-a) : [];
+  // League rank for latest season
+  const rankMap = {};
+  if (latestSeason) {
+    const byWins = [...DB.teams].filter(t => t.seasonRecords?.[latestSeason]).sort((a,b) => b.seasonRecords[latestSeason].w - a.seasonRecords[latestSeason].w);
+    byWins.forEach((t,i) => rankMap[t.Team] = i+1);
+  }
+  document.getElementById('teamGrid').innerHTML = arr.map(t => {
+    const lrk = rankMap[t.Team] || null;
+    const rec = latestSeason && t.seasonRecords?.[latestSeason];
+    // Conf rank for latest season
+    let confRkLatest = null;
+    if (latestSeason) {
+      const confTeams = DB.teams.filter(x => x.Conference === t.Conference && x.seasonRecords?.[latestSeason]);
+      const confSorted = [...confTeams].sort((a,b) => {
+        const aw = a.seasonRecords[latestSeason].rawW !== undefined ? a.seasonRecords[latestSeason].rawW : a.seasonRecords[latestSeason].w;
+        const bw = b.seasonRecords[latestSeason].rawW !== undefined ? b.seasonRecords[latestSeason].rawW : b.seasonRecords[latestSeason].w;
+        return bw - aw;
+      });
+      const idx2 = confSorted.findIndex(x=>x.Team===t.Team);
+      confRkLatest = idx2 >= 0 ? idx2 + 1 : null;
+    }
+    const avg5 = t['Avg. W Last 5Y'];
+    const avg10 = t['Avg. W Last 10Y'];
+    const fmt1dp = v => (v !== null && v !== undefined && v !== '—') ? parseFloat(v).toFixed(1) : '—';
+    return `<div class="team-card" onclick="openTeamModal('${String(t.Team).replace(/'/g,"\\'")}')">
+      <div class="team-card-header">
+        <div>
+          <div class="team-name">${t.Team}</div>
+          <div style="color:var(--text3);font-size:11px;margin-top:2px">Est. ${t['Est. Date']||'—'} · Glory: <span style="color:var(--accent)">${t['Glory Score']||0}</span></div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+          <span class="conf-badge conf-${t.Conference}">${t.Conference||'—'}</span>
+          ${lrk ? `<span style="font-size:10px;color:var(--text2);font-family:'Barlow Condensed',sans-serif;font-weight:700">#${lrk} League${confRkLatest ? ' | #'+confRkLatest+' Conf' : ''}</span>` : ''}
+        </div>
+      </div>
+      <div class="team-stats-row">
+        <div class="team-stat"><div class="tv">${t.Championship||0}</div><div class="tl">Titles</div></div>
+        <div class="team-stat"><div class="tv">${t['Conference Titles']||0}</div><div class="tl">Conf</div></div>
+        <div class="team-stat"><div class="tv">${t.Playoffs||0}</div><div class="tl">Playoffs</div></div>
+        <div class="team-stat"><div class="tv" style="font-size:${rec?'18px':'22px'}">${rec ? rec.w+'-'+rec.l : t['Last Title']||'—'}</div><div class="tl">${rec ? latestSeason+' Record' : 'Last Title'}</div></div>
+      </div>
+      <div style="color:var(--text3);font-size:10px;margin-top:10px;">
+        Average Wins — Last 5Y: <span style="color:${parseFloat(avg5||0)>=41?'var(--green)':'var(--accent2)'};font-weight:700">${fmt1dp(avg5)}</span>
+        &nbsp;|&nbsp; Last 10Y: <span style="color:${parseFloat(avg10||0)>=41?'var(--green)':'var(--accent2)'};font-weight:700">${fmt1dp(avg10)}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openTeamModal(teamName) {
+  const t = DB.teams.find(x => x.Team === teamName);
+  if (!t) return;
+  const seasons = Object.keys(t.seasonRecords||{}).sort((a,b) => b-a);
+  // Find which seasons the team was champion from history
+  const champSeasons = new Set();
+  DB.history.forEach(h => {
+    const w = fullTeamName(extractChampTeam(h.Finals||''));
+    if (w === teamName) champSeasons.add(String(h.Season));
+  });
+  // Build raw win values per season for playoff calculation
+  const rawSeasonWins = {};
+  DB.teams.forEach(tm => {
+    Object.entries(tm.seasonRecords || {}).forEach(([s, rec]) => {
+      if (!rawSeasonWins[s]) rawSeasonWins[s] = [];
+      rawSeasonWins[s].push({team: tm.Team, conf: tm.Conference, rawW: rec.rawW !== undefined ? rec.rawW : rec.w});
+    });
+  });
+  // Find runner-up seasons using extractLoserTeam
+  const ruSeasons = new Set();
+  DB.history.forEach(h => {
+    const loserAbbr = extractLoserTeam(h.Finals || '');
+    if (loserAbbr) {
+      const loserFull = fullTeamName(loserAbbr);
+      if (loserFull === teamName) ruSeasons.add(String(h.Season));
+    }
+  });
+  const standRows = seasons.map(yr => {
+    const rec = t.seasonRecords[yr];
+    if (!rec) return '';
+    const isChamp = champSeasons.has(String(yr));
+    const isRU = ruSeasons.has(String(yr));
+    const allYr = DB.teams.filter(x => x.seasonRecords?.[yr]);
+    // League rank - sort by raw wins descending
+    const leagueRanked = [...allYr].sort((a,b) => {
+      const aw = a.seasonRecords[yr].rawW !== undefined ? a.seasonRecords[yr].rawW : a.seasonRecords[yr].w;
+      const bw = b.seasonRecords[yr].rawW !== undefined ? b.seasonRecords[yr].rawW : b.seasonRecords[yr].w;
+      return bw - aw;
+    });
+    const leagueRk = leagueRanked.findIndex(x=>x.Team===teamName)+1;
+    // Conf rank
+    const confYr = allYr.filter(x => x.Conference === t.Conference);
+    const confRanked = [...confYr].sort((a,b) => {
+      const aw = a.seasonRecords[yr].rawW !== undefined ? a.seasonRecords[yr].rawW : a.seasonRecords[yr].w;
+      const bw = b.seasonRecords[yr].rawW !== undefined ? b.seasonRecords[yr].rawW : b.seasonRecords[yr].w;
+      return bw - aw;
+    });
+    const confRk = confRanked.findIndex(x=>x.Team===teamName)+1;
+    const madePlayoffs = confRk > 0 && confRk <= 8;
+    const pct = (rec.w/82).toFixed(3).replace(/^0/,'');
+    const wColor = rec.w >= 50 ? 'var(--green)' : 'var(--accent2)';
+    const rowStyle = isChamp ? 'background:rgba(245,168,35,0.1)' : isRU ? 'background:rgba(192,192,192,0.07)' : madePlayoffs ? 'background:rgba(59,158,255,0.05)' : '';
+    const result = isChamp ? '🏆' : isRU ? '🥈' : '';
+    return `<tr style="${rowStyle}">
+      <td style="color:var(--accent);font-family:'Barlow Condensed',sans-serif;font-weight:700">${yr}</td>
+      <td style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:${wColor}">${rec.w}-${rec.l}</td>
+      <td style="color:${confRk<=8?'var(--accent)':'var(--text3)'}">${confRk>0?'#'+confRk:'—'}</td>
+      <td style="color:${leagueRk<=16?'var(--text2)':'var(--text3)'}">#${leagueRk>0?leagueRk:'—'}</td>
+      <td style="color:var(--text2)">${pct}</td>
+      <td style="font-size:16px;text-align:center">${result}</td>
+    </tr>`;
+  }).join('');
+
+  const champYearsList = [...champSeasons].sort((a,b)=>b-a);
+
+  document.getElementById('modalContent').innerHTML = `
+    <div class="team-modal-header">
+      <div>
+        <div class="team-modal-name">${t.Team}</div>
+        <div style="color:var(--text2);font-size:13px;margin-top:4px">
+          <span class="conf-badge conf-${t.Conference}" style="margin-right:8px">${t.Conference}</span>
+          Est. ${t['Est. Date']||'—'} &nbsp;·&nbsp; Glory Score: <strong style="color:var(--accent)">${t['Glory Score']||0}</strong>
+        </div>
+      </div>
+      <button class="modal-close" onclick="document.getElementById('playerModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:22px;">
+        ${[['Championships',t.Championship||0,'var(--gold)'],['Conf. Titles',t['Conference Titles']||0,'var(--accent)'],['Div. Titles',t['Division Titles']||0,'var(--text)'],['Playoffs',t.Playoffs||0,'var(--blue)'],['Last Title',t['Last Title']||'—','var(--gold)'],['Last Finals',t['Last Finals']||'—','var(--text2)']].map(([l,v,c])=>`<div class="stat-box"><div class="sv" style="color:${c}">${v}</div><div class="sl">${l}</div></div>`).join('')}
+      </div>
+      ${champYearsList.length ? `<div class="modal-section"><div class="modal-section-title">🏆 Championship Years</div><div>${champYearsList.map(y=>`<span class="champ-year">${y}</span>`).join('')}</div></div>` : ''}
+      ${(() => {
+        // Only show jerseys where the format "# ABBR" matches this team
+        // e.g. "23 LAL" should only appear in Lakers modal
+        // Build reverse map of team abbr -> full name
+        const ABBR_MAP = {};
+        DB.teams.forEach(t => {
+          // Get abbreviation from player data by matching full name
+          DB.allPlayers.forEach(p => {
+            for (let i=1;i<=11;i++){
+              const k=i===1?'Team':'Team'+i;
+              if (p[k] && fullTeamName(p[k])===t.Team) ABBR_MAP[p[k]]=t.Team;
+            }
+          });
+        });
+        const retiredEntries = [];
+        DB.allPlayers.forEach(p => {
+          ['# Retired','# Retired2','# Retired3'].forEach(k => {
+            const v = p[k];
+            if (!v || v === 0 || v === '/') return;
+            const s = String(v).trim();
+            const parts = s.split(' ');
+            if (parts.length < 2) return;
+            const num = parts[0];
+            const abbr = parts[1];
+            const mappedTeam = fullTeamName(abbr);
+            if (mappedTeam === teamName || abbr === teamName) {
+              retiredEntries.push({num, player: p.Player});
+            }
+          });
+        });
+        return retiredEntries.length ? `<div class="modal-section"><div class="modal-section-title">🏅 Retired Jersey Numbers</div><div style="display:flex;flex-wrap:wrap;gap:8px;">${retiredEntries.map(r=>`<div style="background:var(--bg3);border:1px solid var(--accent);padding:8px 16px;text-align:center;min-width:70px;display:inline-flex;flex-direction:column;align-items:center;"><div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;color:var(--accent);line-height:1">${r.num}</div><div style="font-size:10px;color:var(--text2);margin-top:4px;white-space:nowrap;">${r.player}</div></div>`).join('')}</div></div>` : '';
+      })()}
+      <div class="modal-section">
+        <div class="modal-section-title">📅 Season-by-Season Records</div>
+        <div style="overflow-x:auto;max-height:360px;overflow-y:auto;">
+          <table class="standings-table">
+            <thead><tr><th>Season</th><th>Record</th><th>Conf Rank</th><th>League Rank</th><th>Win%</th><th style="text-align:center">Result</th></tr></thead>
+            <tbody>${standRows}</tbody>
+          </table>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('playerModal').classList.add('open');
+}
+
+// =====================================================================
+// HISTORY
+// =====================================================================
+let histState = { filtered: [], page: 1, perPage: 40, sort: {col:'Season', dir:-1} };
+function switchHistView(view) {
+  document.getElementById('historyView').style.display = view === 'history' ? '' : 'none';
+  document.getElementById('standingsView').style.display = view === 'standings' ? '' : 'none';
+  document.querySelectorAll('#sec-history .sub-tab').forEach((b, i) =>
+    b.classList.toggle('active', (i === 0 && view === 'history') || (i === 1 && view === 'standings')));
+  if (view === 'standings') initStandings();
+}
+
+function initStandings() {
+  const sel = document.getElementById('standingsSeason');
+  if (!sel) return;
+  if (sel.options.length > 1) { renderStandings(); return; }
+  const allSeasons = new Set();
+  DB.teams.forEach(t => {
+    Object.keys(t.seasonRecords || {}).forEach(s => allSeasons.add(String(s)));
+  });
+  const seasons = [...allSeasons].sort((a,b) => Number(b)-Number(a));
+  if (!seasons.length) {
+    document.getElementById('standingsContent').innerHTML =
+      '<p style="color:var(--text3);padding:20px">Season records load after dropping your Excel file.</p>';
+    return;
+  }
+  sel.innerHTML = seasons.map(s =>
+    `<option value="${s}">${s}&#8211;${String(Number(s)+1).slice(-2)}</option>`).join('');
+  renderStandings();
+}
+
+function buildStandingsTable(teamsArr, season, champFull, ruFull, topN, showConf) {
+  topN = topN || 8;
+  showConf = showConf !== undefined ? showConf : true;
+  const top1W = teamsArr.length > 0 ? teamsArr[0].seasonRecords[season].w : 0;
+  return teamsArr.map((t, i) => {
+    const rec = t.seasonRecords[season];
+    const isChamp = champFull && t.Team === champFull;
+    const isRU = ruFull && t.Team === ruFull;
+    const madePlayoffs = (i + 1) <= topN;
+    const pct = (rec.w / 82).toFixed(3).replace(/^0/, '');
+    const gb = i === 0 ? '—' : (top1W - rec.w).toFixed(1).replace('.0', '');
+    const wColor = rec.w >= 50 ? 'var(--green)' : 'var(--accent2)';
+    const rankColor = madePlayoffs ? 'var(--accent)' : 'var(--text3)';
+    const rowStyle = isChamp ? 'background:rgba(245,168,35,0.1)' : isRU ? 'background:rgba(192,192,192,0.07)' : madePlayoffs ? 'background:rgba(59,158,255,0.05)' : '';
+    const result = isChamp ? '🏆' : isRU ? '🥈' : '';
+    return `<tr style="${rowStyle}">
+      <td style="text-align:center"><span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:15px;color:${rankColor}">${i + 1}</span></td>
+      <td style="font-weight:600">${t.Team}</td>
+      ${showConf ? `<td><span class="conf-badge conf-${t.Conference}">${t.Conference}</span></td>` : ''}
+      <td style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:${wColor}">${rec.w}-${rec.l}</td>
+      <td style="color:var(--text2);text-align:center">${pct}</td>
+      <td style="color:var(--text2);text-align:center">${gb}</td>
+      <td style="font-size:16px;text-align:center">${result}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderStandings() {
+  const season = document.getElementById('standingsSeason').value;
+  const conf = document.getElementById('standingsConf').value;
+  if (!season) return;
+
+  const histRow = DB.history.find(x => String(x.Season) === String(season));
+  const champAbbr = histRow ? extractChampTeam(histRow.Finals || '') : '';
+  const champFull = champAbbr ? fullTeamName(champAbbr) : '';
+  const ruAbbr = histRow ? extractLoserTeam(histRow.Finals || '') : '';
+  const ruFull = ruAbbr ? fullTeamName(ruAbbr) : '';
+
+  let allTeams = DB.teams.filter(t => t.seasonRecords?.[season]);
+  // Sort using rawW for tiebreaker .01 support
+  const byRaw = t => t.seasonRecords[season].rawW !== undefined ? t.seasonRecords[season].rawW : t.seasonRecords[season].w;
+
+  const headNoConf = `<thead><tr><th style="text-align:center">#</th><th>Team</th><th>Record</th><th style="text-align:center">Win%</th><th style="text-align:center">GB</th><th style="text-align:center">Result</th></tr></thead>`;
+  const headConf   = `<thead><tr><th style="text-align:center">#</th><th>Team</th><th>Conf</th><th>Record</th><th style="text-align:center">Win%</th><th style="text-align:center">GB</th><th style="text-align:center">Result</th></tr></thead>`;
+
+  if (conf === 'SPLIT') {
+    const east = [...allTeams.filter(t=>t.Conference==='EAST')].sort((a,b)=>byRaw(b)-byRaw(a));
+    const west = [...allTeams.filter(t=>t.Conference==='WEST')].sort((a,b)=>byRaw(b)-byRaw(a));
+    document.getElementById('standingsContent').innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:2px;color:var(--accent2);margin-bottom:8px;">EASTERN CONFERENCE</div>
+          <div style="overflow-x:auto"><table class="standings-table">${headNoConf}<tbody>${buildStandingsTable(east,season,champFull,ruFull,8,false)}</tbody></table></div>
+        </div>
+        <div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:2px;color:var(--blue);margin-bottom:8px;">WESTERN CONFERENCE</div>
+          <div style="overflow-x:auto"><table class="standings-table">${headNoConf}<tbody>${buildStandingsTable(west,season,champFull,ruFull,8,false)}</tbody></table></div>
+        </div>
+      </div>`;
+  } else {
+    let teams = conf ? allTeams.filter(t=>t.Conference===conf) : allTeams;
+    teams = [...teams].sort((a,b)=>byRaw(b)-byRaw(a));
+    const topN = conf ? 8 : 16;
+    const showC = !conf; // show Conf column only in Full League view
+    document.getElementById('standingsContent').innerHTML = `
+      <div style="overflow-x:auto"><table class="standings-table">${showC?headConf:headNoConf}<tbody>${buildStandingsTable(teams,season,champFull,ruFull,topN,showC)}</tbody></table></div>`;
+  }
+}
+
+function filterHistory() {
+  const q = document.getElementById('histSearch').value.toLowerCase();
+  histState.filtered = DB.history.filter(h =>
+    !q || String(h.Season).includes(q) ||
+    String(h.MVP||'').toLowerCase().includes(q) ||
+    String(h.Finals||'').toLowerCase().includes(q) ||
+    String(h.DPOY||'').toLowerCase().includes(q) ||
+    String(h.Star1||'').toLowerCase().includes(q));
+  histState.page = 1;
+  renderHistory();
+}
+function sortHist(col) {
+  toggleSortState('hist', col);
+  histState.page = 1;
+  renderHistory();
+}
+function renderHistory() {
+  const { filtered, page, perPage } = histState;
+  const s = sortStates.hist || {col:'Season',dir:-1};
+  const sorted = [...filtered].sort((a,b) => (getNum(a[s.col])-getNum(b[s.col]))*s.dir || String(a[s.col]||'').localeCompare(String(b[s.col]||''))*s.dir);
+  const slice = sorted.slice((page-1)*perPage, page*perPage);
+  function starCell(name) {
+    if (!name) return '<td>—</td>';
+    const clean = String(name).replace(/\s*\(\d+\)\s*$/, '').trim();
+    const rating = String(name).match(/\((\d+)\)$/)?.[1] || '';
+    const p = DB.allPlayers.find(x => x.Player === clean) || DB.currentPlayers.find(x => x.Player === clean);
+    const nameHtml = p ? `<span class="star-link" onclick="openPlayerModal('${clean.replace(/'/g,"\\'")}')">⭐ ${clean}</span>` : `<span style="color:var(--text2)">${clean}</span>`;
+    return `<td>${nameHtml}${rating?` <span style="color:var(--text3);font-size:10px">(${rating})</span>`:''}</td>`;
+  }
+  document.getElementById('histBody').innerHTML = slice.map(h => {
+    const champAbbr = extractChampTeam(h.Finals||'');
+    const champFull = champAbbr ? fullTeamName(champAbbr) : '—';
+    function histName(name, color) {
+      if (!name) return '<td style="color:var(--text3)">—</td>';
+      const safe = String(name).replace(/'/g,"\\'");
+      const inDB = DB.allPlayers.find(x=>x.Player===name)||DB.currentPlayers.find(x=>x.Player===name);
+      const clickAttr = inDB ? `onclick="openPlayerModal('${safe}')" style="cursor:pointer;color:${color||'var(--gold)'};font-weight:700"` : `style="color:${color||'var(--gold)'};font-weight:700"`;
+      return `<td><span class="player-link" ${clickAttr}>${name}</span></td>`;
+    }
+    function starCell(name) {
+      if (!name) return '<td style="color:var(--text3)">—</td>';
+      const clean = String(name).replace(/\s*\(\d+\)\s*$/, '').trim();
+      const rating = String(name).match(/\((\d+)\)$/)?.[1] || '';
+      const safe = clean.replace(/'/g,"\\'");
+      const inDB = DB.allPlayers.find(x=>x.Player===clean)||DB.currentPlayers.find(x=>x.Player===clean);
+      const clickAttr = inDB ? `onclick="openPlayerModal('${safe}')" style="cursor:pointer;color:var(--gold);font-weight:700"` : `style="color:var(--gold);font-weight:700"`;
+      return `<td><span class="player-link" ${clickAttr}>${clean}</span>${rating ? ` <span style="color:var(--text3);font-size:10px">(${rating})</span>` : ''}</td>`;
+    }
+    return `<tr>
+      <td><span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;color:var(--accent)">${h.Season}</span></td>
+      ${histName(h.MVP,'var(--gold)')}
+      <td><span class="hist-champion">${champFull}</span></td>
+      <td style="font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;color:var(--text2)">${h.Finals||'—'}</td>
+      ${histName(h.FMVP,'var(--accent)')}
+      ${histName(h.DPOY,'var(--blue)')}
+      ${starCell(h.Star1)}${starCell(h.Star2)}${starCell(h.Star3)}
+    </tr>`;
+  }).join('');
+  renderPag('histPag', filtered.length, perPage, page, 'goHistPage');
+}
+function goHistPage(p) { histState.page = p; renderHistory(); }
+
+// =====================================================================
+// STAT LEADERS
+// =====================================================================
+let statState = { filtered: [], page: 1, perPage: 40 };
+function filterStat() {
+  const q = document.getElementById('statSearch').value.toLowerCase();
+  statState.filtered = DB.statLeaders.filter(s =>
+    !q || String(s.Season).includes(q) ||
+    String(s.PtsLeader||'').toLowerCase().includes(q) ||
+    String(s.RebLeader||'').toLowerCase().includes(q) ||
+    String(s.AstLeader||'').toLowerCase().includes(q));
+  statState.page = 1;
+  document.getElementById('statCount').textContent = statState.filtered.length + ' seasons';
+  renderStat();
+}
+function renderStat() {
+  const { filtered, page, perPage } = statState;
+  const sorted = [...filtered].sort((a,b) => getNum(b.Season) - getNum(a.Season));
+  const slice = sorted.slice((page-1)*perPage, page*perPage);
+  document.getElementById('statBody').innerHTML = slice.map(s => `<tr>
+    <td><span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:15px;color:var(--accent)">${s.Season}</span></td>
+    <td style="font-weight:600">${s.PtsLeader||'—'}</td><td class="team-tag">${s.PtsTeam||'—'}</td><td class="num highlight">${s.PPG||'—'}</td>
+    <td style="font-weight:600">${s.RebLeader||'—'}</td><td class="team-tag">${s.RebTeam||'—'}</td><td class="num" style="color:var(--green)">${s.RPG||'—'}</td>
+    <td style="font-weight:600">${s.AstLeader||'—'}</td><td class="team-tag">${s.AstTeam||'—'}</td><td class="num" style="color:var(--blue)">${s.APG||'—'}</td>
+    <td style="font-weight:600">${s.StlLeader||'—'}</td><td class="num">${s.SPG||'—'}</td>
+    <td style="font-weight:600">${s.BlkLeader||'—'}</td><td class="num">${s.BPG||'—'}</td>
+  </tr>`).join('');
+  renderPag('statPag', filtered.length, perPage, page, 'goStatPage');
+}
+function goStatPage(p) { statState.page = p; renderStat(); }
+
+// =====================================================================
+// CURRENT PLAYERS
+// =====================================================================
+let curState = { filtered: [], page: 1, perPage: 30 };
+function filterCurrent() {
+  const q = document.getElementById('curSearch').value.toLowerCase();
+  const pos = document.getElementById('curPosFilter').value;
+  curState.filtered = DB.currentPlayers.filter(p =>
+    (!q || String(p.Player||'').toLowerCase().includes(q)) &&
+    (!pos || p.Position === pos));
+  curState.page = 1;
+  document.getElementById('curCount').textContent = curState.filtered.length + ' players';
+  // Set subtitle with season
+  const yr = DB.currentPlayers[0]?.Season;
+  if (yr) document.getElementById('currentSub').textContent = `Active Players — Season ${yr}`;
+  renderCurrent();
+}
+function renderCurrent() {
+  const { filtered, page, perPage } = curState;
+  // sorting handled in renderCurrent head section
+  const slice = filtered.slice((page-1)*perPage, page*perPage);
+  const curSI = col => { const s2 = sortStates.cur||{}; return s2.col===col?(s2.dir>0?' ↑':' ↓'):''; };
+  function onSortCur(col) {
+    toggleSortState('cur', col);
+    renderCurrent();
+  }
+  document.getElementById('curHead').innerHTML = `
+    <th onclick="onSortCur('Player')">Player${curSI('Player')}</th>
+    <th>Pos</th>
+    <th onclick="onSortCur('Season')">Season${curSI('Season')}</th>
+    <th onclick="onSortCur('Exp')">Exp${curSI('Exp')}</th>
+    <th onclick="onSortCur('Finals App')">Finals${curSI('Finals App')}</th>
+    <th onclick="onSortCur('MVP')" style="color:var(--gold)">MVP${curSI('MVP')}</th>
+    <th onclick="onSortCur('Champions')" style="color:var(--green)">Champ${curSI('Champions')}</th>
+    <th onclick="onSortCur('FMVP')">FMVP${curSI('FMVP')}</th>
+    <th onclick="onSortCur('All Stars')">All-Stars${curSI('All Stars')}</th>
+    <th onclick="onSortCur('All NBA Team')">All-NBA${curSI('All NBA Team')}</th>
+    <th onclick="onSortCur('1st Team')">1st${curSI('1st Team')}</th>
+    <th onclick="onSortCur('2nd Team')">2nd${curSI('2nd Team')}</th>
+    <th onclick="onSortCur('3rd Team')">3rd${curSI('3rd Team')}</th>
+    <th onclick="onSortCur('1st D Team')">1st-D${curSI('1st D Team')}</th>
+    <th onclick="onSortCur('2nd D Team')">2nd-D${curSI('2nd D Team')}</th>
+    <th onclick="onSortCur('DPOY')">DPOY${curSI('DPOY')}</th>
+    <th>ROTY</th>
+    <th onclick="onSortCur('Other Award')">Other${curSI('Other Award')}</th>
+    <th>Teams</th>`;
+  // Sort current players
+  const curS = sortStates.cur || {col:'Season', dir:1};
+  const curSorted = [...curState.filtered].sort((a,b) => {
+    const av = a[curS.col], bv = b[curS.col];
+    const an = parseFloat(av), bn = parseFloat(bv);
+    if (!isNaN(an) && !isNaN(bn)) return (an - bn) * curS.dir;
+    return String(av||'').localeCompare(String(bv||'')) * curS.dir;
+  });
+  const curSlice = curSorted.slice((curState.page-1)*curState.perPage, curState.page*curState.perPage);
+  document.getElementById('curBody').innerHTML = curSlice.map(p => {
+    const other = p['Other Award'];
+    const roty = p.ROTY === 'O' || p.ROTY === 'o';
+    const teams = [];
+    for (let i=1;i<=6;i++){const k=i===1?'Team':'Team'+i; if(p[k])teams.push(p[k]);}
+    return `<tr>
+      <td>${plink(p.Player||'—')}</td>
+      <td>${posBadge(p.Position)}</td>
+      <td style="color:var(--text2);font-size:11px">${p.Season||'—'}</td>
+      <td class="num">${p.Exp||'—'}</td>
+      <td class="num">${p['Finals App']||0}</td>
+      <td class="num" style="color:var(--gold)">${p.MVP||0}</td>
+      <td class="num" style="color:var(--green)">${p.Champions||0}</td>
+      <td class="num">${p.FMVP||0}</td>
+      <td class="num">${p['All Stars']||0}</td>
+      <td class="num">${p['All NBA Team']||0}</td>
+      <td class="num">${p['1st Team']||0}</td>
+      <td class="num">${p['2nd Team']||0}</td>
+      <td class="num">${p['3rd Team']||0}</td>
+      <td class="num">${p['1st D Team']||0}</td>
+      <td class="num">${p['2nd D Team']||0}</td>
+      <td class="num">${p.DPOY||0}</td>
+      <td style="text-align:center;color:${roty?'var(--gold)':'var(--text3)'}">${roty?'✓':'—'}</td>
+      <td style="color:var(--text2);font-size:11px">${other&&other!=='/'&&other!==0?other:'—'}</td>
+      <td>${[...new Set(teams)].map(t=>`<span class="team-tag">${t}</span>`).join(' ')}</td>
+    </tr>`;
+  }).join('');
+  renderPag('curPag', filtered.length, perPage, page, 'goCurPage');
+}
+function goCurPage(p) { curState.page = p; renderCurrent(); }
+
+// =====================================================================
+// ALL-NBA TEAMS
+// =====================================================================
+let allNbaState = { filtered: [], page: 1, perPage: 8 };
+function filterAllNba() {
+  const q = document.getElementById('allnbaSearch').value.toLowerCase();
+  allNbaState.filtered = DB.allNbaSeasons.filter(s =>
+    !q || String(s.season).includes(q) ||
+    s.teams.some(t => t.slots.some(sl => sl.player.toLowerCase().includes(q))));
+  allNbaState.page = 1;
+  renderAllNba();
+}
+function renderAllNba() {
+  const { filtered, page, perPage } = allNbaState;
+  const slice = filtered.slice((page-1)*perPage, page*perPage);
+  document.getElementById('allNbaContent').innerHTML = slice.map(s => `
+    <div class="allnba-season">
+      <div class="allnba-season-title">Season ${s.season}</div>
+      ${s.teams.map(t => `<div class="allnba-team-row">
+        <div class="allnba-team-label">${['1ST TEAM','2ND TEAM','3RD TEAM'][t.team-1]||t.team+'TH'}</div>
+        <div>${t.slots.map(sl => `<div class="allnba-slot">
+          <span class="allnba-pos">${sl.pos}</span>
+          <span class="allnba-player">${sl.player}</span>
+        </div>`).join('')}</div>
+      </div>`).join('')}
+    </div>`).join('');
+  renderPag('allNbaPag', filtered.length, perPage, page, 'goAllNbaPage');
+}
+function goAllNbaPage(p) { allNbaState.page = p; renderAllNba(); }
+
+// =====================================================================
+// DECADE TEAMS
+// =====================================================================
+function formatDecadeVal(v) {
+  if (!v) return '';
+  const s = String(v);
+  const m = s.match(/^(.+?)\s*\((\d+)\)\s*$/);
+  if (m) return `<span style="display:flex;justify-content:space-between;align-items:center;gap:12px;"><span style="color:var(--text);font-weight:600">${m[1].trim()}</span><span style="color:var(--accent);font-weight:700;min-width:28px;text-align:right">${m[2]}&#215;</span></span>`;
+  return `<span style="color:var(--text);font-weight:600">${s}</span>`;
+}
+function decadeInfoItem(label, vals) {
+  const validVals = (vals||[]).filter(Boolean);
+  if (!validVals.length) return '';
+  return `<div class="decade-info-item">
+    <div class="di-label">${label}</div>
+    <div class="di-val" style="line-height:1.8">${validVals.map(v=>formatDecadeVal(v)).join('')}</div>
+  </div>`;
+}
+function initDecades() {
+  document.getElementById('decadeGrid').innerHTML = DB.decades.map(d => {
+    const starterHtml = d.starter.map((name, i) => {
+      const safe = String(name||'').replace(/'/g,"\\'");
+      return `<div class="decade-chip starter" onclick="openPlayerModal('${safe}')" title="Starter">
+        <span style="font-size:9px;color:var(--text3);margin-right:4px">${d.positions[i]||''}</span>${name}
+      </div>`;}).join('');
+    const subHtml = d.subs.map(name => {
+      const safe = String(name||'').replace(/'/g,"\\'");
+      return `<div class="decade-chip sub" onclick="openPlayerModal('${safe}')">${name}</div>`;}).join('');
+    const infoHtml = [
+      decadeInfoItem('Best Franchise', [d.info.franchise1, d.info.franchise2].filter(Boolean)),
+      decadeInfoItem('Decade MVP', d.info.mvpList || []),
+      decadeInfoItem('Decade DOTY', d.info.dotyList || []),
+    ].join('');
+    return `<div class="decade-card">
+      <div class="decade-name">${d.decade}${d.era?' — '+d.era:''}</div>
+      ${d.starter.length ? `<div style="margin-bottom:8px"><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:6px">STARTING FIVE</div><div class="decade-player-chips">${starterHtml}</div></div>` : ''}
+      ${d.subs.length ? `<div><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:6px">SUBSTITUTES</div><div class="decade-player-chips">${subHtml}</div></div>` : ''}
+      ${infoHtml ? `<div class="decade-info">${infoHtml}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// =====================================================================
+// PLAYER MODAL
+// =====================================================================
+function openPlayerModal(name) {
+  const p = DB.allPlayers.find(x => x.Player === name) ||
+            DB.currentPlayers.find(x => x.Player === name) ||
+            [...Object.values(DB.positions)].flat().find(x => x.Player === name) ||
+            DB.top20.find(x => x.Player === name);
+  if (!p) return;
+  const gp = Math.max(getNum(p.GP)||1, 1);
+  const avg = (k) => { const v = getNum(p[k]); return v===-Infinity?'-':(v/gp).toFixed(1); };
+  const retired = retiredNums(p);
+  const teams = [];
+  for (let i=1;i<=11;i++) { const k=i===1?'Team':`Team${i}`; if(p[k])teams.push(p[k]); }
+
+  const awards = [];
+  const addAward = (label, val, color) => { const n=getNum(val); if(n>0) awards.push(`<div class="award-box"><span class="an">${label}</span><span class="av"${color?` style="color:${color}"`:''}>  ${n}</span></div>`); };
+  addAward('MVP', p.MVP, 'var(--gold)');
+  addAward('Finals App', p['Finals App']);
+  addAward('Championships', p.Champions, 'var(--green)');
+  addAward('Finals MVP', p.FMVP, 'var(--purple)');
+  addAward('All-Stars', p['All Stars'], 'var(--blue)');
+  addAward('All-NBA', p['All NBA Team']);
+  addAward('1st Team', p['1st Team']);
+  addAward('2nd Team', p['2nd Team']);
+  addAward('3rd Team', p['3rd Team']);
+  addAward('1st D-Team', p['1st D Team']);
+  addAward('2nd D-Team', p['2nd D Team']);
+  addAward('DPOY', p.DPOY);
+  const other = p['Other Award'];
+  if (other && other!=='/' && other!==0) {
+    const m = String(other).match(/^(.+?)\s*\((\d+)\)$/);
+    if (m) awards.push(`<div class="award-box"><span class="an">${m[1].trim()}</span><span class="av" style="color:var(--blue)">${m[2]}</span></div>`);
+    else awards.push(`<div class="award-box"><span class="an">${other}</span><span class="av" style="font-size:13px;color:var(--text2)">✓</span></div>`);
+  }
+  const roty = p.ROTY==='O'||p.ROTY==='o';
+  if (roty) awards.push(`<div class="award-box"><span class="an">ROTY</span><span class="av" style="color:var(--gold);font-size:13px">✓</span></div>`);
+
+  // Find position
+  let pos = p.Position || '';
+  if (!pos) {
+    for (const [posKey, arr] of Object.entries(DB.positions)) {
+      if (arr.find(x=>x.Player===name)) { pos=posKey; break; }
+    }
+  }
+
+  document.getElementById('modalContent').innerHTML = `
+    <div class="modal-header">
+      <div>
+        <div class="modal-player-name">${p.Player}</div>
+        <div class="modal-meta">
+          ${pos?posBadge(pos):''}
+          <span style="color:var(--text2)">${p.Season||''}</span>
+          ${DB.currentPlayers.find(x=>x.Player===name)?'<span style="background:var(--green);color:#000;font-size:10px;padding:2px 7px;font-weight:700;margin-left:8px;font-family:Barlow Condensed,sans-serif;letter-spacing:1px;">ACTIVE</span>':''}
+        </div>
+      </div>
+      <button class="modal-close" onclick="document.getElementById('playerModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+      ${!DB.currentPlayers.find(x=>x.Player===p.Player) ? `
+      <div class="modal-section">
+        <div class="modal-section-title">Career Stats (Per Game)</div>
+        <div class="stat-grid">
+          ${[['PPG',avg('PTS')],['RPG',avg('REB')],['APG',avg('AST')],['SPG',avg('STL')],['BPG',avg('BLK')],['MPG',p.MPG||'-'],['FG%',pctFmt(p['FG%'])],['3P%',pctFmt(p['3P%'])],['FT%',pctFmt(p['FT%'])],['TOV',p.TOV||'-']].map(([l,v])=>`<div class="stat-box avg-box"><div class="sv">${v}</div><div class="sl">${l}</div></div>`).join('')}
+        </div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">Career Totals</div>
+        <div class="stat-grid">
+          ${[['Points',numFmt(p.PTS)],['Rebounds',numFmt(p.REB)],['Assists',numFmt(p.AST)],['Steals',numFmt(p.STL)],['Blocks',numFmt(p.BLK)],['Minutes',numFmt(p.MIN)],['Games',numFmt(p.GP)],['DD2',numFmt(p.DD2)],['TD3',numFmt(p.TD3)],['FGM',numFmt(p.FGM)],['3PM',numFmt(p['3PM'])],['FTM',numFmt(p.FTM)]].map(([l,v])=>`<div class="stat-box"><div class="sv">${v}</div><div class="sl">${l}</div></div>`).join('')}
+        </div>
+      </div>` : ''}
+      <div class="modal-section">
+        <div class="modal-section-title">🏆 Awards & Honors</div>
+        <div class="award-grid">${awards.length?awards.join(''):'<span style="color:var(--text3)">No awards recorded</span>'}</div>
+      </div>
+      ${retired.length?`<div class="modal-section"><div class="modal-section-title">🏅 Retired Jersey Numbers</div><div>${retired.map(r=>`<span style="background:var(--bg3);border:1px solid var(--accent);padding:8px 14px;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--accent);display:inline-block;margin:3px">${r}</span>`).join('')}</div></div>`:''}
+      <div class="modal-section">
+        <div class="modal-section-title">🏀 Team History</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">${[...new Set(teams)].map(t=>`<div style="background:var(--bg3);border:1px solid var(--border);padding:6px 14px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:600;color:var(--text2);letter-spacing:0.5px;">${fullTeamName(t)}</div>`).join('')}</div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;">
+        <div style="background:rgba(59,158,255,0.07);border-left:2px solid var(--blue);padding:8px 14px;font-size:12px;color:var(--text2)">Draft: <strong style="color:var(--text)">${p.Draft||'—'}</strong></div>
+        <div style="background:rgba(59,158,255,0.07);border-left:2px solid var(--blue);padding:8px 14px;font-size:12px;color:var(--text2)">Exp: <strong style="color:var(--text)">${p.Exp||'—'} yrs</strong></div>
+      </div>
+    </div>`;
+  document.getElementById('playerModal').classList.add('open');
+}
+
+// =====================================================================
+// COMPARE PLAYERS
+// =====================================================================
+let cmpPlayers = {1:null,2:null,3:null};
+let cmpMode = 'avg';
+const ALL_PLAYERS_LIST = () => [...DB.allPlayers,...DB.currentPlayers];
+
+function toggleCmpMode() {
+  cmpMode = cmpMode==='avg'?'total':'avg';
+  document.getElementById('cmpModeBtn').textContent = cmpMode==='avg'?'AVERAGES':'TOTALS';
+  const players = [cmpPlayers[1],cmpPlayers[2],cmpPlayers[3]].filter(Boolean);
+  if (players.length >= 2) renderCompare();
+}
+function cmpSuggest(n) {
+  const q = document.getElementById(`cmpSearch${n}`).value.toLowerCase().trim();
+  const dd = document.getElementById(`cmpDropdown${n}`);
+  if (!q) { dd.innerHTML=''; return; }
+  const matches = ALL_PLAYERS_LIST().filter(p => String(p.Player||'').toLowerCase().includes(q)).slice(0,8);
+  if (!matches.length) { dd.innerHTML=''; return; }
+  dd.innerHTML = `<div style="position:absolute;z-index:300;background:var(--bg2);border:1px solid var(--border);width:260px;max-height:220px;overflow-y:auto;">${
+    matches.map(p=>`<div style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border);"
+      onmousedown="cmpSelect(${n},'${String(p.Player||'').replace(/'/g,"\\'")}');return false;"
+      onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">
+      ${p.Player} <span style="color:var(--text3);font-size:11px">${p.Position||''}</span>
+    </div>`).join('')
+  }</div>`;
+}
+function cmpSelect(n, name) {
+  const p = ALL_PLAYERS_LIST().find(x => x.Player === name);
+  if (!p) return;
+  cmpPlayers[n] = p;
+  document.getElementById(`cmpSearch${n}`).value='';
+  document.getElementById(`cmpDropdown${n}`).innerHTML='';
+  const colors={1:'var(--accent)',2:'var(--blue)',3:'var(--green)'};
+  document.getElementById(`cmpSelected${n}`).textContent = name;
+  document.getElementById(`cmpSelected${n}`).style.color = colors[n];
+}
+function clearCompare() {
+  [1,2,3].forEach(n=>{
+    cmpPlayers[n]=null;
+    document.getElementById(`cmpSearch${n}`).value='';
+    document.getElementById(`cmpSelected${n}`).textContent='';
+    document.getElementById(`cmpDropdown${n}`).innerHTML='';
+  });
+  document.getElementById('cmpResult').innerHTML='';
+}
+function renderCompare() {
+  const players = [cmpPlayers[1],cmpPlayers[2],cmpPlayers[3]].filter(Boolean);
+  if (players.length < 2) {
+    document.getElementById('cmpResult').innerHTML='<div style="color:var(--text3);padding:20px">Select at least 2 players to compare.</div>';
+    return;
+  }
+  const colors = ['var(--accent)','var(--blue)','var(--green)'];
+  const gpOf = p => Math.max(getNum(p.GP)||1,1);
+
+  function getStatVal(p,key){
+    const raw=getNum(p[key]);
+    if(raw===-Infinity)return null;
+    return cmpMode==='avg'?raw/gpOf(p):raw;
+  }
+  function fmtStat(p,key,dec){
+    dec=dec===undefined?1:dec;
+    const v=getStatVal(p,key);
+    if(v===null)return '-';
+    return cmpMode==='avg'?v.toFixed(dec):Math.round(v).toLocaleString();
+  }
+  function fmtPct(p,key){return pctFmt(p[key]);}
+  function fmtRaw(p,key){const v=getNum(p[key]);return(v===-Infinity||isNaN(v))?'-':v;}
+  function fmtRoty(p){return(p.ROTY==='O'||p.ROTY==='o'||p.ROTY===1||p.ROTY==='1')?1:0;}
+  function numPct(p,key){const v=parseFloat(p[key]);return isNaN(v)?null:v;}
+
+  const pL=cmpMode==='avg'?'PPG':'Points';
+  const rL=cmpMode==='avg'?'RPG':'Rebounds';
+  const aL=cmpMode==='avg'?'APG':'Assists';
+  const sL=cmpMode==='avg'?'SPG':'Steals';
+  const bL=cmpMode==='avg'?'BPG':'Blocks';
+  const ovLabel=cmpMode==='avg'?'OVERALL STATS — PER GAME':'OVERALL STATS — TOTALS';
+
+  const rows=[
+    {header:true, label:ovLabel},
+    {label:'Games Played',        fn:p=>fmtRaw(p,'GP'),           nf:p=>getNum(p.GP),              hib:true},
+    {label:pL,                    fn:p=>fmtStat(p,'PTS'),          nf:p=>getStatVal(p,'PTS'),        hib:true},
+    {label:rL,                    fn:p=>fmtStat(p,'REB'),          nf:p=>getStatVal(p,'REB'),        hib:true},
+    {label:aL,                    fn:p=>fmtStat(p,'AST'),          nf:p=>getStatVal(p,'AST'),        hib:true},
+    {label:sL,                    fn:p=>fmtStat(p,'STL'),          nf:p=>getStatVal(p,'STL'),        hib:true},
+    {label:bL,                    fn:p=>fmtStat(p,'BLK'),          nf:p=>getStatVal(p,'BLK'),        hib:true},
+    {label:'FG%',                 fn:p=>fmtPct(p,'FG%'),           nf:p=>numPct(p,'FG%'),            hib:true},
+    {label:'3P%',                 fn:p=>fmtPct(p,'3P%'),           nf:p=>numPct(p,'3P%'),            hib:true},
+    {label:'FT%',                 fn:p=>fmtPct(p,'FT%'),           nf:p=>numPct(p,'FT%'),            hib:true},
+    {label:'Double-Doubles',      fn:p=>fmtRaw(p,'DD2'),           nf:p=>getNum(p.DD2),              hib:true},
+    {label:'Triple-Doubles',      fn:p=>fmtRaw(p,'TD3'),           nf:p=>getNum(p.TD3),              hib:true},
+    {header:true, label:'AWARDS & HONORS'},
+    {label:'Finals Appearances',  fn:p=>fmtRaw(p,'Finals App'),    nf:p=>getNum(p['Finals App']),    hib:true},
+    {label:'Championships',       fn:p=>fmtRaw(p,'Champions'),     nf:p=>getNum(p.Champions),        hib:true},
+    {label:'FMVP',                fn:p=>fmtRaw(p,'FMVP'),          nf:p=>getNum(p.FMVP),             hib:true},
+    {label:'MVP',                 fn:p=>fmtRaw(p,'MVP'),            nf:p=>getNum(p.MVP),              hib:true},
+    {label:'All-NBA Team',        fn:p=>fmtRaw(p,'All NBA Team'),   nf:p=>getNum(p['All NBA Team']),  hib:true},
+    {label:'1st Team All-NBA',    fn:p=>fmtRaw(p,'1st Team'),      nf:p=>getNum(p['1st Team']),      hib:true},
+    {label:'2nd Team All-NBA',    fn:p=>fmtRaw(p,'2nd Team'),      nf:p=>getNum(p['2nd Team']),      hib:true},
+    {label:'3rd Team All-NBA',    fn:p=>fmtRaw(p,'3rd Team'),      nf:p=>getNum(p['3rd Team']),      hib:true},
+    {label:'All-Star Selections', fn:p=>fmtRaw(p,'All Stars'),     nf:p=>getNum(p['All Stars']),     hib:true},
+    {label:'DPOY',                fn:p=>fmtRaw(p,'DPOY'),           nf:p=>getNum(p.DPOY),             hib:true},
+    {label:'1st Defensive Team',  fn:p=>fmtRaw(p,'1st D Team'),    nf:p=>getNum(p['1st D Team']),    hib:true},
+    {label:'2nd Defensive Team',  fn:p=>fmtRaw(p,'2nd D Team'),    nf:p=>getNum(p['2nd D Team']),    hib:true},
+    {label:'Rookie of the Year',  fn:p=>fmtRoty(p)===1?'✓ Yes':'—', nf:p=>fmtRoty(p),               hib:true},
+  ];
+
+  const headRow=`<tr style="background:var(--bg3)"><th style="text-align:left;padding:11px 16px;font-size:11px;letter-spacing:1.5px;color:var(--text2);min-width:180px;border-right:1px solid var(--border)">STAT</th>${
+    players.map((p,i)=>`<th style="padding:11px 16px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:900;color:${colors[i]};min-width:140px">${p.Player}<div style="font-size:10px;font-weight:400;color:var(--text3);letter-spacing:1px;margin-top:3px">${p.Position||''} · ${p.Season||''}</div></th>`).join('')}</tr>`;
+
+  const bodyRows=rows.map(row=>{
+    if(row.header) return `<tr><td colspan="${players.length+1}" style="padding:9px 16px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);background:rgba(245,166,35,0.06);border-top:2px solid var(--accent);border-bottom:1px solid rgba(245,166,35,0.25);font-family:'Barlow Condensed',sans-serif;font-weight:700">${row.label}</td></tr>`;
+    const disp=players.map(p=>row.fn(p));
+    const nums=players.map(p=>{
+      if(!row.nf)return null;
+      const v=row.nf(p);
+      return(v===null||v===undefined||isNaN(v)||v===-Infinity)?null:Number(v);
+    });
+    const valid=nums.filter(v=>v!==null);
+    const best=valid.length>0?Math.max(...valid):null;
+    const unique=[...new Set(valid)];
+    const isBest=nums.map(v=>v!==null&&best!==null&&v===best&&unique.length>1);
+    return`<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:9px 16px;font-size:12px;color:var(--text2);font-weight:600;border-right:1px solid var(--border)">${row.label}</td>
+      ${disp.map((v,i)=>{
+        const b=isBest[i];
+        return `<td style="padding:9px 16px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:${b?'19px':'15px'};font-weight:${b?'900':'500'};color:${b?colors[i]:'var(--text)'};background:${b?'rgba(255,255,255,0.035)':''}">${v}${b?'<span style="font-size:9px;margin-left:3px;opacity:.7">▲</span>':''}</td>`;
+      }).join('')}
+    </tr>`;
+  }).join('');
+
+  document.getElementById('cmpResult').innerHTML=`<div style="overflow-x:auto;margin-top:8px"><table class="cmp-table">${headRow}${bodyRows}</table></div>`;
+}
+
+// =====================================================================
+// INIT DASHBOARD
+// =====================================================================
+function initDashboard() {
+  initOverview();
+  filterPlayers();
+  if (!sortStates.top20) sortStates.top20 = {col:'Rank',dir:1};
+  filterTop20();
+  initPos();
+  filterTeams();
+  filterHistory();
+  filterStat();
+  filterCurrent();
+  filterAllNba();
+  initDecades();
+}
+</script>
+</body>
+</html>
