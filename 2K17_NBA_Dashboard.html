@@ -482,7 +482,7 @@ tr.row-pending td:first-child{font-style:normal;}
 </div>
 
 <!-- PLAYER MODAL -->
-<div class="modal-overlay" id="playerModal" onclick="if(event.target===this)this.classList.remove('open')">
+<div class="modal-overlay" id="playerModal" onclick="if(event.target===this)closeModal()">
   <div class="modal" id="modalContent"></div>
 </div>
 
@@ -914,7 +914,6 @@ function parseAllTimeRecords(rows) {
       }
     } else {
       // 4-column stat block
-      const count = section === 'block2' ? 4 : section === 'block3' ? 4 : 4;
       const cols = [{pCol:1,vCol:2},{pCol:5,vCol:6},{pCol:9,vCol:10},{pCol:13,vCol:14}];
       cols.forEach((dc, ci) => {
         const idx = blockIdx + ci;
@@ -931,7 +930,6 @@ function parseAllTimeRecords(rows) {
 // =====================================================================
 // HELPERS
 // =====================================================================
-function n(v) { return (v === null || v === undefined || v === '-' || v === '') ? null : parseFloat(v); }
 function numFmt(v) {
   if (v === null || v === undefined || v === '' || v === '-') return '-';
   const num = parseFloat(v);
@@ -1097,14 +1095,6 @@ function nameLink(raw, opts) {
 // SORTING & PAGINATION
 // =====================================================================
 let sortStates = {};
-function sortArr(arr, col, dir) {
-  if (!col) return arr;
-  return [...arr].sort((a, b) => {
-    const av = getNum(a[col]), bv = getNum(b[col]);
-    if (av !== -Infinity || bv !== -Infinity) return (av - bv) * dir;
-    return String(a[col]||'').localeCompare(String(b[col]||'')) * dir;
-  });
-}
 function toggleSortState(key, col) {
   const prev = sortStates[key];
   if (prev && prev.col === col) { sortStates[key] = {col, dir: prev.dir * -1}; }
@@ -1133,22 +1123,19 @@ function renderPag(id, total, perPage, cur, cb) {
 // MODE TOGGLES (avg/total)
 // =====================================================================
 const modes = {players: 'avg', top20: 'total', pos: 'avg'};
+const TABLE_RENDERERS = { players: () => renderPlayers(), top20: () => renderTop20(), pos: () => renderPos(), hist: () => renderHistory() };
 const expanded = {players: false, top20: false, pos: false};
 function toggleMode(key) {
   modes[key] = modes[key] === 'avg' ? 'total' : 'avg';
   const btn = document.getElementById(key + 'ModeBtn');
   if (btn) btn.textContent = modes[key] === 'avg' ? 'AVERAGES' : 'TOTALS';
-  if (key === 'players') renderPlayers();
-  else if (key === 'top20') renderTop20();
-  else if (key === 'pos') renderPos();
+  TABLE_RENDERERS[key]();
 }
 function toggleExpand(key) {
   expanded[key] = !expanded[key];
   const btn = document.getElementById(key + 'ExpandBtn');
   if (btn) btn.textContent = expanded[key] ? '- LESS COLS' : '+ MORE COLS';
-  if (key === 'players') renderPlayers();
-  else if (key === 'top20') renderTop20();
-  else if (key === 'pos') renderPos();
+  TABLE_RENDERERS[key]();
 }
 function getStatVal(row, key, mode) {
   const raw = getNum(row[key]);
@@ -1251,10 +1238,7 @@ function sortedByMode(arr, key, mode) {
 }
 function onSort(key, col) {
   toggleSortState(key, col);
-  if (key === 'players') renderPlayers();
-  else if (key === 'top20') renderTop20();
-  else if (key === 'pos') renderPos();
-  else if (key === 'hist') renderHistory();
+  TABLE_RENDERERS[key]?.();
 }
 
 // =====================================================================
@@ -1311,67 +1295,45 @@ function initOverview() {
     {label:'Seasons', value: DB.history.length, sub:'In history books'},
   ].map(c => `<div class="stat-card"><div class="label">${c.label}</div><div class="value">${c.value}</div><div class="sub">${c.sub}</div></div>`).join('');
 
-  // Award records charts
-  const atrTabs = document.getElementById('atrTabs');
-  const atrContent = document.getElementById('atrContent');
-  atrTabs.innerHTML = ''; atrContent.innerHTML = '';
-  const icons = {MVP:'🏆',Champions:'💍',FMVP:'🥇',DOTY:'🛡️'};
-  const colors = ['bar-fill-mvp','bar-fill-champ','bar-fill-fmvp','bar-fill-doty'];
-  DB.awardRecords.forEach((cat, i) => {
+  buildRecordTabs('atr', DB.awardRecords,
+    {MVP:'🏆',Champions:'💍',FMVP:'🥇',DOTY:'🛡️'},
+    ['bar-fill-mvp','bar-fill-champ','bar-fill-fmvp','bar-fill-doty']);
+  buildRecordTabs('stat', DB.allTimeStats,
+    {PTS:'🏀',REB:'📦',AST:'🎯',STL:'🤚',BLK:'🛡️',GP:'📅',MIN:'⏱️',FGM:'🎳',FTM:'🎾','3PM':'🎪',DD2:'✌️',TD3:'🔱'},
+    ['bar-fill-pts','bar-fill-reb','bar-fill-ast','bar-fill-doty','bar-fill-mvp','bar-fill-generic','bar-fill-champ','bar-fill-fmvp','bar-fill-pts','bar-fill-reb','bar-fill-ast','bar-fill-ast']);
+}
+
+// Tab row + top-20 bar chart per category, used for award and stat records.
+// prefix picks the elements (#atrTabs/#atrContent, #statTabs/#statContent).
+function buildRecordTabs(prefix, categories, icons, colors) {
+  const tabs = document.getElementById(prefix + 'Tabs');
+  const content = document.getElementById(prefix + 'Content');
+  tabs.innerHTML = ''; content.innerHTML = '';
+  const num = v => parseFloat(String(v).replace(/,/g,'')) || 0;
+  const shown = categories.filter(cat => cat.entries.length);
+  shown.forEach((cat, i) => {
     const btn = document.createElement('button');
     btn.className = 'atr-tab' + (i===0?' active':'');
     btn.textContent = (icons[cat.name]||'📊') + ' ' + cat.name;
-    btn.onclick = () => {
-      document.querySelectorAll('#atrTabs .atr-tab').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      document.querySelectorAll('#atrContent .atr-section').forEach(s=>s.classList.remove('active'));
-      document.getElementById(`atr-${i}`).classList.add('active');
-    };
-    atrTabs.appendChild(btn);
     const div = document.createElement('div');
     div.className = 'atr-section' + (i===0?' active':'');
-    div.id = `atr-${i}`;
-    const maxVal = Math.max(...cat.entries.map(e => parseFloat(e.value)||0));
+    btn.onclick = () => {
+      tabs.querySelectorAll('.atr-tab').forEach(b => b.classList.remove('active'));
+      content.querySelectorAll('.atr-section').forEach(sec => sec.classList.remove('active'));
+      btn.classList.add('active');
+      div.classList.add('active');
+    };
+    const color = colors[categories.indexOf(cat) % colors.length];
+    const maxVal = Math.max(...cat.entries.map(e => num(e.value)));
     div.innerHTML = `<div class="chart-card"><div class="bar-chart">${
       cat.entries.slice(0,20).map(e => `<div class="bar-row">
         <div class="bar-label">${nameLink(e.player)}</div>
-        <div class="bar-track"><div class="bar-fill ${colors[i]}" style="width:${maxVal>0?((parseFloat(e.value)||0)/maxVal*100).toFixed(1):0}%">
+        <div class="bar-track"><div class="bar-fill ${color}" style="width:${maxVal>0?(num(e.value)/maxVal*100).toFixed(1):0}%">
           <span class="bar-val">${e.value}</span></div></div>
       </div>`).join('')
     }</div></div>`;
-    atrContent.appendChild(div);
-  });
-
-  // Stat records
-  const statTabs = document.getElementById('statTabs');
-  const statContent = document.getElementById('statContent');
-  statTabs.innerHTML = ''; statContent.innerHTML = '';
-  const statIcons = {PTS:'🏀',REB:'📦',AST:'🎯',STL:'🤚',BLK:'🛡️',GP:'📅',MIN:'⏱️',FGM:'🎳',FTM:'🎾','3PM':'🎪',DD2:'✌️',TD3:'🔱'};
-  const statColors = ['bar-fill-pts','bar-fill-reb','bar-fill-ast','bar-fill-doty','bar-fill-mvp','bar-fill-generic','bar-fill-champ','bar-fill-fmvp','bar-fill-pts','bar-fill-reb','bar-fill-ast','bar-fill-ast'];
-  DB.allTimeStats.forEach((cat, i) => {
-    if (!cat.entries.length) return;
-    const btn = document.createElement('button');
-    btn.className = 'atr-tab' + (i===0?' active':'');
-    btn.textContent = (statIcons[cat.name]||'📊') + ' ' + cat.name;
-    btn.onclick = () => {
-      document.querySelectorAll('#statTabs .atr-tab').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      document.querySelectorAll('#statContent .atr-section').forEach(s=>s.classList.remove('active'));
-      document.getElementById(`stat-${i}`).classList.add('active');
-    };
-    statTabs.appendChild(btn);
-    const div = document.createElement('div');
-    div.className = 'atr-section' + (i===0?' active':'');
-    div.id = `stat-${i}`;
-    const maxVal = Math.max(...cat.entries.map(e => parseFloat(String(e.value).replace(/,/g,''))||0));
-    div.innerHTML = `<div class="chart-card"><div class="bar-chart">${
-      cat.entries.slice(0,20).map(e => `<div class="bar-row">
-        <div class="bar-label">${nameLink(e.player)}</div>
-        <div class="bar-track"><div class="bar-fill ${statColors[i%statColors.length]}" style="width:${maxVal>0?((parseFloat(String(e.value).replace(/,/g,''))||0)/maxVal*100).toFixed(1):0}%">
-          <span class="bar-val">${e.value}</span></div></div>
-      </div>`).join('')
-    }</div></div>`;
-    statContent.appendChild(div);
+    tabs.appendChild(btn);
+    content.appendChild(div);
   });
 }
 
@@ -1602,17 +1564,6 @@ function openTeamModal(teamName) {
       ${(() => {
         // Only show jerseys where the format "# ABBR" matches this team
         // e.g. "23 LAL" should only appear in Lakers modal
-        // Build reverse map of team abbr -> full name
-        const ABBR_MAP = {};
-        DB.teams.forEach(t => {
-          // Get abbreviation from player data by matching full name
-          DB.allPlayers.forEach(p => {
-            for (let i=1;i<=11;i++){
-              const k=i===1?'Team':'Team'+i;
-              if (p[k] && fullTeamName(p[k])===t.Team) ABBR_MAP[p[k]]=t.Team;
-            }
-          });
-        });
         const retiredEntries = [];
         DB.allPlayers.forEach(p => {
           ['# Retired','# Retired2','# Retired3'].forEach(k => {
