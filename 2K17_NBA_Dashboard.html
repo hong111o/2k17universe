@@ -196,6 +196,24 @@ tr.row-pending td:first-child{font-style:normal;}
 .standings-table tr:hover td{background:var(--bg3);}
 .standings-table .champion-row td{background:rgba(245,168,35,0.08);}
 .champ-year{background:var(--bg3);border:1px solid var(--gold);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;padding:5px 12px;letter-spacing:1px;display:inline-block;margin:3px;}
+/* TEAM WIN CHART */
+.win-chart{position:relative;}
+.win-chart svg{display:block;overflow:visible;}
+.win-chart svg:focus{outline:1px solid var(--border);outline-offset:4px;}
+.wc-grid{stroke:var(--border);stroke-width:1;}
+.wc-ref{stroke:var(--text3);stroke-width:1;}
+.wc-tick{fill:var(--text3);font-size:11px;font-family:'Barlow',sans-serif;font-variant-numeric:tabular-nums;}
+.wc-line{fill:none;stroke:var(--blue);stroke-width:2;stroke-linejoin:round;stroke-linecap:round;}
+.wc-mark{stroke:var(--bg2);stroke-width:2;}
+.wc-end{fill:var(--text);font-size:12px;font-weight:600;font-family:'Barlow Condensed',sans-serif;}
+.wc-cross{stroke:var(--text3);stroke-width:1;}
+.wc-key{display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--text2);margin-bottom:8px;}
+.wc-key span{display:inline-flex;align-items:center;gap:6px;}
+.wc-dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+.wc-rule{width:14px;height:1px;background:var(--text3);display:inline-block;}
+.wc-tip{position:absolute;pointer-events:none;background:var(--bg3);border:1px solid var(--border);padding:7px 10px;font-size:12px;color:var(--text);white-space:nowrap;z-index:2;}
+.wc-tip-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;color:var(--text2);letter-spacing:1px;margin-bottom:2px;}
+.wc-tip-sub{color:var(--text2);font-size:11px;margin-top:2px;}
 /* COMPARE */
 .cmp-table{width:100%;border-collapse:collapse;font-size:13px;border:1px solid var(--border);}
 .cmp-table th{padding:11px 16px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:900;min-width:140px;}
@@ -1528,52 +1546,34 @@ function openTeamModal(teamName) {
     const w = fullTeamName(extractChampTeam(h.Finals||''));
     if (w === teamName) champSeasons.add(String(h.Season));
   });
-  // Build raw win values per season for playoff calculation
-  const rawSeasonWins = {};
-  DB.teams.forEach(tm => {
-    Object.entries(tm.seasonRecords || {}).forEach(([s, rec]) => {
-      if (!rawSeasonWins[s]) rawSeasonWins[s] = [];
-      rawSeasonWins[s].push({team: tm.Team, conf: tm.Conference, rawW: rec.rawW !== undefined ? rec.rawW : rec.w});
-    });
-  });
-  // Find runner-up seasons using extractLoserTeam
+  // Seasons the team lost in the Finals
   const ruSeasons = new Set();
   DB.history.forEach(h => {
     const loserAbbr = extractLoserTeam(h.Finals || '');
-    if (loserAbbr) {
-      const loserFull = fullTeamName(loserAbbr);
-      if (loserFull === teamName) ruSeasons.add(String(h.Season));
-    }
+    if (loserAbbr && fullTeamName(loserAbbr) === teamName) ruSeasons.add(String(h.Season));
   });
-  const standRows = seasons.map(yr => {
+  // One entry per season the team played; feeds both the chart and the table
+  const winsOf = (team, yr) => { const r = team.seasonRecords[yr]; return r.rawW !== undefined ? r.rawW : r.w; };
+  const seasonInfo = seasons.map(yr => {
     const rec = t.seasonRecords[yr];
-    if (!rec) return '';
-    const isChamp = champSeasons.has(String(yr));
-    const isRU = ruSeasons.has(String(yr));
     const allYr = DB.teams.filter(x => x.seasonRecords?.[yr]);
-    // League rank - sort by raw wins descending
-    const leagueRanked = [...allYr].sort((a,b) => {
-      const aw = a.seasonRecords[yr].rawW !== undefined ? a.seasonRecords[yr].rawW : a.seasonRecords[yr].w;
-      const bw = b.seasonRecords[yr].rawW !== undefined ? b.seasonRecords[yr].rawW : b.seasonRecords[yr].w;
-      return bw - aw;
-    });
-    const leagueRk = leagueRanked.findIndex(x=>x.Team===teamName)+1;
-    // Conf rank
-    const confYr = allYr.filter(x => x.Conference === t.Conference);
-    const confRanked = [...confYr].sort((a,b) => {
-      const aw = a.seasonRecords[yr].rawW !== undefined ? a.seasonRecords[yr].rawW : a.seasonRecords[yr].w;
-      const bw = b.seasonRecords[yr].rawW !== undefined ? b.seasonRecords[yr].rawW : b.seasonRecords[yr].w;
-      return bw - aw;
-    });
-    const confRk = confRanked.findIndex(x=>x.Team===teamName)+1;
-    const madePlayoffs = confRk > 0 && confRk <= 8;
-    const pct = (rec.w/82).toFixed(3).replace(/^0/,'');
-    const wColor = rec.w >= 50 ? 'var(--green)' : 'var(--accent2)';
+    const rankIn = list => [...list].sort((a,b) => winsOf(b, yr) - winsOf(a, yr)).findIndex(x => x.Team === teamName) + 1;
+    const confRk = rankIn(allYr.filter(x => x.Conference === t.Conference));
+    return {
+      yr: Number(yr), w: rec.w, l: rec.l, confRk, leagueRk: rankIn(allYr),
+      isChamp: champSeasons.has(String(yr)), isRU: ruSeasons.has(String(yr)),
+      madePlayoffs: confRk > 0 && confRk <= 8,
+    };
+  });
+  const standRows = seasonInfo.map(si => {
+    const { yr, confRk, leagueRk, isChamp, isRU, madePlayoffs } = si;
+    const pct = (si.w/82).toFixed(3).replace(/^0/,'');
+    const wColor = si.w >= 50 ? 'var(--green)' : 'var(--accent2)';
     const rowStyle = isChamp ? 'background:rgba(245,168,35,0.1)' : isRU ? 'background:rgba(192,192,192,0.07)' : madePlayoffs ? 'background:rgba(59,158,255,0.05)' : '';
     const result = isChamp ? '🏆' : isRU ? '🥈' : '';
     return `<tr style="${rowStyle}">
       <td style="color:var(--accent);font-family:'Barlow Condensed',sans-serif;font-weight:700">${yr}</td>
-      <td style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:${wColor}">${rec.w}-${rec.l}</td>
+      <td style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:${wColor}">${si.w}-${si.l}</td>
       <td style="color:${confRk<=8?'var(--accent)':'var(--text3)'}">${confRk>0?'#'+confRk:'—'}</td>
       <td style="color:${leagueRk<=16?'var(--text2)':'var(--text3)'}">#${leagueRk>0?leagueRk:'—'}</td>
       <td style="color:var(--text2)">${pct}</td>
@@ -1631,6 +1631,15 @@ function openTeamModal(teamName) {
         });
         return retiredEntries.length ? `<div class="modal-section"><div class="modal-section-title">🏅 Retired Jersey Numbers</div><div style="display:flex;flex-wrap:wrap;gap:8px;">${retiredEntries.map(r=>`<div style="background:var(--bg3);border:1px solid var(--accent);padding:8px 16px;text-align:center;min-width:70px;display:inline-flex;flex-direction:column;align-items:center;"><div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;color:var(--accent);line-height:1">${r.num}</div><div style="font-size:10px;color:var(--text2);margin-top:4px;white-space:nowrap;">${nameLink(r.player)}</div></div>`).join('')}</div></div>` : '';
       })()}
+      ${seasonInfo.length >= 2 ? `<div class="modal-section">
+        <div class="modal-section-title">📈 Wins per Season</div>
+        <div class="wc-key">
+          <span><i class="wc-dot" style="background:var(--gold)"></i>Champion</span>
+          <span><i class="wc-dot" style="background:#c0c0c0"></i>Lost Finals</span>
+          <span><i class="wc-rule"></i>.500 (41 wins)</span>
+        </div>
+        <div class="win-chart" id="winChart"></div>
+      </div>` : ''}
       <div class="modal-section">
         <div class="modal-section-title">📅 Season-by-Season Records</div>
         <div style="overflow-x:auto;max-height:360px;overflow-y:auto;">
@@ -1642,7 +1651,84 @@ function openTeamModal(teamName) {
       </div>
     </div>`;
   document.getElementById('playerModal').classList.add('open');
+  winChartData = { team: t, seasons: [...seasonInfo].reverse() };
+  renderWinChart();
 }
+
+// =====================================================================
+// TEAM WIN CHART
+// Line of wins by season (oldest left). Gold/silver dots mark titles and
+// Finals losses; hover or arrow keys show that season's details.
+// =====================================================================
+let winChartData = null;
+function renderWinChart() {
+  const el = document.getElementById('winChart');
+  if (!el || !winChartData) return;
+  const data = winChartData.seasons, conf = winChartData.team.Conference;
+  const W = Math.max(el.clientWidth, 280), H = 210;
+  const m = { l: 30, r: 48, t: 12, b: 24 };
+  const pw = W - m.l - m.r, ph = H - m.t - m.b;
+  const y0 = data[0].yr, y1 = data[data.length-1].yr;
+  const x = yr => m.l + (yr - y0) / Math.max(y1 - y0, 1) * pw;
+  const y = w => m.t + ph - w / 82 * ph;
+
+  // Grid + axes (solid hairlines), .500 reference line
+  // 41 wins (.500) replaces the 40 gridline so the two don't sit 1px apart
+  let svg = [0, 20, 41, 60, 80].map(v =>
+    `<line x1="${m.l}" x2="${m.l+pw}" y1="${y(v)}" y2="${y(v)}" class="${v === 41 ? 'wc-ref' : 'wc-grid'}"/>` +
+    `<text x="${m.l-6}" y="${y(v)+4}" class="wc-tick" text-anchor="end">${v}</text>`).join('');
+  const step = (y1 - y0) > 30 ? 10 : 5;
+  for (let yr = Math.ceil(y0/step)*step; yr <= y1; yr += step)
+    svg += `<text x="${x(yr)}" y="${H-6}" class="wc-tick" text-anchor="middle">${yr}</text>`;
+
+  // Line, broken where the team has no record for a season
+  let d = '';
+  data.forEach((s, i) => { d += (i && s.yr === data[i-1].yr + 1 ? 'L' : 'M') + x(s.yr).toFixed(1) + ' ' + y(s.w).toFixed(1); });
+  svg += `<path d="${d}" class="wc-line"/>`;
+  data.forEach(s => {
+    if (s.isChamp) svg += `<circle cx="${x(s.yr)}" cy="${y(s.w)}" r="5" class="wc-mark" fill="var(--gold)"/>`;
+    else if (s.isRU) svg += `<circle cx="${x(s.yr)}" cy="${y(s.w)}" r="4.5" class="wc-mark" fill="#c0c0c0"/>`;
+  });
+  // Direct label on the latest season only
+  const last = data[data.length-1];
+  if (!last.isChamp && !last.isRU) svg += `<circle cx="${x(last.yr)}" cy="${y(last.w)}" r="4" class="wc-mark" fill="var(--blue)"/>`;
+  svg += `<text x="${x(last.yr)+8}" y="${y(last.w)+4}" class="wc-end">${last.w}-${last.l}</text>`;
+  // Hover layer
+  svg += `<line class="wc-cross" y1="${m.t}" y2="${m.t+ph}" visibility="hidden"/><circle class="wc-focus wc-mark" r="4.5" fill="var(--blue)" visibility="hidden"/>`;
+
+  el.innerHTML = `<svg width="${W}" height="${H}" tabindex="0" role="img"
+      aria-label="${winChartData.team.Team} wins per season, ${seasonLabel(y0)} to ${seasonLabel(y1)}. Use left and right arrow keys to step through seasons.">${svg}</svg>
+    <div class="wc-tip" hidden></div>`;
+
+  const svgEl = el.querySelector('svg'), tip = el.querySelector('.wc-tip');
+  const cross = el.querySelector('.wc-cross'), focus = el.querySelector('.wc-focus');
+  let cur = -1;
+  const show = i => {
+    cur = Math.max(0, Math.min(data.length - 1, i));
+    const s = data[cur], cx = x(s.yr), cy = y(s.w);
+    cross.setAttribute('x1', cx); cross.setAttribute('x2', cx); cross.setAttribute('visibility', 'visible');
+    focus.setAttribute('cx', cx); focus.setAttribute('cy', cy); focus.setAttribute('visibility', 'visible');
+    const result = s.isChamp ? '🏆 Champion' : s.isRU ? '🥈 Lost in Finals' : s.madePlayoffs ? 'Made playoffs' : 'Missed playoffs';
+    tip.innerHTML = `<div class="wc-tip-title">${seasonLabel(s.yr)}</div>
+      <div><strong>${s.w}-${s.l}</strong> · #${s.confRk} ${conf === 'EAST' ? 'East' : 'West'} · #${s.leagueRk} league</div>
+      <div class="wc-tip-sub">${result}</div>`;
+    tip.hidden = false;
+    // Keep the tooltip inside the chart: flip to the left of the point near the right edge
+    const tw = tip.offsetWidth;
+    tip.style.left = (cx + 12 + tw > W ? cx - 12 - tw : cx + 12) + 'px';
+    tip.style.top = Math.max(0, Math.min(cy - 20, H - tip.offsetHeight)) + 'px';
+  };
+  const hide = () => { cur = -1; tip.hidden = true; cross.setAttribute('visibility', 'hidden'); focus.setAttribute('visibility', 'hidden'); };
+  const nearest = px => data.reduce((bi, s, i) => Math.abs(x(s.yr) - px) < Math.abs(x(data[bi].yr) - px) ? i : bi, 0);
+  svgEl.addEventListener('mousemove', e => show(nearest(e.clientX - svgEl.getBoundingClientRect().left)));
+  svgEl.addEventListener('mouseleave', hide);
+  svgEl.addEventListener('focus', () => show(data.length - 1));
+  svgEl.addEventListener('blur', hide);
+  svgEl.addEventListener('keydown', e => {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); show(cur + (e.key === 'ArrowRight' ? 1 : -1)); }
+  });
+}
+window.addEventListener('resize', () => { if (document.getElementById('winChart')) renderWinChart(); });
 
 // =====================================================================
 // HISTORY
