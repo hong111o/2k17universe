@@ -84,6 +84,8 @@ td.highlight{color:var(--gold);font-weight:600;}
 .pagination button:hover,.pagination button.active-page{border-color:var(--accent);color:var(--accent);}
 .pagination button:disabled{opacity:.3;cursor:default;}
 .page-info{color:var(--text3);font-size:11px;}
+tr.row-pending td{color:var(--text3);font-style:italic;opacity:.55;}
+tr.row-pending td:first-child{font-style:normal;}
 /* SUB TABS */
 .sub-tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;}
 .sub-tab{background:var(--bg2);border:1px solid var(--border);color:var(--text2);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;letter-spacing:1px;padding:7px 16px;cursor:pointer;text-transform:uppercase;transition:all .2s;}
@@ -174,6 +176,8 @@ td.highlight{color:var(--gold);font-weight:600;}
 /* TEAM MODAL */
 .team-modal-header{background:linear-gradient(135deg,var(--bg3),var(--bg2));padding:26px 30px;border-bottom:2px solid var(--accent);display:flex;justify-content:space-between;align-items:flex-start;}
 .team-modal-name{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:34px;letter-spacing:1px;}
+.split-standings{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.split-standings>div{min-width:0;}
 .standings-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;}
 .standings-table th{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);padding:7px 10px;text-align:left;background:var(--bg3);border-bottom:1px solid var(--border);}
 .standings-table td{padding:7px 10px;border-bottom:1px solid var(--border);font-size:12px;}
@@ -188,7 +192,7 @@ td.highlight{color:var(--gold);font-weight:600;}
 .cmp-table .section-header td{padding:9px 16px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);background:rgba(245,166,35,0.06);border-top:2px solid var(--accent);border-bottom:1px solid rgba(245,166,35,0.25);font-family:'Barlow Condensed',sans-serif;font-weight:700;}
 /* SCROLLBAR */
 ::-webkit-scrollbar{width:5px;height:5px;}::-webkit-scrollbar-track{background:var(--bg2);}::-webkit-scrollbar-thumb{background:var(--border);}::-webkit-scrollbar-thumb:hover{background:var(--text3);}
-@media(max-width:768px){header{padding:0 14px;}main{padding:14px;}nav{padding:0 14px;}.decade-grid{grid-template-columns:1fr;}}
+@media(max-width:768px){header{padding:0 14px;}main{padding:14px;}nav{padding:0 14px;}.decade-grid{grid-template-columns:1fr;}.split-standings{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
@@ -367,6 +371,7 @@ td.highlight{color:var(--gold);font-weight:600;}
       <th>Reb Leader</th><th>Team</th><th>RPG</th>
       <th>Ast Leader</th><th>Team</th><th>APG</th>
       <th>Stl Leader</th><th>SPG</th><th>Blk Leader</th><th>BPG</th>
+      <th>Min Leader</th><th>MPG</th>
     </tr></thead>
     <tbody id="statBody"></tbody>
   </table></div>
@@ -580,8 +585,9 @@ function parseWorkbook(wb) {
         if (!isNaN(num) && num > 2000 && num < 3000) seasonCols.push({idx: i, year: Math.round(num)});
       }
     });
-    DB.teams = rows.slice(1, 33)
-      .filter(r => r[0] !== null && r[0] !== undefined && r[1] !== null && r[1] !== undefined)
+    // Team rows have a numeric rank in col 0; notes below the table don't
+    DB.teams = rows.slice(1)
+      .filter(r => typeof r[0] === 'number' && r[1] !== null && r[1] !== undefined)
       .map(r => {
         const t = {
           Rank: r[0], Team: r[1], Conference: r[2], Championship: r[3],
@@ -616,17 +622,18 @@ function parseWorkbook(wb) {
         RebTeam: r[4], RebLeader: r[5], RPG: r[6],
         AstTeam: r[7], AstLeader: r[8], APG: r[9],
         StlTeam: r[10], StlLeader: r[11], SPG: r[12],
-        BlkTeam: r[13], BlkLeader: r[14], BPG: r[15]
+        BlkTeam: r[13], BlkLeader: r[14], BPG: r[15],
+        MinTeam: r[16], MinLeader: r[17], MPG: r[18]
       }));
   }
 
   setProgress('Loading Current Players...');
   if (wb.Sheets['Current Player']) {
     const cpRows = sheetToArr(wb.Sheets['Current Player']);
-    // Only take rows 1-34 (row 0 = header, rows 1-34 = players, row 35+ = notes)
+    // Player rows have a position in col 0; notes below the table don't
     const cpHeaders = cpRows[0].map((h,i) => h !== null && h !== undefined ? String(h) : `col_${i}`);
-    DB.currentPlayers = cpRows.slice(1, 35)
-      .filter(r => r[1] !== null && r[1] !== undefined)
+    DB.currentPlayers = cpRows.slice(1)
+      .filter(r => POSITIONS.includes(r[0]) && r[1] !== null && r[1] !== undefined)
       .map(r => {
         const obj = {};
         cpHeaders.forEach((h, i) => { obj[h] = (r[i] !== undefined && r[i] !== null) ? r[i] : null; });
@@ -649,9 +656,20 @@ function parseWorkbook(wb) {
     parseAllTimeRecords(sheetToArr(wb.Sheets['NBA All-Time Record']));
   }
 
-  // Find latest season
-  const latestSeason = DB.history.length > 0 ? DB.history[0].Season : '—';
-  document.getElementById('seasonBadge').textContent = `SEASON ${latestSeason}–${String(Number(latestSeason)+1).slice(-2)}`;
+  DB.latestSeason = latestSeasonOf(DB.history);
+  document.getElementById('seasonBadge').textContent = DB.latestSeason ? `SEASON ${seasonLabel(DB.latestSeason)}` : 'NO SEASON DATA';
+}
+
+const POSITIONS = ['PG','SG','SF','PF','C'];
+// Highest season number in the history sheet, regardless of row order
+function latestSeasonOf(history) {
+  const yrs = history.map(h => Number(h.Season)).filter(y => !isNaN(y));
+  return yrs.length ? Math.max(...yrs) : null;
+}
+// A season is named by the year it ends in: 2078 -> "2077–78"
+function seasonLabel(yr) {
+  const y = Number(yr);
+  return isNaN(y) ? String(yr) : `${y - 1}–${String(y).slice(-2)}`;
 }
 
 function parseAllNbaTeams(rows) {
@@ -951,22 +969,31 @@ function buildPlayerHead(tblKey, mode, extraCols) {
     ${th('GP','GP')} ${th('PTS',ptsL)} ${th('REB',rebL)} ${th('AST',astL)}
     ${th('STL',stlL)} ${th('BLK',blkL)} ${th('FG%','FG%')} ${th('3P%','3P%')} ${th('FT%','FT%')}
     ${th('DD2','DD2')} ${th('TD3','TD3')}
-    ${exp ? th('MIN','MIN')+th('TOV','TOV')+th('FGM','FGM')+th('FGA','FGA')+th('3PM','3PM')+th('3PA','3PA')+th('FTM','FTM')+th('FTA','FTA') : ''}
+    ${exp ? th('MIN','MIN')+th(mode==='avg'?'TOV':'TO','TOV')+th('FGM','FGM')+th('FGA','FGA')+th('3PM','3PM')+th('3PA','3PA')+th('FTM','FTM')+th('FTA','FTA') : ''}
     ${th('Finals App','Finals')}
     ${th('MVP','MVP')} ${th('Champions','Champ')} ${th('FMVP','FMVP')}
     ${th('All Stars','All-Stars')} ${th('All NBA Team','All-NBA')}
     ${exp ? th('1st Team','1st')+th('2nd Team','2nd')+th('3rd Team','3rd') : ''}
-    ${th('1st D Team','D-Team')}
+    ${th('DTeam','D-Team')}
     ${exp ? th('1st D Team','1st-D')+th('2nd D Team','2nd-D') : ''}
     ${th('DPOY','DPOY')}
     <th>Retired#</th><th>Teams</th>`;
 }
-function buildPlayerRow(row, rank, mode) {
+// Combined All-Defensive selections; a blank cell counts as 0
+function dTeamTotal(row) {
+  const v = k => { const x = getNum(row[k]); return x === -Infinity ? 0 : x; };
+  return v('1st D Team') + v('2nd D Team');
+}
+// One row of the All Players / Top 20 / Positional tables (must match buildPlayerHead)
+function buildPlayerRow(row, tblKey, mode, rank, showPos) {
   const v = key => fmtStatVal(row, key, mode);
-  const retired = retiredNums(row).join(' · ') || '—';
+  const exp = expanded[tblKey] || false;
+  // TOV is per game in the sheet; TO is the career total
+  const tov = mode === 'avg' ? (row.TOV ?? '-') : numFmt(row.TO);
   return `<tr>
     <td class="rank-cell ${rankCls(rank)}">${rank}</td>
     <td>${plink(row.Player || '—')}</td>
+    ${showPos ? `<td>${posBadge(row.Position)}</td>` : ''}
     <td style="color:var(--text2);font-size:11px">${row.Season||'—'}</td>
     <td class="num">${numFmt(row.GP)}</td>
     <td class="num highlight">${v('PTS')}</td>
@@ -979,14 +1006,18 @@ function buildPlayerRow(row, rank, mode) {
     <td class="num">${pctFmt(row['FT%'])}</td>
     <td class="num">${numFmt(row.DD2)}</td>
     <td class="num">${numFmt(row.TD3)}</td>
+    ${exp ? `<td class="num">${numFmt(row.MIN)}</td><td class="num">${tov}</td><td class="num">${numFmt(row.FGM)}</td><td class="num">${numFmt(row.FGA)}</td><td class="num">${numFmt(row['3PM'])}</td><td class="num">${numFmt(row['3PA'])}</td><td class="num">${numFmt(row.FTM)}</td><td class="num">${numFmt(row.FTA)}</td>` : ''}
     <td class="num">${row['Finals App']||0}</td>
     <td class="num" style="color:var(--gold)">${row.MVP||0}</td>
     <td class="num" style="color:var(--green)">${row.Champions||0}</td>
     <td class="num">${row.FMVP||0}</td>
     <td class="num">${row['All Stars']||0}</td>
     <td class="num">${row['All NBA Team']||0}</td>
+    ${exp ? `<td class="num">${row['1st Team']||0}</td><td class="num">${row['2nd Team']||0}</td><td class="num">${row['3rd Team']||0}</td>` : ''}
+    <td class="num">${dTeamTotal(row)}</td>
+    ${exp ? `<td class="num">${row['1st D Team']||0}</td><td class="num">${row['2nd D Team']||0}</td>` : ''}
     <td class="num">${row.DPOY||0}</td>
-    <td style="color:var(--accent);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700">${retired}</td>
+    <td style="color:var(--accent);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700">${retiredNums(row).join(' · ')||'—'}</td>
     <td>${teamTags(row)}</td>
   </tr>`;
 }
@@ -1000,6 +1031,7 @@ function sortedByMode(arr, key, mode) {
       const av = getStatVal(a, col, mode), bv = getStatVal(b, col, mode);
       if (av !== null && bv !== null) return (av - bv) * dir;
     }
+    if (col === 'DTeam') return (dTeamTotal(a) - dTeamTotal(b)) * dir;
     // Season column: sort by the numeric year part (e.g. "2004-24" -> 2004)
     if (col === 'Season') {
       const ay = parseInt(String(a[col]||'0').split('-')[0]) || 0;
@@ -1139,42 +1171,14 @@ function renderPlayers() {
   const sorted = sortedByMode(filtered, 'players', mode);
   const slice = sorted.slice((page-1)*perPage, page*perPage);
   const si = col => { const s = sortStates.players||{}; return s.col===col?(s.dir>0?' ↑':' ↓'):''; };
-  const si_p = col => { const s2 = sortStates.players||{}; return s2.col===col?(s2.dir>0?' ↑':' ↓'):''; };
   document.getElementById('playersHead').innerHTML = `
-    <th onclick="onSort('players','Player')">Rank</th>
-    <th onclick="onSort('players','Player')">Player${si_p('Player')}</th>
+    <th>Rank</th>
+    <th onclick="onSort('players','Player')">Player${si('Player')}</th>
     <th>Pos</th>
-    <th onclick="onSort('players','Season')">Season${si_p('Season')}</th>
+    <th onclick="onSort('players','Season')">Season${si('Season')}</th>
     ${buildPlayerHead('players', mode)}`;
   document.getElementById('playersBody').innerHTML = slice.map((p, i) =>
-    `<tr><td class="rank-cell ${rankCls((page-1)*perPage+i+1)}">${(page-1)*perPage+i+1}</td>
-     <td>${plink(p.Player||'—')}</td>
-     <td>${posBadge(p.Position)}</td>
-     <td style="color:var(--text2);font-size:11px">${p.Season||'—'}</td>
-     <td class="num">${numFmt(p.GP)}</td>
-     <td class="num highlight">${fmtStatVal(p,'PTS',mode)}</td>
-     <td class="num">${fmtStatVal(p,'REB',mode)}</td>
-     <td class="num">${fmtStatVal(p,'AST',mode)}</td>
-     <td class="num">${fmtStatVal(p,'STL',mode)}</td>
-     <td class="num">${fmtStatVal(p,'BLK',mode)}</td>
-     <td class="num">${pctFmt(p['FG%'])}</td>
-     <td class="num">${pctFmt(p['3P%'])}</td>
-     <td class="num">${pctFmt(p['FT%'])}</td>
-     <td class="num">${numFmt(p.DD2)}</td>
-     <td class="num">${numFmt(p.TD3)}</td>
-     ${expanded.players ? `<td class="num">${numFmt(p.MIN)}</td><td class="num">${p.TOV||'-'}</td><td class="num">${numFmt(p.FGM)}</td><td class="num">${numFmt(p.FGA)}</td><td class="num">${numFmt(p['3PM'])}</td><td class="num">${numFmt(p['3PA'])}</td><td class="num">${numFmt(p.FTM)}</td><td class="num">${numFmt(p.FTA)}</td>` : ''}
-     <td class="num">${p['Finals App']||0}</td>
-     <td class="num" style="color:var(--gold)">${p.MVP||0}</td>
-     <td class="num" style="color:var(--green)">${p.Champions||0}</td>
-     <td class="num">${p.FMVP||0}</td>
-     <td class="num">${p['All Stars']||0}</td>
-     <td class="num">${p['All NBA Team']||0}</td>
-     ${expanded.players ? `<td class="num">${p['1st Team']||0}</td><td class="num">${p['2nd Team']||0}</td><td class="num">${p['3rd Team']||0}</td>` : ''}
-     <td class="num">${(getNum(p['1st D Team'])+getNum(p['2nd D Team'])).toString().replace('-Infinity','0')||0}</td>
-     ${expanded.players ? `<td class="num">${p['1st D Team']||0}</td><td class="num">${p['2nd D Team']||0}</td>` : ''}
-     <td class="num">${p.DPOY||0}</td>
-     <td style="color:var(--accent);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700">${retiredNums(p).join(' · ')||'—'}</td>
-     <td>${teamTags(p)}</td></tr>`).join('');
+    buildPlayerRow(p, 'players', mode, (page-1)*perPage+i+1, true)).join('');
   renderPag('playersPag', filtered.length, perPage, page, 'goPlayersPage');
 }
 function goPlayersPage(p) { playersState.page = p; renderPlayers(); }
@@ -1200,37 +1204,8 @@ function renderTop20() {
     <th onclick="onSort('top20','Player')">Player${si('Player')}</th>
     <th onclick="onSort('top20','Season')">Season${si('Season')}</th>
     ${buildPlayerHead('top20', mode)}`;
-  document.getElementById('top20Body').innerHTML = slice.map(p => {
-    const rank = p.Rank || '—';
-    return `<tr>
-      <td class="rank-cell ${rankCls(rank)}">${rank}</td>
-      <td>${plink(p.Player||'—')}</td>
-      <td style="color:var(--text2);font-size:11px">${p.Season||'—'}</td>
-      <td class="num">${numFmt(p.GP)}</td>
-      <td class="num highlight">${fmtStatVal(p,'PTS',mode)}</td>
-      <td class="num">${fmtStatVal(p,'REB',mode)}</td>
-      <td class="num">${fmtStatVal(p,'AST',mode)}</td>
-      <td class="num">${fmtStatVal(p,'STL',mode)}</td>
-      <td class="num">${fmtStatVal(p,'BLK',mode)}</td>
-      <td class="num">${pctFmt(p['FG%'])}</td>
-      <td class="num">${pctFmt(p['3P%'])}</td>
-      <td class="num">${pctFmt(p['FT%'])}</td>
-      <td class="num">${numFmt(p.DD2)}</td>
-      <td class="num">${numFmt(p.TD3)}</td>
-      ${expanded.top20 ? `<td class="num">${numFmt(p.MIN)}</td><td class="num">${p.TOV||'-'}</td><td class="num">${numFmt(p.FGM)}</td><td class="num">${numFmt(p.FGA)}</td><td class="num">${numFmt(p['3PM'])}</td><td class="num">${numFmt(p['3PA'])}</td><td class="num">${numFmt(p.FTM)}</td><td class="num">${numFmt(p.FTA)}</td>` : ''}
-      <td class="num">${p['Finals App']||0}</td>
-      <td class="num" style="color:var(--gold)">${p.MVP||0}</td>
-      <td class="num" style="color:var(--green)">${p.Champions||0}</td>
-      <td class="num">${p.FMVP||0}</td>
-      <td class="num">${p['All Stars']||0}</td>
-      <td class="num">${p['All NBA Team']||0}</td>
-      ${expanded.top20 ? `<td class="num">${p['1st Team']||0}</td><td class="num">${p['2nd Team']||0}</td><td class="num">${p['3rd Team']||0}</td>` : ''}
-      <td class="num">${(getNum(p['1st D Team'])+getNum(p['2nd D Team'])).toString().replace('-Infinity','0')||0}</td>
-      ${expanded.top20 ? `<td class="num">${p['1st D Team']||0}</td><td class="num">${p['2nd D Team']||0}</td>` : ''}
-      <td class="num">${p.DPOY||0}</td>
-      <td style="color:var(--accent);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700">${retiredNums(p).join(' · ')||'—'}</td>
-      <td>${teamTags(p)}</td></tr>`;
-  }).join('');
+  document.getElementById('top20Body').innerHTML = slice.map(p =>
+    buildPlayerRow(p, 'top20', mode, p.Rank || '—', false)).join('');
   renderPag('top20Pag', filtered.length, perPage, page, 'goTop20Page');
 }
 function goTop20Page(p) { top20State.page = p; renderTop20(); }
@@ -1269,37 +1244,8 @@ function renderPos() {
     <th onclick="onSort('pos','Player')">Player${si('Player')}</th>
     <th onclick="onSort('pos','Season')">Season${si('Season')}</th>
     ${buildPlayerHead('pos', mode)}`;
-  document.getElementById('posBody').innerHTML = slice.map(p => {
-    const rank = p.Rank || '—';
-    return `<tr>
-      <td class="rank-cell ${rankCls(rank)}">${rank}</td>
-      <td>${plink(p.Player||'—')}</td>
-      <td style="color:var(--text2);font-size:11px">${p.Season||'—'}</td>
-      <td class="num">${numFmt(p.GP)}</td>
-      <td class="num highlight">${fmtStatVal(p,'PTS',mode)}</td>
-      <td class="num">${fmtStatVal(p,'REB',mode)}</td>
-      <td class="num">${fmtStatVal(p,'AST',mode)}</td>
-      <td class="num">${fmtStatVal(p,'STL',mode)}</td>
-      <td class="num">${fmtStatVal(p,'BLK',mode)}</td>
-      <td class="num">${pctFmt(p['FG%'])}</td>
-      <td class="num">${pctFmt(p['3P%'])}</td>
-      <td class="num">${pctFmt(p['FT%'])}</td>
-      <td class="num">${numFmt(p.DD2)}</td>
-      <td class="num">${numFmt(p.TD3)}</td>
-      ${expanded.pos ? `<td class="num">${numFmt(p.MIN)}</td><td class="num">${p.TOV||'-'}</td><td class="num">${numFmt(p.FGM)}</td><td class="num">${numFmt(p.FGA)}</td><td class="num">${numFmt(p['3PM'])}</td><td class="num">${numFmt(p['3PA'])}</td><td class="num">${numFmt(p.FTM)}</td><td class="num">${numFmt(p.FTA)}</td>` : ''}
-      <td class="num">${p['Finals App']||0}</td>
-      <td class="num" style="color:var(--gold)">${p.MVP||0}</td>
-      <td class="num" style="color:var(--green)">${p.Champions||0}</td>
-      <td class="num">${p.FMVP||0}</td>
-      <td class="num">${p['All Stars']||0}</td>
-      <td class="num">${p['All NBA Team']||0}</td>
-      ${expanded.pos ? `<td class="num">${p['1st Team']||0}</td><td class="num">${p['2nd Team']||0}</td><td class="num">${p['3rd Team']||0}</td>` : ''}
-      <td class="num">${(getNum(p['1st D Team'])+getNum(p['2nd D Team'])).toString().replace('-Infinity','0')||0}</td>
-      ${expanded.pos ? `<td class="num">${p['1st D Team']||0}</td><td class="num">${p['2nd D Team']||0}</td>` : ''}
-      <td class="num">${p.DPOY||0}</td>
-      <td style="color:var(--accent);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700">${retiredNums(p).join(' · ')||'—'}</td>
-      <td>${teamTags(p)}</td></tr>`;
-  }).join('');
+  document.getElementById('posBody').innerHTML = slice.map(p =>
+    buildPlayerRow(p, 'pos', mode, p.Rank || '—', false)).join('');
   renderPag('posPag', filtered.length, perPage, page, 'goPosPage');
 }
 function goPosPage(p) { posState.page = p; renderPos(); }
@@ -1315,8 +1261,7 @@ function filterTeams() {
     (!q || String(t.Team).toLowerCase().includes(q)) &&
     (!conf || t.Conference === conf));
   arr = [...arr].sort((a, b) => getNum(b[sc]) - getNum(a[sc]));
-  const latestSeason = DB.history.length > 0 ? DB.history[0].Season : null;
-  const seasons = latestSeason ? Object.keys(arr[0]?.seasonRecords||{}).sort((a,b)=>b-a) : [];
+  const latestSeason = DB.latestSeason;
   // League rank for latest season
   const rankMap = {};
   if (latestSeason) {
@@ -1356,7 +1301,7 @@ function filterTeams() {
         <div class="team-stat"><div class="tv">${t.Championship||0}</div><div class="tl">Titles</div></div>
         <div class="team-stat"><div class="tv">${t['Conference Titles']||0}</div><div class="tl">Conf</div></div>
         <div class="team-stat"><div class="tv">${t.Playoffs||0}</div><div class="tl">Playoffs</div></div>
-        <div class="team-stat"><div class="tv" style="font-size:${rec?'18px':'22px'}">${rec ? rec.w+'-'+rec.l : t['Last Title']||'—'}</div><div class="tl">${rec ? latestSeason+' Record' : 'Last Title'}</div></div>
+        <div class="team-stat"><div class="tv" style="font-size:${rec?'18px':'22px'}">${rec ? rec.w+'-'+rec.l : t['Last Title']||'—'}</div><div class="tl">${rec ? seasonLabel(latestSeason)+' Record' : 'Last Title'}</div></div>
       </div>
       <div style="color:var(--text3);font-size:10px;margin-top:10px;">
         Average Wins — Last 5Y: <span style="color:${parseFloat(avg5||0)>=41?'var(--green)':'var(--accent2)'};font-weight:700">${fmt1dp(avg5)}</span>
@@ -1519,7 +1464,7 @@ function initStandings() {
     return;
   }
   sel.innerHTML = seasons.map(s =>
-    `<option value="${s}">${s}&#8211;${String(Number(s)+1).slice(-2)}</option>`).join('');
+    `<option value="${s}">${seasonLabel(s)}</option>`).join('');
   renderStandings();
 }
 
@@ -1572,7 +1517,7 @@ function renderStandings() {
     const east = [...allTeams.filter(t=>t.Conference==='EAST')].sort((a,b)=>byRaw(b)-byRaw(a));
     const west = [...allTeams.filter(t=>t.Conference==='WEST')].sort((a,b)=>byRaw(b)-byRaw(a));
     document.getElementById('standingsContent').innerHTML = `
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+      <div class="split-standings">
         <div>
           <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:2px;color:var(--accent2);margin-bottom:8px;">EASTERN CONFERENCE</div>
           <div style="overflow-x:auto"><table class="standings-table">${headNoConf}<tbody>${buildStandingsTable(east,season,champFull,ruFull,8,false)}</tbody></table></div>
@@ -1596,10 +1541,8 @@ function filterHistory() {
   const q = document.getElementById('histSearch').value.toLowerCase();
   histState.filtered = DB.history.filter(h =>
     !q || String(h.Season).includes(q) ||
-    String(h.MVP||'').toLowerCase().includes(q) ||
-    String(h.Finals||'').toLowerCase().includes(q) ||
-    String(h.DPOY||'').toLowerCase().includes(q) ||
-    String(h.Star1||'').toLowerCase().includes(q));
+    ['MVP','FMVP','DPOY','Finals','Star1','Star2','Star3'].some(k => String(h[k]||'').toLowerCase().includes(q)) ||
+    fullTeamName(extractChampTeam(h.Finals||'')).toLowerCase().includes(q));
   histState.page = 1;
   renderHistory();
 }
@@ -1658,28 +1601,35 @@ function goHistPage(p) { histState.page = p; renderHistory(); }
 // STAT LEADERS
 // =====================================================================
 let statState = { filtered: [], page: 1, perPage: 40 };
+const STAT_LEADER_KEYS = ['PtsLeader','RebLeader','AstLeader','StlLeader','BlkLeader','MinLeader'];
+// Seasons are listed in the sheet before their leaders are typed in
+function statRowEntered(s) { return STAT_LEADER_KEYS.some(k => s[k]); }
 function filterStat() {
   const q = document.getElementById('statSearch').value.toLowerCase();
   statState.filtered = DB.statLeaders.filter(s =>
     !q || String(s.Season).includes(q) ||
-    String(s.PtsLeader||'').toLowerCase().includes(q) ||
-    String(s.RebLeader||'').toLowerCase().includes(q) ||
-    String(s.AstLeader||'').toLowerCase().includes(q));
+    STAT_LEADER_KEYS.some(k => String(s[k]||'').toLowerCase().includes(q)));
   statState.page = 1;
-  document.getElementById('statCount').textContent = statState.filtered.length + ' seasons';
+  const entered = statState.filtered.filter(statRowEntered).length;
+  const missing = statState.filtered.length - entered;
+  document.getElementById('statCount').textContent = `${entered} seasons entered` + (missing ? ` · ${missing} not entered yet` : '');
   renderStat();
 }
 function renderStat() {
   const { filtered, page, perPage } = statState;
   const sorted = [...filtered].sort((a,b) => getNum(b.Season) - getNum(a.Season));
   const slice = sorted.slice((page-1)*perPage, page*perPage);
-  document.getElementById('statBody').innerHTML = slice.map(s => `<tr>
-    <td><span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:15px;color:var(--accent)">${s.Season}</span></td>
+  const seasonCell = s => `<td><span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:15px;color:var(--accent)">${s.Season}</span></td>`;
+  document.getElementById('statBody').innerHTML = slice.map(s => !statRowEntered(s)
+    ? `<tr class="row-pending">${seasonCell(s)}<td colspan="15">Not entered yet</td></tr>`
+    : `<tr>
+    ${seasonCell(s)}
     <td style="font-weight:600">${s.PtsLeader||'—'}</td><td class="team-tag">${s.PtsTeam||'—'}</td><td class="num highlight">${s.PPG||'—'}</td>
     <td style="font-weight:600">${s.RebLeader||'—'}</td><td class="team-tag">${s.RebTeam||'—'}</td><td class="num" style="color:var(--green)">${s.RPG||'—'}</td>
     <td style="font-weight:600">${s.AstLeader||'—'}</td><td class="team-tag">${s.AstTeam||'—'}</td><td class="num" style="color:var(--blue)">${s.APG||'—'}</td>
     <td style="font-weight:600">${s.StlLeader||'—'}</td><td class="num">${s.SPG||'—'}</td>
     <td style="font-weight:600">${s.BlkLeader||'—'}</td><td class="num">${s.BPG||'—'}</td>
+    <td style="font-weight:600">${s.MinLeader||'—'}</td><td class="num">${s.MPG||'—'}</td>
   </tr>`).join('');
   renderPag('statPag', filtered.length, perPage, page, 'goStatPage');
 }
@@ -1698,19 +1648,18 @@ function filterCurrent() {
   curState.page = 1;
   document.getElementById('curCount').textContent = curState.filtered.length + ' players';
   // Set subtitle with season
-  const yr = DB.currentPlayers[0]?.Season;
-  if (yr) document.getElementById('currentSub').textContent = `Active Players — Season ${yr}`;
+  if (DB.latestSeason) document.getElementById('currentSub').textContent = `Active Players — Season ${seasonLabel(DB.latestSeason)}`;
+  renderCurrent();
+}
+// Global so the header's inline onclick handlers can reach it
+function onSortCur(col) {
+  toggleSortState('cur', col);
+  curState.page = 1;
   renderCurrent();
 }
 function renderCurrent() {
   const { filtered, page, perPage } = curState;
-  // sorting handled in renderCurrent head section
-  const slice = filtered.slice((page-1)*perPage, page*perPage);
   const curSI = col => { const s2 = sortStates.cur||{}; return s2.col===col?(s2.dir>0?' ↑':' ↓'):''; };
-  function onSortCur(col) {
-    toggleSortState('cur', col);
-    renderCurrent();
-  }
   document.getElementById('curHead').innerHTML = `
     <th onclick="onSortCur('Player')">Player${curSI('Player')}</th>
     <th>Pos</th>
