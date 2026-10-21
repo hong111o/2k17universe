@@ -214,6 +214,32 @@ tr.row-pending td:first-child{font-style:normal;}
 .wc-tip{position:absolute;pointer-events:none;background:var(--bg3);border:1px solid var(--border);padding:7px 10px;font-size:12px;color:var(--text);white-space:nowrap;z-index:2;}
 .wc-tip-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;color:var(--text2);letter-spacing:1px;margin-bottom:2px;}
 .wc-tip-sub{color:var(--text2);font-size:11px;margin-top:2px;}
+/* SEASON PAGE */
+.season-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px 16px;flex-wrap:wrap;margin-bottom:22px;}
+.season-head .section-sub{margin-bottom:0;}
+.season-nav{display:flex;gap:8px;align-items:center;}
+.season-nav select{font-size:14px;padding:8px 12px;}
+.icon-btn:disabled{opacity:.3;cursor:default;}
+.stat-card .value.value-name{font-size:21px;color:var(--text);line-height:1.15;}
+.stat-card .value-name .player-link,.stat-card .value-name .team-link{font-size:inherit;font-weight:inherit;}
+.muted{color:var(--text3);font-size:12px;}
+.season-link{cursor:pointer;color:var(--accent);transition:color .15s;}
+.season-link:hover{color:var(--gold);text-decoration:underline;}
+/* RECORD BOOK */
+.rb-section{margin-bottom:28px;}
+.rb-section-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;color:var(--accent);letter-spacing:1px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.rb-section-sub{color:var(--text3);font-size:11px;letter-spacing:.5px;margin-top:6px;}
+.rb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px;margin-top:14px;}
+.rb-card{margin-bottom:0;}
+.rb-row{display:grid;grid-template-columns:26px 1fr auto;column-gap:10px;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.rb-row:last-of-type{border-bottom:none;}
+.rb-rank{font-family:'Barlow Condensed',sans-serif;font-weight:900;color:var(--text3);font-size:14px;}
+.rb-main{font-weight:600;min-width:0;}
+.rb-val{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;color:var(--gold);font-variant-numeric:tabular-nums;text-align:right;}
+.rb-sub{grid-column:2 / 4;color:var(--text3);font-size:11px;margin-top:1px;}
+.rb-note{color:var(--text3);font-size:10px;letter-spacing:.5px;margin-top:10px;text-transform:uppercase;}
+.rb-active{color:var(--green);font-weight:700;margin-left:4px;}
+@media(max-width:768px){.rb-grid{grid-template-columns:1fr;}.season-nav{width:100%;}.season-nav select{flex:1;}}
 /* COMPARE */
 .cmp-table{width:100%;border-collapse:collapse;font-size:13px;border:1px solid var(--border);}
 .cmp-table th{padding:11px 16px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:900;min-width:140px;}
@@ -258,17 +284,19 @@ tr.row-pending td:first-child{font-style:normal;}
 </header>
 
 <nav id="mainNav">
-  <button class="active" onclick="showSection('overview')">Overview</button>
-  <button onclick="showSection('players')">All Players</button>
-  <button onclick="showSection('top20')">Top 20</button>
-  <button onclick="showSection('bypos')">Positional Rankings</button>
-  <button onclick="showSection('teams')">Teams</button>
-  <button onclick="showSection('history')">History</button>
-  <button onclick="showSection('statleaders')">Stat Leaders</button>
-  <button onclick="showSection('current')">Active Players</button>
-  <button onclick="showSection('allnba')">All-NBA Teams</button>
-  <button onclick="showSection('decades')">Decade Teams</button>
-  <button onclick="showSection('compare')">Compare Players</button>
+  <button class="active" data-sec="overview" onclick="showSection('overview')">Overview</button>
+  <button data-sec="players" onclick="showSection('players')">All Players</button>
+  <button data-sec="top20" onclick="showSection('top20')">Top 20</button>
+  <button data-sec="bypos" onclick="showSection('bypos')">Positional Rankings</button>
+  <button data-sec="teams" onclick="showSection('teams')">Teams</button>
+  <button data-sec="history" onclick="showSection('history')">History</button>
+  <button data-sec="season" onclick="openSeason()">Seasons</button>
+  <button data-sec="records" onclick="showSection('records')">Record Book</button>
+  <button data-sec="statleaders" onclick="showSection('statleaders')">Stat Leaders</button>
+  <button data-sec="current" onclick="showSection('current')">Active Players</button>
+  <button data-sec="allnba" onclick="showSection('allnba')">All-NBA Teams</button>
+  <button data-sec="decades" onclick="showSection('decades')">Decade Teams</button>
+  <button data-sec="compare" onclick="showSection('compare')">Compare Players</button>
 </nav>
 
 <main>
@@ -387,6 +415,29 @@ tr.row-pending td:first-child{font-style:normal;}
     </div>
     <div id="standingsContent"></div>
   </div>
+</div>
+
+<!-- SEASON DETAIL -->
+<div id="sec-season" class="section">
+  <div class="season-head">
+    <div>
+      <div class="section-title" id="seasonTitle">Season</div>
+      <div class="section-sub" id="seasonSub">Champion, awards, standings and leaders</div>
+    </div>
+    <div class="season-nav">
+      <button class="icon-btn" id="seasonPrev" onclick="stepSeason(-1)">← Older</button>
+      <select id="seasonSelect" onchange="openSeason(Number(this.value))"></select>
+      <button class="icon-btn" id="seasonNext" onclick="stepSeason(1)">Newer →</button>
+    </div>
+  </div>
+  <div id="seasonContent"></div>
+</div>
+
+<!-- RECORD BOOK -->
+<div id="sec-records" class="section">
+  <div class="section-title">Record Book</div>
+  <div class="section-sub" id="recordsSub">League records from your history</div>
+  <div id="recordsContent"></div>
 </div>
 
 <!-- STAT LEADERS -->
@@ -756,6 +807,8 @@ function parseWorkbook(wb) {
   }
 
   playerIndex = null; // rebuilt from the new data on first lookup
+  standingsCache = {};
+  seasonState.yr = null;
   DB.latestSeason = latestSeasonOf(DB.history);
   document.getElementById('seasonBadge').textContent = DB.latestSeason ? `SEASON ${seasonLabel(DB.latestSeason)}` : 'NO SEASON DATA';
 }
@@ -962,6 +1015,12 @@ function extractChampTeam(finals) {
   if (!finals) return '';
   const m = String(finals).match(/^([A-Z]{2,4})\s+4/);
   return m ? m[1] : '';
+}
+// Full names of the champion and Finals loser for a season ('' if unknown)
+function finalsTeams(season) {
+  const h = DB.history.find(x => String(x.Season) === String(season));
+  const champAbbr = h ? extractChampTeam(h.Finals || '') : '', ruAbbr = h ? extractLoserTeam(h.Finals || '') : '';
+  return { champ: champAbbr ? fullTeamName(champAbbr) : '', ru: ruAbbr ? fullTeamName(ruAbbr) : '' };
 }
 function extractLoserTeam(finals) {
   if (!finals) return '';
@@ -1244,24 +1303,25 @@ function onSort(key, col) {
 // =====================================================================
 // SECTION NAVIGATION
 // =====================================================================
-const SECTIONS = ['overview','players','top20','bypos','teams','history','statleaders','current','allnba','decades','compare'];
+const SECTIONS = ['overview','players','top20','bypos','teams','history','season','records','statleaders','current','allnba','decades','compare'];
 function showSection(id) {
   if (!SECTIONS.includes(id)) id = 'overview';
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('#mainNav button').forEach(b => b.classList.remove('active'));
   document.getElementById('sec-' + id).classList.add('active');
-  const btns = document.querySelectorAll('#mainNav button');
-  if (btns[SECTIONS.indexOf(id)]) btns[SECTIONS.indexOf(id)].classList.add('active');
+  document.querySelector(`#mainNav button[data-sec="${id}"]`)?.classList.add('active');
   // Remember the tab: in the address (refresh/bookmark) and for the next visit
-  if (location.hash.slice(1) !== id) history.replaceState(null, '', '#' + id);
+  const hash = id === 'season' && seasonState.yr ? 'season-' + seasonState.yr : id;
+  if (location.hash.slice(1) !== hash) history.replaceState(null, '', '#' + hash);
   try { localStorage.setItem('nba2k17-tab', id); } catch(e) {}
 }
 function restoreSection() {
+  if (openSeasonFromHash()) return;
   let id = location.hash.slice(1);
   if (!SECTIONS.includes(id)) { try { id = localStorage.getItem('nba2k17-tab'); } catch(e) { id = null; } }
   showSection(id || 'overview');
 }
-window.addEventListener('hashchange', () => { if (dataLoaded) showSection(location.hash.slice(1)); });
+window.addEventListener('hashchange', () => { if (dataLoaded && !openSeasonFromHash()) showSection(location.hash.slice(1)); });
 
 function closeModal() { document.getElementById('playerModal').classList.remove('open'); }
 document.addEventListener('keydown', e => {
@@ -1515,16 +1575,11 @@ function openTeamModal(teamName) {
     if (loserAbbr && fullTeamName(loserAbbr) === teamName) ruSeasons.add(String(h.Season));
   });
   // One entry per season the team played; feeds both the chart and the table
-  const winsOf = (team, yr) => { const r = team.seasonRecords[yr]; return r.rawW !== undefined ? r.rawW : r.w; };
   const seasonInfo = seasons.map(yr => {
-    const rec = t.seasonRecords[yr];
-    const allYr = DB.teams.filter(x => x.seasonRecords?.[yr]);
-    const rankIn = list => [...list].sort((a,b) => winsOf(b, yr) - winsOf(a, yr)).findIndex(x => x.Team === teamName) + 1;
-    const confRk = rankIn(allYr.filter(x => x.Conference === t.Conference));
+    const r = seasonStandings(yr).find(x => x.team === teamName);
     return {
-      yr: Number(yr), w: rec.w, l: rec.l, confRk, leagueRk: rankIn(allYr),
-      isChamp: champSeasons.has(String(yr)), isRU: ruSeasons.has(String(yr)),
-      madePlayoffs: confRk > 0 && confRk <= 8,
+      yr: Number(yr), w: r.w, l: r.l, confRk: r.confRk, leagueRk: r.leagueRk,
+      isChamp: champSeasons.has(String(yr)), isRU: ruSeasons.has(String(yr)), madePlayoffs: r.playoffs,
     };
   });
   const standRows = seasonInfo.map(si => {
@@ -1534,7 +1589,7 @@ function openTeamModal(teamName) {
     const rowStyle = isChamp ? 'background:rgba(245,168,35,0.1)' : isRU ? 'background:rgba(192,192,192,0.07)' : madePlayoffs ? 'background:rgba(59,158,255,0.05)' : '';
     const result = isChamp ? '🏆' : isRU ? '🥈' : '';
     return `<tr style="${rowStyle}">
-      <td style="color:var(--accent);font-family:'Barlow Condensed',sans-serif;font-weight:700">${yr}</td>
+      <td style="font-family:'Barlow Condensed',sans-serif;font-weight:700">${seasonLink(yr, String(yr))}</td>
       <td style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:${wColor}">${si.w}-${si.l}</td>
       <td style="color:${confRk<=8?'var(--accent)':'var(--text3)'}">${confRk>0?'#'+confRk:'—'}</td>
       <td style="color:${leagueRk<=16?'var(--text2)':'var(--text3)'}">#${leagueRk>0?leagueRk:'—'}</td>
@@ -1739,45 +1794,40 @@ function buildStandingsTable(teamsArr, season, champFull, ruFull, topN, showConf
   }).join('');
 }
 
+function standingsHead(showConf) {
+  return `<thead><tr><th style="text-align:center">#</th><th>Team</th>${showConf ? '<th>Conf</th>' : ''}<th>Record</th><th style="text-align:center">Win%</th><th style="text-align:center">GB</th><th style="text-align:center">Result</th></tr></thead>`;
+}
+// East and West tables side by side (stacked on phones); '' if the season has no team records
+function splitStandingsHtml(season) {
+  const { champ, ru } = finalsTeams(season);
+  const conf = c => DB.teams.filter(t => t.Conference === c && t.seasonRecords?.[season])
+    .sort((a,b) => b.seasonRecords[season].rawW - a.seasonRecords[season].rawW);
+  const east = conf('EAST'), west = conf('WEST');
+  if (!east.length && !west.length) return '';
+  const block = (label, color, teams) => `<div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:2px;color:${color};margin-bottom:8px;">${label}</div>
+      <div style="overflow-x:auto"><table class="standings-table">${standingsHead(false)}<tbody>${buildStandingsTable(teams,season,champ,ru,8,false)}</tbody></table></div>
+    </div>`;
+  return `<div class="split-standings">${block('EASTERN CONFERENCE','var(--accent2)',east)}${block('WESTERN CONFERENCE','var(--blue)',west)}</div>`;
+}
 function renderStandings() {
   const season = document.getElementById('standingsSeason').value;
   const conf = document.getElementById('standingsConf').value;
   if (!season) return;
 
-  const histRow = DB.history.find(x => String(x.Season) === String(season));
-  const champAbbr = histRow ? extractChampTeam(histRow.Finals || '') : '';
-  const champFull = champAbbr ? fullTeamName(champAbbr) : '';
-  const ruAbbr = histRow ? extractLoserTeam(histRow.Finals || '') : '';
-  const ruFull = ruAbbr ? fullTeamName(ruAbbr) : '';
-
-  let allTeams = DB.teams.filter(t => t.seasonRecords?.[season]);
-  // Sort using rawW for tiebreaker .01 support
-  const byRaw = t => t.seasonRecords[season].rawW !== undefined ? t.seasonRecords[season].rawW : t.seasonRecords[season].w;
-
-  const headNoConf = `<thead><tr><th style="text-align:center">#</th><th>Team</th><th>Record</th><th style="text-align:center">Win%</th><th style="text-align:center">GB</th><th style="text-align:center">Result</th></tr></thead>`;
-  const headConf   = `<thead><tr><th style="text-align:center">#</th><th>Team</th><th>Conf</th><th>Record</th><th style="text-align:center">Win%</th><th style="text-align:center">GB</th><th style="text-align:center">Result</th></tr></thead>`;
+  const { champ: champFull, ru: ruFull } = finalsTeams(season);
+  const allTeams = DB.teams.filter(t => t.seasonRecords?.[season]);
+  const byRaw = t => t.seasonRecords[season].rawW;
 
   if (conf === 'SPLIT') {
-    const east = [...allTeams.filter(t=>t.Conference==='EAST')].sort((a,b)=>byRaw(b)-byRaw(a));
-    const west = [...allTeams.filter(t=>t.Conference==='WEST')].sort((a,b)=>byRaw(b)-byRaw(a));
-    document.getElementById('standingsContent').innerHTML = `
-      <div class="split-standings">
-        <div>
-          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:2px;color:var(--accent2);margin-bottom:8px;">EASTERN CONFERENCE</div>
-          <div style="overflow-x:auto"><table class="standings-table">${headNoConf}<tbody>${buildStandingsTable(east,season,champFull,ruFull,8,false)}</tbody></table></div>
-        </div>
-        <div>
-          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:2px;color:var(--blue);margin-bottom:8px;">WESTERN CONFERENCE</div>
-          <div style="overflow-x:auto"><table class="standings-table">${headNoConf}<tbody>${buildStandingsTable(west,season,champFull,ruFull,8,false)}</tbody></table></div>
-        </div>
-      </div>`;
+    document.getElementById('standingsContent').innerHTML = splitStandingsHtml(season);
   } else {
     let teams = conf ? allTeams.filter(t=>t.Conference===conf) : allTeams;
     teams = [...teams].sort((a,b)=>byRaw(b)-byRaw(a));
     const topN = conf ? 8 : 16;
     const showC = !conf; // show Conf column only in Full League view
     document.getElementById('standingsContent').innerHTML = `
-      <div style="overflow-x:auto"><table class="standings-table">${showC?headConf:headNoConf}<tbody>${buildStandingsTable(teams,season,champFull,ruFull,topN,showC)}</tbody></table></div>`;
+      <div style="overflow-x:auto"><table class="standings-table">${standingsHead(showC)}<tbody>${buildStandingsTable(teams,season,champFull,ruFull,topN,showC)}</tbody></table></div>`;
   }
 }
 
@@ -1813,7 +1863,7 @@ function renderHistory() {
       return `<td>${nameLink(clean, {season: h.Season, style: 'color:var(--gold);font-weight:700'})}${rating ? ` <span style="color:var(--text3);font-size:10px">(${rating})</span>` : ''}</td>`;
     };
     return `<tr>
-      <td><span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;color:var(--accent)">${h.Season}</span></td>
+      <td><span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px">${seasonLink(h.Season, String(h.Season))}</span></td>
       ${histName(h.MVP,'var(--gold)')}
       <td><span class="hist-champion">${champAbbr ? teamLink(champAbbr, fullTeamName(champAbbr)) : '—'}</span></td>
       <td style="font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;color:var(--text2)">${h.Finals||'—'}</td>
@@ -1825,6 +1875,244 @@ function renderHistory() {
   renderPag('histPag', filtered.length, perPage, page, 'goHistPage');
 }
 function goHistPage(p) { histState.page = p; renderHistory(); }
+
+// =====================================================================
+// SEASON STANDINGS (shared by team popup, season page and record book)
+// =====================================================================
+let standingsCache = {};
+// Every team's record and ranks for one season; [] if Team Record has no column for it.
+// Playoffs = top 8 in conference (the 2K17 format; the sheet doesn't store it).
+function seasonStandings(yr) {
+  if (standingsCache[yr]) return standingsCache[yr];
+  const teams = DB.teams.filter(t => t.seasonRecords?.[yr]);
+  const rows = teams.map(t => ({ team: t.Team, conf: t.Conference, w: t.seasonRecords[yr].w, l: t.seasonRecords[yr].l, raw: t.seasonRecords[yr].rawW }));
+  [...rows].sort((a,b) => b.raw - a.raw).forEach((r, i) => r.leagueRk = i + 1);
+  ['EAST','WEST'].forEach(c => rows.filter(r => r.conf === c).sort((a,b) => b.raw - a.raw).forEach((r, i) => r.confRk = i + 1));
+  rows.forEach(r => r.playoffs = r.confRk <= 8);
+  return (standingsCache[yr] = rows);
+}
+// Seasons that have team records, oldest first
+function standingsSeasons() {
+  const yrs = new Set();
+  DB.teams.forEach(t => Object.keys(t.seasonRecords || {}).forEach(y => yrs.add(Number(y))));
+  return [...yrs].sort((a,b) => a - b);
+}
+function seasonLink(yr, label) {
+  return `<span class="season-link" onclick="event.stopPropagation();openSeason(${Number(yr)})">${label || seasonLabel(yr)}</span>`;
+}
+
+// =====================================================================
+// SEASON DETAIL PAGE
+// =====================================================================
+let seasonState = { yr: null, list: [] };
+function allSeasonYears() {
+  const yrs = new Set();
+  DB.history.forEach(h => { if (!isNaN(Number(h.Season))) yrs.add(Number(h.Season)); });
+  standingsSeasons().forEach(y => yrs.add(y));
+  DB.allNbaSeasons.forEach(s => yrs.add(Number(s.season)));
+  DB.statLeaders.forEach(s => { if (statRowEntered(s)) yrs.add(Number(s.Season)); });
+  return [...yrs].sort((a,b) => b - a);
+}
+function openSeasonFromHash() {
+  const m = location.hash.match(/^#season-(\d{4})$/);
+  if (!m) return false;
+  openSeason(Number(m[1]));
+  return true;
+}
+function openSeason(yr) {
+  closeModal();
+  seasonState.list = allSeasonYears();
+  if (!seasonState.list.length) { showSection('season'); return; }
+  yr = Number(yr) || seasonState.yr || seasonState.list[0];
+  if (!seasonState.list.includes(yr)) yr = seasonState.list[0];
+  seasonState.yr = yr;
+  renderSeason();
+  showSection('season');
+  window.scrollTo(0, 0);
+}
+function stepSeason(dir) {
+  const i = seasonState.list.indexOf(seasonState.yr) - dir; // list is newest first
+  if (i >= 0 && i < seasonState.list.length) openSeason(seasonState.list[i]);
+}
+function renderSeason() {
+  const yr = seasonState.yr, list = seasonState.list;
+  const sel = document.getElementById('seasonSelect');
+  sel.innerHTML = list.map(y => `<option value="${y}"${y === yr ? ' selected' : ''}>${seasonLabel(y)}</option>`).join('');
+  document.getElementById('seasonPrev').disabled = list.indexOf(yr) >= list.length - 1;
+  document.getElementById('seasonNext').disabled = list.indexOf(yr) <= 0;
+  document.getElementById('seasonTitle').textContent = `${seasonLabel(yr)} Season`;
+
+  const h = DB.history.find(x => Number(x.Season) === yr);
+  const { champ, ru } = finalsTeams(yr);
+  const standings = seasonStandings(yr);
+  const champRow = standings.find(r => r.team === champ);
+  const best = [...standings].sort((a,b) => b.raw - a.raw)[0];
+  const award = v => v && v !== '-' ? nameLink(v, {season: yr}) : '<span class="muted">—</span>';
+  const tile = (label, value, sub) => `<div class="stat-card"><div class="label">${label}</div><div class="value value-name">${value}</div><div class="sub">${sub || '&nbsp;'}</div></div>`;
+  const finalsScore = h?.Finals ? String(h.Finals).replace(/^\S+\s+/, '').replace(/\s+\S+$/, '') : '';
+  const sections = [];
+
+  sections.push(`<div class="stats-cards">
+    ${tile('🏆 Champion', champ ? teamLink(champ) : '<span class="muted">—</span>',
+      ru ? `beat ${teamLink(ru)} ${finalsScore}${champRow ? ` · ${champRow.w}-${champRow.l} season` : ''}` : '')}
+    ${tile('Finals MVP', award(h?.FMVP))}
+    ${tile('MVP', award(h?.MVP))}
+    ${tile('DPOY', award(h?.DPOY))}
+    ${best ? tile('Best Record', teamLink(best.team), `${best.w}-${best.l}`) : ''}
+  </div>`);
+
+  const stars = h ? [h.Star1, h.Star2, h.Star3].filter(Boolean) : [];
+  if (stars.length) sections.push(`<div class="chart-card"><div class="chart-title">⭐ Champion Stars (Rating)</div>
+    <div class="decade-player-chips">${stars.map(st => {
+      const clean = String(st).replace(/\s*\(\d+\)\s*$/, '').trim(), rating = String(st).match(/\((\d+)\)$/)?.[1];
+      return `<div class="decade-chip starter">${nameLink(clean, {season: yr})}${rating ? ` <span class="muted">(${rating})</span>` : ''}</div>`;
+    }).join('')}</div></div>`);
+
+  const sl = DB.statLeaders.find(x => Number(x.Season) === yr);
+  const leaders = [['Points','PtsLeader','PtsTeam','PPG'],['Rebounds','RebLeader','RebTeam','RPG'],['Assists','AstLeader','AstTeam','APG'],
+                   ['Steals','StlLeader','StlTeam','SPG'],['Blocks','BlkLeader','BlkTeam','BPG'],['Minutes','MinLeader','MinTeam','MPG']];
+  sections.push(`<div class="chart-card"><div class="chart-title">📊 Stat Leaders</div>${sl && statRowEntered(sl)
+    ? `<div class="stats-cards" style="margin-bottom:0">${leaders.filter(([, k]) => sl[k]).map(([label, k, tk, unit]) =>
+        tile(label, nameLink(sl[k], {season: yr}), `${sl[unit]} ${unit}${sl[tk] ? ' · ' + teamLink(sl[tk]) : ''}`)).join('')}</div>`
+    : '<p class="muted">Not entered yet in Season Stat Leader.</p>'}</div>`);
+
+  const split = splitStandingsHtml(yr);
+  const firstStandings = standingsSeasons()[0];
+  sections.push(`<div class="chart-card"><div class="chart-title">📋 Standings</div>${split ||
+    `<p class="muted">No team records for this season${firstStandings ? ` (Team Record starts in ${seasonLabel(firstStandings)})` : ''}.</p>`}</div>`);
+
+  const an = DB.allNbaSeasons.find(x => Number(x.season) === yr);
+  sections.push(`<div class="chart-card"><div class="chart-title">🏅 All-NBA Teams</div>${an ? allNbaTeamsHtml(an)
+    : '<p class="muted">No All-NBA teams recorded for this season.</p>'}</div>`);
+
+  document.getElementById('seasonContent').innerHTML = sections.join('');
+}
+
+// =====================================================================
+// RECORD BOOK
+// Everything here is derived from NBA History, Team Record and
+// Season Stat Leader; each card says which seasons it covers.
+// =====================================================================
+// Standard competition ranking: ties share a rank (1, 2, 2, 4)
+function withRanks(items, valueOf) {
+  return items.map((it, i) => ({ ...it, rank: i && valueOf(items[i-1]) === valueOf(it) ? null : i + 1 }))
+    .map((it, i, arr) => ({ ...it, rank: it.rank ?? arr.slice(0, i).reverse().find(x => x.rank)?.rank }));
+}
+function recordCard(title, rows, note, empty) {
+  const body = rows.length ? rows.map(r => `<div class="rb-row">
+      <span class="rb-rank">${r.rank ?? ''}</span>
+      <span class="rb-main">${r.main}</span>
+      <span class="rb-val">${r.val}</span>
+      ${r.sub ? `<span class="rb-sub">${r.sub}</span>` : ''}
+    </div>`).join('') : `<p class="muted">${empty || 'Nothing recorded yet.'}</p>`;
+  return `<div class="chart-card rb-card"><div class="chart-title">${title}</div>${body}${note ? `<div class="rb-note">${note}</div>` : ''}</div>`;
+}
+// Runs of the same value over consecutive seasons: [{key, start, end, len}]
+function seasonRuns(entries) {
+  const runs = [];
+  entries.sort((a,b) => a.yr - b.yr).forEach(e => {
+    const last = runs.find(r => r.key === e.key && r.end === e.yr - 1);
+    if (last) { last.end = e.yr; last.len++; } else runs.push({ key: e.key, start: e.yr, end: e.yr, len: 1 });
+  });
+  return runs;
+}
+const spanLabel = r => r.len === 1 ? seasonLink(r.start) : `${seasonLink(r.start)} to ${seasonLink(r.end)}`;
+// Same player? Uses name matching so "Shaquile" and "Shaquille" count as one
+function samePlayer(a, b, yr) {
+  if (!a || !b || a === '-' || b === '-') return false;
+  const pa = resolvePlayer(a, yr), pb = resolvePlayer(b, yr);
+  return pa && pb ? pa === pb : normName(a) === normName(b);
+}
+function playerKey(name, yr) { const p = resolvePlayer(name, yr); return p ? p.Player : String(name); }
+
+function renderRecords() {
+  const latest = DB.latestSeason;
+  const yrs = standingsSeasons();
+  const finals = DB.history.map(h => {
+    const m = String(h.Finals || '').match(/^(\S+)\s+4\s*[-–]\s*(\d)\s+(\S+)/);
+    return m ? { yr: Number(h.Season), champ: fullTeamName(m[1]), ru: fullTeamName(m[3]), losses: Number(m[2]), raw: h.Finals } : null;
+  }).filter(Boolean);
+  const finalsYrs = finals.map(f => f.yr);
+  const histSpan = finalsYrs.length ? `${seasonLabel(Math.min(...finalsYrs))} to ${seasonLabel(Math.max(...finalsYrs))}` : '';
+  const teamSpan = yrs.length ? `${seasonLabel(yrs[0])} to ${seasonLabel(yrs[yrs.length-1])}` : '';
+  const out = [];
+  const section = (title, sub, cards) => out.push(`<div class="rb-section"><div class="rb-section-title">${title}</div>${sub ? `<div class="rb-section-sub">${sub}</div>` : ''}<div class="rb-grid">${cards.join('')}</div></div>`);
+  const resultIcon = (team, yr) => { const f = finals.find(x => x.yr === yr); return f?.champ === team ? ' 🏆' : f?.ru === team ? ' 🥈' : ''; };
+
+  // ----- Team seasons
+  if (yrs.length) {
+    const all = yrs.flatMap(yr => seasonStandings(yr).map(r => ({ ...r, yr })));
+    const teamRow = r => ({ main: teamLink(r.team), val: `${r.w}-${r.l}`, sub: seasonLink(r.yr) + resultIcon(r.team, r.yr) });
+    const top = (list, n, dir) => withRanks([...list].sort((a,b) => dir * (b.raw - a.raw)).slice(0, n), r => r.w).map(r => ({ ...teamRow(r), rank: r.rank }));
+    const champs = all.filter(r => finals.some(f => f.yr === r.yr && f.champ === r.team));
+    section('Team Seasons', `From Team Record, ${teamSpan}`, [
+      recordCard('Best Records', top(all, 10, 1)),
+      recordCard('Worst Records', top(all, 10, -1)),
+      recordCard('Most Wins by a Champion', top(champs, 5, 1)),
+      recordCard('Fewest Wins by a Champion', top(champs, 5, -1)),
+      recordCard('Best Teams to Miss the Playoffs', top(all.filter(r => !r.playoffs), 5, 1), 'Playoffs = top 8 in conference'),
+      recordCard('Worst Playoff Teams', top(all.filter(r => r.playoffs), 5, -1), 'Playoffs = top 8 in conference'),
+    ]);
+  }
+
+  // ----- Streaks
+  const runCard = (title, runs, minLen, n, mainOf, note, unit) => {
+    const best = runs.filter(r => r.len >= minLen).sort((a,b) => b.len - a.len || b.end - a.end).slice(0, n);
+    return recordCard(title, withRanks(best, r => r.len).map(r => ({
+      rank: r.rank, main: mainOf(r.key, r.end), val: `${r.len} ${unit || 'seasons'}`,
+      sub: spanLabel(r) + (r.end === latest ? ' <span class="rb-active">ongoing</span>' : '') })), note, 'No streaks yet.');
+  };
+  const teamPlayoffEntries = flag => yrs.flatMap(yr => seasonStandings(yr).filter(r => r.playoffs === flag).map(r => ({ key: r.team, yr })));
+  section('Streaks', '', [
+    runCard('Consecutive Titles', seasonRuns(finals.map(f => ({ key: f.champ, yr: f.yr }))), 2, 8, k => teamLink(k), histSpan, 'titles'),
+    runCard('Consecutive Finals Appearances', seasonRuns(finals.flatMap(f => [{ key: f.champ, yr: f.yr }, { key: f.ru, yr: f.yr }])), 3, 8, k => teamLink(k), histSpan, 'Finals'),
+    runCard('Consecutive MVPs', seasonRuns(DB.history.filter(h => h.MVP && h.MVP !== '-').map(h => ({ key: playerKey(h.MVP, h.Season), yr: Number(h.Season) }))), 2, 8, (k, yr) => nameLink(k, {season: yr}), histSpan, 'MVPs'),
+    ...(yrs.length ? [
+      runCard('Longest Playoff Streaks', seasonRuns(teamPlayoffEntries(true)), 3, 8, k => teamLink(k), `${teamSpan} · playoffs = top 8 in conference`),
+      runCard('Longest Playoff Droughts', seasonRuns(teamPlayoffEntries(false)), 3, 8, k => teamLink(k), `${teamSpan} · playoffs = top 8 in conference`),
+    ] : []),
+  ]);
+
+  // ----- Finals
+  const appear = {};
+  finals.forEach(f => { [[f.champ, 'w'], [f.ru, 'l']].forEach(([t, k]) => { appear[t] = appear[t] || { w: 0, l: 0 }; appear[t][k]++; }); });
+  const appearRows = withRanks(Object.entries(appear).map(([t, v]) => ({ t, n: v.w + v.l, v })).sort((a,b) => b.n - a.n || b.v.w - a.v.w).slice(0, 10), r => r.n)
+    .map(r => ({ rank: r.rank, main: teamLink(r.t), val: `${r.n}`, sub: `${r.v.w} won · ${r.v.l} lost` }));
+  const pairs = {};
+  finals.forEach(f => { const k = [f.champ, f.ru].sort().join('|'); (pairs[k] = pairs[k] || []).push(f.yr); });
+  const pairRows = withRanks(Object.entries(pairs).filter(([, v]) => v.length >= 2).sort((a,b) => b[1].length - a[1].length || Math.max(...b[1]) - Math.max(...a[1])).slice(0, 8), ([, v]) => v.length)
+    .map(r => ({ rank: r.rank, main: r[0].split('|').map(t => teamLink(t)).join(' vs '), val: `${r[1].length}×`, sub: r[1].sort((a,b) => b - a).map(y => seasonLink(y, String(y))).join(', ') }));
+  const seriesList = (losses) => finals.filter(f => f.losses === losses).sort((a,b) => b.yr - a.yr)
+    .map(f => ({ main: `${teamLink(f.champ)} over ${teamLink(f.ru)}`, val: '', sub: seasonLink(f.yr) }));
+  const sweeps = seriesList(0), sevens = seriesList(3);
+  section('Finals', histSpan ? `From NBA History, ${histSpan}` : '', [
+    recordCard('Most Finals Appearances', appearRows),
+    recordCard('Most Common Finals Matchups', pairRows, '', 'No repeat matchups yet.'),
+    recordCard(`Sweeps (4-0) · ${sweeps.length}`, sweeps),
+    recordCard(`Went to Game 7 (4-3) · ${sevens.length}`, sevens),
+  ]);
+
+  // ----- Award doubles
+  const doubles = (a, b) => DB.history.filter(h => samePlayer(h[a], h[b], h.Season)).sort((x,y) => y.Season - x.Season)
+    .map(h => ({ main: nameLink(h[a], {season: h.Season}), val: '', sub: seasonLink(h.Season) }));
+  const mvpFmvp = doubles('MVP', 'FMVP'), mvpDpoy = doubles('MVP', 'DPOY');
+  section('Award Doubles', histSpan ? `From NBA History, ${histSpan}` : '', [
+    recordCard(`MVP + Finals MVP (+ title) · ${mvpFmvp.length}`, mvpFmvp),
+    recordCard(`MVP + DPOY · ${mvpDpoy.length}`, mvpDpoy, '', 'No player has won both in the same season yet.'),
+  ]);
+
+  // ----- Leader seasons
+  const cats = [['Points per Game','PtsLeader','PtsTeam','PPG'],['Rebounds per Game','RebLeader','RebTeam','RPG'],['Assists per Game','AstLeader','AstTeam','APG'],
+                ['Steals per Game','StlLeader','StlTeam','SPG'],['Blocks per Game','BlkLeader','BlkTeam','BPG'],['Minutes per Game','MinLeader','MinTeam','MPG']];
+  section('Leader Seasons', 'Best seasons by each year’s stat leader, from Season Stat Leader. Grows as you enter more seasons.', cats.map(([title, k, tk, unit]) => {
+    const rows = DB.statLeaders.filter(r => r[k] && !isNaN(parseFloat(r[unit]))).map(r => ({ ...r, v: parseFloat(r[unit]) }));
+    const top = withRanks(rows.sort((a,b) => b.v - a.v).slice(0, 10), r => r.v);
+    return recordCard(title, top.map(r => ({ rank: r.rank, main: nameLink(r[k], {season: r.Season}), val: r.v.toFixed(1),
+      sub: seasonLink(r.Season) + (r[tk] ? ' · ' + teamLink(r[tk]) : '') })), `Based on ${rows.length} season${rows.length === 1 ? '' : 's'} entered`, 'No seasons entered yet.');
+  }));
+
+  document.getElementById('recordsContent').innerHTML = out.join('');
+}
 
 // =====================================================================
 // STAT LEADERS
@@ -1848,7 +2136,7 @@ function renderStat() {
   const { filtered, page, perPage } = statState;
   const sorted = [...filtered].sort((a,b) => getNum(b.Season) - getNum(a.Season));
   const slice = sorted.slice((page-1)*perPage, page*perPage);
-  const seasonCell = s => `<td><span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:15px;color:var(--accent)">${s.Season}</span></td>`;
+  const seasonCell = s => `<td><span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:15px">${seasonLink(s.Season, String(s.Season))}</span></td>`;
   document.getElementById('statBody').innerHTML = slice.map(s => !statRowEntered(s)
     ? `<tr class="row-pending">${seasonCell(s)}<td colspan="15">Not entered yet</td></tr>`
     : `<tr>
@@ -1961,19 +2249,22 @@ function filterAllNba() {
   allNbaState.page = 1;
   renderAllNba();
 }
+function allNbaTeamsHtml(s) {
+  return s.teams.map(t => `<div class="allnba-team-row">
+    <div class="allnba-team-label">${['1ST TEAM','2ND TEAM','3RD TEAM'][t.team-1]||t.team+'TH'}</div>
+    <div>${t.slots.map(sl => `<div class="allnba-slot">
+      <span class="allnba-pos">${sl.pos}</span>
+      <span class="allnba-player">${nameLink(sl.player, {season: s.season})}</span>
+    </div>`).join('')}</div>
+  </div>`).join('');
+}
 function renderAllNba() {
   const { filtered, page, perPage } = allNbaState;
   const slice = filtered.slice((page-1)*perPage, page*perPage);
   document.getElementById('allNbaContent').innerHTML = slice.map(s => `
     <div class="allnba-season">
-      <div class="allnba-season-title">Season ${seasonLabel(s.season)}</div>
-      ${s.teams.map(t => `<div class="allnba-team-row">
-        <div class="allnba-team-label">${['1ST TEAM','2ND TEAM','3RD TEAM'][t.team-1]||t.team+'TH'}</div>
-        <div>${t.slots.map(sl => `<div class="allnba-slot">
-          <span class="allnba-pos">${sl.pos}</span>
-          <span class="allnba-player">${nameLink(sl.player, {season: s.season})}</span>
-        </div>`).join('')}</div>
-      </div>`).join('')}
+      <div class="allnba-season-title">${seasonLink(s.season, 'Season ' + seasonLabel(s.season))}</div>
+      ${allNbaTeamsHtml(s)}
     </div>`).join('');
   renderPag('allNbaPag', filtered.length, perPage, page, 'goAllNbaPage');
 }
@@ -2258,6 +2549,7 @@ function initDashboard() {
   filterCurrent();
   filterAllNba();
   initDecades();
+  renderRecords();
   // Season list is rebuilt from the new file next time standings are opened
   document.getElementById('standingsSeason').innerHTML = '';
   if (document.getElementById('standingsView').style.display !== 'none') initStandings();
