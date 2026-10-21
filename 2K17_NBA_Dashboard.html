@@ -238,6 +238,18 @@ tr.row-pending td:first-child{font-style:normal;}
 .info-pill strong{color:var(--ink);}
 .champ-year{display:inline-flex;align-items:center;gap:5px;background:var(--champ-tint);color:var(--champ-ink);font-family:var(--font-display);font-size:16px;font-weight:700;padding:4px 10px;border-radius:4px;margin:3px;}
 
+.rank-badges{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;}
+.rank-badge{background:var(--playoff-tint);color:var(--ink-2);border-radius:999px;padding:5px 12px;font-size:13px;}
+.rank-badge b{color:var(--ink);font-family:var(--font-display);font-size:15px;margin-right:2px;}
+.timeline{display:flex;flex-direction:column;}
+.tl-row{display:grid;grid-template-columns:84px 1fr;gap:12px;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--line);}
+.tl-row:last-child{border-bottom:none;}
+.tl-season{font-weight:600;font-variant-numeric:tabular-nums;}
+.tl-items{display:flex;flex-wrap:wrap;gap:6px;}
+.tl-chip{background:var(--surface-2);border:1px solid var(--line);border-radius:4px;padding:2px 8px;font-size:12px;font-weight:600;color:var(--ink-2);display:inline-flex;align-items:center;gap:4px;}
+.tl-chip.ev-champ{background:var(--champ-tint);color:var(--champ-ink);border-color:transparent;}
+.tl-chip.ev-award{color:var(--ink);border-color:var(--line-strong);}
+.title-note{color:var(--ink-3);font-size:13px;margin-top:6px;}
 /* HISTORY, ALL-NBA, DECADES */
 .hist-champion{font-weight:700;}
 .allnba-season{margin-bottom:22px;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:16px 18px;box-shadow:var(--shadow);}
@@ -1369,11 +1381,21 @@ function toggleExpand(key) {
   if (btn) btn.textContent = expanded[key] ? '- LESS COLS' : '+ MORE COLS';
   TABLE_RENDERERS[key]();
 }
-function getStatVal(row, key, mode) {
+// The sheets keep their own per-game columns (APG holds points per game). Use them when
+// present: steals, blocks and turnovers weren't tracked for every season of older careers,
+// so career total / games understates those players.
+const PER_GAME_COL = { PTS: 'APG', REB: 'ARG', AST: 'AAG', STL: 'ASG', BLK: 'ABG', TO: 'TOV', MIN: 'MPG' };
+function perGame(row, key) {
+  const sheet = getNum(row[PER_GAME_COL[key]]);
+  if (sheet !== -Infinity) return sheet;
   const raw = getNum(row[key]);
   if (raw === -Infinity) return null;
-  const gp = Math.max(getNum(row['GP']) || 1, 1);
-  return mode === 'avg' ? raw / gp : raw;
+  return raw / Math.max(getNum(row['GP']) || 1, 1);
+}
+function getStatVal(row, key, mode) {
+  if (mode === 'avg') return perGame(row, key);
+  const raw = getNum(row[key]);
+  return raw === -Infinity ? null : raw;
 }
 function fmtStatVal(row, key, mode) {
   const v = getStatVal(row, key, mode);
@@ -1762,7 +1784,15 @@ function openTeamModal(teamName) {
       <div class="stat-grid" style="margin-bottom:22px;">
         ${[['Championships',t.Championship||0],['Conf. Titles',t['Conference Titles']||0],['Div. Titles',t['Division Titles']||0],['Playoffs',t.Playoffs||0],['Last Title',t['Last Title']||'—'],['Last Finals',t['Last Finals']||'—']].map(([l,v])=>`<div class="stat-box"><div class="sv">${v}</div><div class="sl">${l}</div></div>`).join('')}
       </div>
-      ${champYearsList.length ? `<div class="modal-section"><div class="modal-section-title">${icon('trophy','ic-champ')} Championship Years</div><div>${champYearsList.map(y=>`<span class="champ-year">${seasonLink(y, String(y))}</span>`).join('')}</div></div>` : ''}
+      ${(() => {
+        // Team Record counts every title; NBA History only lists seasons from its first row on
+        const earlier = (Number(t.Championship) || 0) - champYearsList.length;
+        const firstYr = Math.min(...DB.history.map(h => Number(h.Season)).filter(y => !isNaN(y)));
+        if (!champYearsList.length && earlier <= 0) return '';
+        return `<div class="modal-section"><div class="modal-section-title">${icon('trophy','ic-champ')} Championship Years</div>
+          <div>${champYearsList.map(y=>`<span class="champ-year">${seasonLink(y, String(y))}</span>`).join('')}</div>
+          ${earlier > 0 ? `<div class="title-note">+${earlier} earlier title${earlier > 1 ? 's' : ''} from before ${seasonLabel(firstYr)}, which your NBA History sheet doesn't cover.</div>` : ''}</div>`;
+      })()}
       ${(() => {
         // Only show jerseys where the format "# ABBR" matches this team
         // e.g. "23 LAL" should only appear in Lakers modal
@@ -2555,12 +2585,47 @@ function initDecades() {
 // =====================================================================
 // PLAYER MODAL
 // =====================================================================
+// Season-by-season honors for one player, gathered from NBA History, All NBA Team and
+// Season Stat Leader. Titles show where the player is a listed champion star or Finals MVP.
+function careerEvents(name) {
+  const ev = {};
+  const add = (yr, label, cls) => {
+    const list = (ev[yr] = ev[yr] || []);
+    if (!list.some(e => e.label === label)) list.push({ label, cls: cls || '' });
+  };
+  const isMe = (raw, yr) => raw && raw !== '-' && resolvePlayer(String(raw).replace(/\s*\(\d+\)\s*$/, '').trim(), yr)?.Player === name;
+  DB.history.forEach(h => {
+    const yr = Number(h.Season);
+    if ([h.Star1, h.Star2, h.Star3].some(x => isMe(x, yr)) || isMe(h.FMVP, yr)) add(yr, 'Champion', 'ev-champ');
+    if (isMe(h.FMVP, yr)) add(yr, 'Finals MVP', 'ev-champ');
+    if (isMe(h.MVP, yr)) add(yr, 'MVP', 'ev-award');
+    if (isMe(h.DPOY, yr)) add(yr, 'DPOY', 'ev-award');
+  });
+  DB.allNbaSeasons.forEach(s => s.teams.forEach(t => {
+    if (t.slots.some(sl => isMe(sl.player, s.season))) add(Number(s.season), `All-NBA ${['1st','2nd','3rd'][t.team-1] || t.team + 'th'} Team`);
+  }));
+  const cats = [['PtsLeader','PPG','Scoring'],['RebLeader','RPG','Rebounding'],['AstLeader','APG','Assists'],['StlLeader','SPG','Steals'],['BlkLeader','BPG','Blocks']];
+  DB.statLeaders.forEach(r => cats.forEach(([k, unit, label]) => { if (isMe(r[k], r.Season)) add(Number(r.Season), `${label} leader · ${r[unit]} ${unit}`); }));
+  return Object.entries(ev).map(([yr, items]) => ({ yr: Number(yr), items })).sort((a, b) => a.yr - b.yr);
+}
+// All-time ranks (top 10 only) among players in the workbook; ties share a rank
+function allTimeRanks(p) {
+  const careers = DB.allPlayers, everyone = [...DB.allPlayers, ...DB.currentPlayers];
+  const checks = [['PTS','Points',careers],['REB','Rebounds',careers],['AST','Assists',careers],['STL','Steals',careers],['BLK','Blocks',careers],
+                  ['Champions','Titles',everyone],['MVP','MVPs',everyone],['FMVP','Finals MVPs',everyone],['All Stars','All-Star selections',everyone],['DPOY','DPOY awards',everyone]];
+  return checks.map(([key, label, pool]) => {
+    if (!pool.includes(p)) return null;
+    const v = getNum(p[key]);
+    if (v === -Infinity || v <= 0) return null;
+    return { label, rank: 1 + pool.filter(x => getNum(x[key]) > v).length };
+  }).filter(r => r && r.rank <= 10).sort((a, b) => a.rank - b.rank).slice(0, 6);
+}
+
 function openPlayerModal(rawName) {
   const p = resolvePlayer(rawName);
   if (!p) return;
   const name = p.Player;
-  const gp = Math.max(getNum(p.GP)||1, 1);
-  const avg = (k) => { const v = getNum(p[k]); return v===-Infinity?'-':(v/gp).toFixed(1); };
+  const avg = (k) => { const v = perGame(p, k); return v === null ? '-' : v.toFixed(1); };
   const retired = retiredNums(p);
   const teams = [];
   for (let i=1;i<=11;i++) { const k=i===1?'Team':`Team${i}`; if(p[k])teams.push(p[k]); }
@@ -2589,6 +2654,9 @@ function openPlayerModal(rawName) {
   const roty = p.ROTY==='O'||p.ROTY==='o';
   if (roty) awards.push(`<div class="award-box"><span class="an">Rookie of the Year</span><span class="av">✓</span></div>`);
 
+  const ranks = allTimeRanks(p);
+  const timeline = careerEvents(name);
+
   // Find position
   let pos = p.Position || '';
   if (!pos) {
@@ -2614,7 +2682,7 @@ function openPlayerModal(rawName) {
       <div class="modal-section">
         <div class="modal-section-title">${icon('chart')} Career Per Game</div>
         <div class="stat-grid">
-          ${[['PPG',avg('PTS')],['RPG',avg('REB')],['APG',avg('AST')],['SPG',avg('STL')],['BPG',avg('BLK')],['MPG',p.MPG||'-'],['FG%',pctFmt(p['FG%'])],['3P%',pctFmt(p['3P%'])],['FT%',pctFmt(p['FT%'])],['TOV',p.TOV||'-']].map(([l,v])=>`<div class="stat-box avg-box"><div class="sv">${v}</div><div class="sl">${l}</div></div>`).join('')}
+          ${[['PPG',avg('PTS')],['RPG',avg('REB')],['APG',avg('AST')],['SPG',avg('STL')],['BPG',avg('BLK')],['MPG',avg('MIN')],['FG%',pctFmt(p['FG%'])],['3P%',pctFmt(p['3P%'])],['FT%',pctFmt(p['FT%'])],['TOV',avg('TO')]].map(([l,v])=>`<div class="stat-box avg-box"><div class="sv">${v}</div><div class="sl">${l}</div></div>`).join('')}
         </div>
       </div>
       <div class="modal-section">
@@ -2623,10 +2691,17 @@ function openPlayerModal(rawName) {
           ${[['Points',numFmt(p.PTS)],['Rebounds',numFmt(p.REB)],['Assists',numFmt(p.AST)],['Steals',numFmt(p.STL)],['Blocks',numFmt(p.BLK)],['Minutes',numFmt(p.MIN)],['Games',numFmt(p.GP)],['DD2',numFmt(p.DD2)],['TD3',numFmt(p.TD3)],['FGM',numFmt(p.FGM)],['3PM',numFmt(p['3PM'])],['FTM',numFmt(p.FTM)]].map(([l,v])=>`<div class="stat-box"><div class="sv">${v}</div><div class="sl">${l}</div></div>`).join('')}
         </div>
       </div>` : ''}
+      ${ranks.length ? `<div class="rank-badges">${ranks.map(r => `<span class="rank-badge"><b>#${r.rank}</b> all-time ${r.label}</span>`).join('')}</div>` : ''}
       <div class="modal-section">
         <div class="modal-section-title">${icon('trophy')} Awards & Honors</div>
         <div class="award-grid">${awards.length?awards.join(''):'<span class="muted">No awards recorded</span>'}</div>
       </div>
+      ${timeline.length ? `<div class="modal-section">
+        <div class="modal-section-title">${icon('calendar')} Career Timeline</div>
+        <div class="timeline">${timeline.map(t => `<div class="tl-row"><div class="tl-season">${seasonLink(t.yr)}</div>
+          <div class="tl-items">${t.items.map(e => `<span class="tl-chip ${e.cls}">${e.cls === 'ev-champ' && e.label === 'Champion' ? icon('trophy','ic-champ') + ' ' : ''}${e.label}</span>`).join('')}</div></div>`).join('')}</div>
+        <div class="rb-note">From NBA History, All NBA Team and Season Stat Leader. Titles appear when the player is listed as a champion star or Finals MVP.</div>
+      </div>` : ''}
       ${retired.length?`<div class="modal-section"><div class="modal-section-title">${icon('jersey')} Retired Numbers</div><div class="chip-row">${retired.map(r=>{ const [num, ...team] = String(r).split(' '); return `<div class="jersey"><div class="jersey-num">${num}</div><div class="jersey-name">${team.length ? teamLink(team.join(' '), fullTeamName(team.join(' '))) : ''}</div></div>`; }).join('')}</div></div>`:''}
       <div class="modal-section">
         <div class="modal-section-title">${icon('jersey')} Teams</div>
@@ -2689,16 +2764,10 @@ function renderCompare() {
     return;
   }
   const colors = ['var(--p1)','var(--p2)','var(--p3)'];
-  const gpOf = p => Math.max(getNum(p.GP)||1,1);
 
-  function getStatVal(p,key){
-    const raw=getNum(p[key]);
-    if(raw===-Infinity)return null;
-    return cmpMode==='avg'?raw/gpOf(p):raw;
-  }
   function fmtStat(p,key,dec){
     dec=dec===undefined?1:dec;
-    const v=getStatVal(p,key);
+    const v=getStatVal(p,key,cmpMode);
     if(v===null)return '-';
     return cmpMode==='avg'?v.toFixed(dec):Math.round(v).toLocaleString();
   }
@@ -2717,11 +2786,11 @@ function renderCompare() {
   const rows=[
     {header:true, label:ovLabel},
     {label:'Games Played',        fn:p=>fmtRaw(p,'GP'),           nf:p=>getNum(p.GP),              hib:true},
-    {label:pL,                    fn:p=>fmtStat(p,'PTS'),          nf:p=>getStatVal(p,'PTS'),        hib:true},
-    {label:rL,                    fn:p=>fmtStat(p,'REB'),          nf:p=>getStatVal(p,'REB'),        hib:true},
-    {label:aL,                    fn:p=>fmtStat(p,'AST'),          nf:p=>getStatVal(p,'AST'),        hib:true},
-    {label:sL,                    fn:p=>fmtStat(p,'STL'),          nf:p=>getStatVal(p,'STL'),        hib:true},
-    {label:bL,                    fn:p=>fmtStat(p,'BLK'),          nf:p=>getStatVal(p,'BLK'),        hib:true},
+    {label:pL,                    fn:p=>fmtStat(p,'PTS'),          nf:p=>getStatVal(p,'PTS',cmpMode),        hib:true},
+    {label:rL,                    fn:p=>fmtStat(p,'REB'),          nf:p=>getStatVal(p,'REB',cmpMode),        hib:true},
+    {label:aL,                    fn:p=>fmtStat(p,'AST'),          nf:p=>getStatVal(p,'AST',cmpMode),        hib:true},
+    {label:sL,                    fn:p=>fmtStat(p,'STL'),          nf:p=>getStatVal(p,'STL',cmpMode),        hib:true},
+    {label:bL,                    fn:p=>fmtStat(p,'BLK'),          nf:p=>getStatVal(p,'BLK',cmpMode),        hib:true},
     {label:'FG%',                 fn:p=>fmtPct(p,'FG%'),           nf:p=>numPct(p,'FG%'),            hib:true},
     {label:'3P%',                 fn:p=>fmtPct(p,'3P%'),           nf:p=>numPct(p,'3P%'),            hib:true},
     {label:'FT%',                 fn:p=>fmtPct(p,'FT%'),           nf:p=>numPct(p,'FT%'),            hib:true},
