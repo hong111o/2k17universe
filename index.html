@@ -298,6 +298,9 @@ tr.row-pending td:first-child{font-style:normal;}
 .standings-table td{padding:7px 10px;border-bottom:1px solid var(--line);font-size:13px;}
 .standings-table tr:hover td{background:var(--surface-2);}
 .standings-table .cut td{border-bottom:2px solid var(--ink-3);}
+/* Team popup's season list scrolls in its own box; the header row stays put */
+.season-scroll{overflow:auto;max-height:360px;}
+.season-scroll .standings-table th{position:sticky;top:0;z-index:2;}
 .st-rank{font-weight:700;text-align:center;color:var(--ink-3);}
 tr.row-playoff .st-rank{color:var(--ink);}
 
@@ -449,6 +452,10 @@ tr.row-playoff .st-rank{color:var(--ink);}
   .modal-body{padding:18px 16px calc(28px + env(safe-area-inset-bottom,0px));}
   .modal-player-name,.team-modal-name{font-size:26px;}
   .split-standings{grid-template-columns:1fr;}
+  .season-scroll{max-height:60vh;}
+  .season-scroll .standings-table th,.season-scroll .standings-table td{padding-left:4px;padding-right:4px;font-size:12px;}
+  .season-scroll .standings-table th{font-size:10px;letter-spacing:.3px;}
+  .season-scroll .result-mark{font-size:12px;}
   .decade-grid{grid-template-columns:1fr;}
   .rb-grid{grid-template-columns:1fr;}
   .season-nav{width:100%;} .season-nav select{flex:1;}
@@ -1898,7 +1905,7 @@ function openTeamModal(teamName) {
       </div>` : ''}
       <div class="modal-section">
         <div class="modal-section-title">${icon('calendar')} Season by Season</div>
-        <div style="overflow-x:auto;max-height:360px;overflow-y:auto;">
+        <div class="season-scroll">
           <table class="standings-table">
             <thead><tr><th>Season</th><th class="num">Record</th><th class="num">Conf</th><th class="num">League</th><th class="num">Win%</th><th>Result</th></tr></thead>
             <tbody>${standRows}</tbody>
