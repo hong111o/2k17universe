@@ -441,7 +441,8 @@ tr.row-playoff .st-rank{color:var(--ink);}
   .toolbar .search-wrap{flex-basis:100%;}
   .pagination button{padding:8px 14px;font-size:14px;}
   /* popups open as full-screen sheets */
-  .modal-overlay.open{padding:0;align-items:stretch;}
+  /* the sheet grows with its content (stretch would cap it at one screen and let the page show through below) */
+  .modal-overlay.open{padding:0;align-items:flex-start;background:var(--surface);}
   .modal{margin:0;max-width:none;min-height:100%;border-radius:0;overflow:visible;box-shadow:none;animation:sheetUp .22s ease;}
   .modal-header,.team-modal-header{position:sticky;top:0;z-index:3;padding:calc(14px + env(safe-area-inset-top,0px)) 16px 14px;}
   .modal-close{font-size:26px;min-width:44px;min-height:44px;}
