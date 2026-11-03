@@ -440,6 +440,15 @@ tr.row-playoff .st-rank{color:var(--ink);}
 .pct-track i.good{background:var(--link);} .pct-track i.elite{background:var(--champ);}
 .pct-num{font-family:var(--font-display);font-weight:800;font-size:17px;text-align:right;font-variant-numeric:tabular-nums;}
 .pct-val{color:var(--ink-3);font-size:12px;font-variant-numeric:tabular-nums;}
+.legacy-total{display:flex;align-items:baseline;gap:8px;margin-bottom:10px;}
+.legacy-total b{font-family:var(--font-display);font-size:40px;font-weight:800;line-height:1;}
+.legacy-total span{color:var(--ink-3);font-size:13px;}
+.lg-parts{display:flex;flex-direction:column;gap:6px;}
+.lg-part{display:grid;grid-template-columns:150px minmax(0,1fr) 52px;gap:10px;align-items:center;font-size:13px;color:var(--ink-2);}
+.lg-track{height:8px;background:var(--surface-2);border-radius:4px;overflow:hidden;}
+.lg-track i{display:block;height:100%;background:var(--link);border-radius:4px;}
+.lg-part b{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink);}
+.lg-roles{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);font-size:13px;color:var(--ink-2);}
 .trophy-shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;}
 .trophy{background:var(--surface-2);border-radius:6px;padding:10px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px;}
 .trophy .ic{font-size:22px;color:var(--ink-3);}
@@ -2870,17 +2879,16 @@ function initDecades() {
 // Season Stat Leader. Titles show where the player is a listed champion star or Finals MVP.
 function careerEvents(name) {
   const ev = {};
-  const add = (yr, label, cls) => {
+  const add = (yr, label, cls, tip) => {
     const list = (ev[yr] = ev[yr] || []);
-    if (!list.some(e => e.label === label)) list.push({ label, cls: cls || '' });
+    if (!list.some(e => e.label === label)) list.push({ label, cls: cls || '', tip });
   };
   const isMe = (raw, yr) => raw && raw !== '-' && resolvePlayer(String(raw).replace(/\s*\(\d+\)\s*$/, '').trim(), yr)?.Player === name;
   DB.history.forEach(h => {
     const yr = Number(h.Season);
     if ([h.Star1, h.Star2, h.Star3].some(x => isMe(x, yr)) || isMe(h.FMVP, yr)) {
       const role = (legacyContext().roles[name] || []).find(r => r.yr === yr);
-      add(yr, 'Champion', 'ev-champ');
-      if (role) add(yr, `Title role: ${role.label}`, 'ev-champ');
+      add(yr, 'Champion', 'ev-champ', role ? `Title as ${role.label}` : '');
     }
     if (isMe(h.FMVP, yr)) add(yr, 'Finals MVP', 'ev-champ');
     if (isMe(h.MVP, yr)) add(yr, 'MVP', 'ev-award');
@@ -2993,9 +3001,24 @@ function renderPlayerPage() {
     ['star', String(p['Other Award'] || '').replace(/\s*\(\d+\)\s*$/, '').trim() || 'Other award', otherAwardCount(p), ''],
     ['calendar', 'Finals appearances', n('Finals App'), ''],
   ].filter(t => t[2] > 0);
+  // Where the legacy score comes from, with the title roles summed up in one line
+  const L = legacy(p), rk = legacyRankOf(p);
+  const partRows = LEGACY_PARTS.map(([k, label]) => ({ label, v: L.parts[k] })).filter(r => r.v > 0).sort((a, b) => b.v - a.v);
+  const roleCount = {};
+  (legacyContext().roles[p.Player] || []).forEach(r => roleCount[r.label] = (roleCount[r.label] || 0) + 1);
+  const unlistedTitles = Math.max(0, n('Champions') - (legacyContext().roles[p.Player] || []).length);
+  const span0 = careerSpan(p.Season);
+  const ROLE_ORDER = ['single core', 'franchise player', 'co-star', 'second star', 'core'];
+  const roleLine = [...Object.entries(roleCount).sort((a, b) => ROLE_ORDER.indexOf(a[0]) - ROLE_ORDER.indexOf(b[0])).map(([l, c]) => `${c} as ${l}`),
+    ...(unlistedTitles ? [`${unlistedTitles} ${span0 && span0[0] < legacyContext().firstHistory ? 'before NBA History starts (estimated)' : 'as rotation player'}`] : [])].join(' · ');
+  const legacyHtml = `<div class="chart-card"><div class="card-head"><div class="chart-title">${icon('chart')} Legacy Score</div>
+      <button class="card-link" onclick="showSection('legacy')">Full ranking</button></div>
+    <div class="legacy-total"><b>${Math.round(L.total).toLocaleString()}</b><span>points${rk ? ` · #${rk} of ${everyPlayer().length}` : ''}</span></div>
+    ${partRows.length ? `<div class="lg-parts">${partRows.map(r => `<div class="lg-part"><span>${r.label}</span><span class="lg-track"><i style="width:${Math.max(2, r.v / partRows[0].v * 100)}%"></i></span><b>${Math.round(r.v).toLocaleString()}</b></div>`).join('')}</div>` : '<p class="muted">No points yet.</p>'}
+    ${roleLine ? `<div class="lg-roles"><b>Titles:</b> ${roleLine}</div>` : ''}</div>`;
   const shelfHtml = `<div class="chart-card"><div class="chart-title">${icon('trophy', 'ic-champ')} Trophy Shelf</div>
     ${shelf.length ? `<div class="trophy-shelf">${shelf.map(([ic, label, count, tone]) => `<div class="trophy ${tone}">${icon(ic)}<b>${count}</b><span>${label}</span></div>`).join('')}</div>` : '<p class="muted">No awards recorded yet.</p>'}
-    <div class="rb-note">Legacy score ${Math.round(legacy(p).total).toLocaleString()} points · see Records → Legacy Ranking</div></div>`;
+    </div>`;
 
   // Percentile bars
   let pctHtml = '';
@@ -3009,7 +3032,7 @@ function renderPlayerPage() {
         <span class="pct-num">${r.pct}</span><span class="pct-val">${r.m.fmt(r.v)}</span></div>`).join('')}</div>
       <div class="rb-note">Percentile = share of ${playerState.pool === 'pos' ? 'retired ' + (POS_NAMES[p.Position] || p.Position).toLowerCase() + 's' : 'retired players'} this player is ahead of (${pool.length} players with career stats)</div></div>`;
   }
-  parts.push(`<div class="player-grid">${pctHtml ? `<div class="pg-wide">${pctHtml}</div>` : ''}<div class="${pctHtml ? 'pg-side' : 'pg-full'}">${shelfHtml}</div></div>`);
+  parts.push(`<div class="player-grid">${pctHtml ? `<div class="pg-wide">${pctHtml}</div>` : ''}<div class="${pctHtml ? 'pg-side' : 'pg-full'}">${shelfHtml}${legacyHtml}</div></div>`);
 
   // Advanced stats
   if (hasStats) {
@@ -3046,7 +3069,7 @@ function renderPlayerPage() {
   const timeline = careerEvents(p.Player);
   if (timeline.length) parts.push(`<div class="chart-card"><div class="chart-title">${icon('calendar')} Career Timeline</div>
     <div class="timeline">${timeline.map(t => `<div class="tl-row"><div class="tl-season">${seasonLink(t.yr)}</div>
-      <div class="tl-items">${t.items.map(e => `<span class="tl-chip ${e.cls}">${e.cls === 'ev-champ' && e.label === 'Champion' ? icon('trophy','ic-champ') + ' ' : ''}${e.label}</span>`).join('')}</div></div>`).join('')}</div>
+      <div class="tl-items">${t.items.map(e => `<span class="tl-chip ${e.cls}"${e.tip ? ` title="${e.tip}"` : ''}>${e.cls === 'ev-champ' && e.label === 'Champion' ? icon('trophy','ic-champ') + ' ' : ''}${e.label}</span>`).join('')}</div></div>`).join('')}</div>
     <div class="rb-note">From NBA History, All NBA Team and Season Stat Leader. Titles appear when the player is listed as a champion star or Finals MVP.</div></div>`);
 
   // Similar players
