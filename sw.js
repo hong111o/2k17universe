@@ -2,17 +2,17 @@
 // The page itself is fetched from the network first so updates show up on the next open;
 // the cached copy is used only when offline. Libraries and fonts never change, so they
 // come from the cache first.
-const VERSION = 'v20';
+const VERSION = 'v21';
 const CACHE = '2k17-stats-' + VERSION;
 const APP_SHELL = [
   './',
   './index.html',
-  './manifest.webmanifest',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './icons/apple-touch-icon.png',
-  './icons/icon-maskable-192.png',
-  './icons/icon-maskable-512.png',
+  './manifest.webmanifest?v=2',
+  './icons/icon-192.png?v=2',
+  './icons/icon-512.png?v=2',
+  './icons/apple-touch-icon.png?v=2',
+  './icons/icon-maskable-192.png?v=2',
+  './icons/icon-maskable-512.png?v=2',
 ];
 // Fetched on a best-effort basis: if the CDN is unreachable during install, the worker still
 // installs and picks the library up the next time the page loads it
