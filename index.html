@@ -149,7 +149,9 @@ select:focus{border-color:var(--link);}
 .btn-primary:hover{background:var(--link-hover);border-color:var(--link-hover);}
 
 /* TABLES: header and name column stay in place while scrolling */
-.table-wrap{overflow:auto;max-height:calc(100vh - 230px);background:var(--surface);border:1px solid var(--line);border-radius:6px;box-shadow:var(--shadow);}
+/* A table box fills the screen below the sticky bars, so once you reach a table its
+   header row stays in view while the rows scroll (dvh tracks phone toolbars; vh is the fallback) */
+.table-wrap{overflow:auto;max-height:calc(100vh - 130px - env(safe-area-inset-top,0px));max-height:calc(100dvh - 130px - env(safe-area-inset-top,0px));background:var(--surface);border:1px solid var(--line);border-radius:6px;box-shadow:var(--shadow);}
 table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px;font-variant-numeric:tabular-nums;}
 thead th{position:sticky;top:0;z-index:2;background:var(--surface-2);font-family:var(--font-body);font-weight:700;font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-2);padding:10px 10px;text-align:left;white-space:nowrap;cursor:pointer;user-select:none;border-bottom:1px solid var(--line-strong);}
 thead th:hover{color:var(--link);}
@@ -438,6 +440,8 @@ tr.row-playoff .st-rank{color:var(--ink);}
   #mainNav button{padding:12px 12px 10px;}
   /* card lists instead of wide tables */
   .has-cards .table-wrap{display:none;}
+  /* phones: also leave room for the bottom tab bar */
+  .table-wrap{max-height:calc(100vh - 170px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));max-height:calc(100dvh - 170px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));}
   .has-cards .pcards{display:flex;}
   .m-sort{display:block;}
   #playersExpandBtn,#top20ExpandBtn,#posExpandBtn{display:none;}
