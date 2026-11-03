@@ -488,6 +488,8 @@ tr.row-playoff .st-rank{color:var(--ink);}
 .dc-table td.dc-msg{white-space:normal;min-width:280px;}
 .weights{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px 16px;}
 .weight{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;color:var(--ink-2);border-bottom:1px solid var(--line);padding:4px 0;}
+.weight-group{margin-bottom:14px;}
+.weight-title{font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-3);margin-bottom:4px;}
 .weight input{width:72px;background:var(--surface);border:1px solid var(--line-strong);border-radius:4px;color:var(--ink);padding:5px 8px;font-family:var(--font-body);font-size:14px;text-align:right;}
 
 /* SEARCH */
@@ -2875,7 +2877,11 @@ function careerEvents(name) {
   const isMe = (raw, yr) => raw && raw !== '-' && resolvePlayer(String(raw).replace(/\s*\(\d+\)\s*$/, '').trim(), yr)?.Player === name;
   DB.history.forEach(h => {
     const yr = Number(h.Season);
-    if ([h.Star1, h.Star2, h.Star3].some(x => isMe(x, yr)) || isMe(h.FMVP, yr)) add(yr, 'Champion', 'ev-champ');
+    if ([h.Star1, h.Star2, h.Star3].some(x => isMe(x, yr)) || isMe(h.FMVP, yr)) {
+      const role = (legacyContext().roles[name] || []).find(r => r.yr === yr);
+      add(yr, 'Champion', 'ev-champ');
+      if (role) add(yr, `Title role: ${role.label}`, 'ev-champ');
+    }
     if (isMe(h.FMVP, yr)) add(yr, 'Finals MVP', 'ev-champ');
     if (isMe(h.MVP, yr)) add(yr, 'MVP', 'ev-award');
     if (isMe(h.DPOY, yr)) add(yr, 'DPOY', 'ev-award');
@@ -2989,7 +2995,7 @@ function renderPlayerPage() {
   ].filter(t => t[2] > 0);
   const shelfHtml = `<div class="chart-card"><div class="chart-title">${icon('trophy', 'ic-champ')} Trophy Shelf</div>
     ${shelf.length ? `<div class="trophy-shelf">${shelf.map(([ic, label, count, tone]) => `<div class="trophy ${tone}">${icon(ic)}<b>${count}</b><span>${label}</span></div>`).join('')}</div>` : '<p class="muted">No awards recorded yet.</p>'}
-    <div class="rb-note">Legacy score ${legacy(p).total.toFixed(1)} · see Records → Legacy Ranking</div></div>`;
+    <div class="rb-note">Legacy score ${Math.round(legacy(p).total).toLocaleString()} points · see Records → Legacy Ranking</div></div>`;
 
   // Percentile bars
   let pctHtml = '';
@@ -3147,7 +3153,7 @@ function compareMetrics() {
     { label: 'All-Star selections', get: award('All Stars'), fmt: v => v, awards: true },
     { label: 'Defensive POY', get: award('DPOY'), fmt: v => v, awards: true },
     { label: 'All-Defensive selections', get: p => award('1st D Team')(p) + award('2nd D Team')(p), fmt: v => v, awards: true },
-    { label: 'Legacy score', get: p => legacy(p).total, fmt: v => v.toFixed(1), awards: true },
+    { label: 'Legacy score', get: p => legacy(p).total, fmt: v => Math.round(v).toLocaleString(), awards: true },
   ];
 }
 function renderCompare() {
@@ -3327,49 +3333,112 @@ function percentile(metric, p, pool) {
   return Math.round(100 * (below + (same - 1) / 2) / (vals.length - 1));
 }
 
-// Legacy score: transparent points for honors plus career production.
-// Weights are editable in Settings (stored per browser).
-const LEGACY_DEFAULTS = {
-  title: 6, fmvp: 5, mvp: 10, dpoy: 4, allNba1: 4, allNba2: 2.5, allNba3: 1.5, allStar: 1,
-  allDef1: 1.5, allDef2: 1, finalsLoss: 1, roty: 1, otherAward: 0.5,
-  pts1000: 1, reb1000: 0.5, ast1000: 0.5, stocks1000: 0.5,
-};
-const LEGACY_LABELS = {
-  title: 'Championship', fmvp: 'Finals MVP', mvp: 'MVP', dpoy: 'Defensive Player of the Year',
-  allNba1: 'All-NBA 1st Team', allNba2: 'All-NBA 2nd Team', allNba3: 'All-NBA 3rd Team', allStar: 'All-Star selection',
-  allDef1: 'All-Defensive 1st Team', allDef2: 'All-Defensive 2nd Team', finalsLoss: 'Finals appearance lost',
-  roty: 'Rookie of the Year', otherAward: 'Other award (6th Man, MIP)',
-  pts1000: 'Every 1,000 career points', reb1000: 'Every 1,000 career rebounds', ast1000: 'Every 1,000 career assists',
-  stocks1000: 'Every 1,000 career steals + blocks',
-};
+// Legacy score: a points system for honors and production (source: a points system
+// posted on a Chinese basketball platform, adapted to what the workbook records).
+// Repeat awards earn less each time (decay step down to a floor); MVP and Finals MVP
+// keep the previous value when won in back-to-back seasons. Every value is editable in
+// Settings and stored per browser.
+const LEGACY_SCHEMA = [
+  { group: 'MVP', items: [['mvp', 'Base points', 250], ['mvpStep', 'Drop per repeat', 0.1], ['mvpFloor', 'Lowest multiplier', 0.7]] },
+  { group: 'Finals MVP', items: [['fmvp', 'Base points', 100], ['fmvpStep', 'Drop per repeat', 0.1], ['fmvpFloor', 'Lowest multiplier', 0.7]] },
+  { group: 'Defensive Player of the Year', items: [['dpoy', 'Base points', 50], ['dpoyStep', 'Drop per repeat', 0.2], ['dpoyFloor', 'Lowest multiplier', 0.4]] },
+  { group: 'Other awards', items: [['roy', 'Rookie of the Year', 20], ['smoy', '6th Man of the Year', 25], ['mip', 'Most Improved Player', 25], ['otherStep', 'Drop per repeat', 0.1], ['otherFloor', 'Lowest multiplier', 0.2]] },
+  { group: 'All-Star', items: [['allStar', 'Base points', 25], ['allStarStep', 'Drop per repeat', 0.1], ['allStarFloor', 'Lowest multiplier', 0.2]] },
+  { group: 'Team selections (one shared count)', items: [['allNba1', 'All-NBA 1st Team', 100], ['allNba2', 'All-NBA 2nd Team', 50], ['allNba3', 'All-NBA 3rd Team', 25],
+      ['allDef1', 'All-Defensive 1st Team', 15], ['allDef2', 'All-Defensive 2nd Team', 10], ['rookie1', 'All-Rookie 1st Team', 10], ['rookie2', 'All-Rookie 2nd Team', 5],
+      ['teamStep', 'Drop per selection', 0.2], ['teamFloor', 'Lowest multiplier', 0.2]] },
+  { group: 'Stat titles (Season Stat Leader)', items: [['ptsTitle', 'Scoring title', 100], ['rebTitle', 'Rebounding title', 40], ['astTitle', 'Assists title', 40],
+      ['stlTitle', 'Steals title', 18], ['blkTitle', 'Blocks title', 18], ['titleStep', 'Drop per repeat', 0.2], ['titleFloor', 'Lowest multiplier', 0.2]] },
+  { group: 'Championship roles (NBA History champion stars)', items: [['roleSingle', 'Only star listed (single core)', 120], ['roleFranchise', 'Top star (franchise player)', 100],
+      ['roleCoStar', 'Co-stars (top two within the rating gap)', 80], ['roleSecond', 'Second star', 70], ['roleCore', 'Third star (core)', 60],
+      ['roleRotation', 'Title as a non-listed player (rotation)', 25], ['coStarGap', 'Co-star rating gap', 2]] },
+  { group: 'Career production', items: [['pts1000', 'Per 1,000 career points', 8], ['other1000', 'Per 1,000 rebounds, assists or steals + blocks', 4]] },
+];
+const LEGACY_DEFAULTS = Object.fromEntries(LEGACY_SCHEMA.flatMap(g => g.items.map(([k, , v]) => [k, v])));
 function legacyWeights() {
-  try { return { ...LEGACY_DEFAULTS, ...JSON.parse(localStorage.getItem('nba2k17-legacy') || '{}') }; }
+  try { return { ...LEGACY_DEFAULTS, ...JSON.parse(localStorage.getItem('nba2k17-legacy-v2') || '{}') }; }
   catch (e) { return { ...LEGACY_DEFAULTS }; }
 }
 function otherAwardCount(p) {
   const m = String(p['Other Award'] || '').match(/\((\d+)\)/);
   return m ? Number(m[1]) : 0;
 }
+const awardCount = (p, re) => { const m = String(p['Other Award'] || '').match(re); return m ? Number(m[1]) : 0; };
+// Sum of base x multiplier for each repeat. Multiplier starts at 1 and drops by step per
+// repeat down to floor; with streak, a back-to-back season keeps the previous multiplier.
+// Awards with no known season (older than NBA History) count first, as non-consecutive.
+function decayedPoints(base, count, step, floor, seasons, streak) {
+  const yrs = [...Array(Math.max(0, count - (seasons || []).length)).fill(null), ...[...(seasons || [])].sort((a, b) => a - b)].slice(0, count);
+  let total = 0, prevC = null, prevY = null;
+  yrs.forEach((y, k) => {
+    let c = Math.max(floor, 1 - step * k);
+    if (streak && y !== null && prevY !== null && y === prevY + 1) c = prevC;
+    total += base * c; prevC = c; prevY = y;
+  });
+  return total;
+}
+// Seasons, roles and stat titles per player, read once from NBA History and Season Stat Leader
+function legacyContext() {
+  return cached('legacyContext', () => {
+    const w = legacyWeights(), ctx = { mvp: {}, fmvp: {}, roles: {}, titles: {}, firstHistory: Infinity };
+    const push = (map, p, v) => (map[p.Player] = map[p.Player] || []).push(v);
+    DB.history.forEach(h => {
+      const yr = Number(h.Season);
+      if (isNaN(yr)) return;
+      ctx.firstHistory = Math.min(ctx.firstHistory, yr);
+      [['MVP', 'mvp'], ['FMVP', 'fmvp']].forEach(([k, m]) => { const p = h[k] && h[k] !== '-' ? resolvePlayer(h[k], yr) : null; if (p) push(ctx[m], p, yr); });
+      const stars = [h.Star1, h.Star2, h.Star3].filter(x => x && x !== '-').map(x => {
+        const r = String(x).match(/\((\d+)\)\s*$/);
+        return { p: resolvePlayer(String(x).replace(/\s*\(\d+\)\s*$/, '').trim(), yr), rating: r ? Number(r[1]) : null };
+      });
+      if (!stars.length) return;
+      const coStars = stars.length > 1 && stars[0].rating !== null && stars[1].rating !== null && stars[0].rating - stars[1].rating <= w.coStarGap;
+      stars.forEach((st, i) => {
+        if (!st.p) return;
+        const role = stars.length === 1 ? ['roleSingle', 'single core'] : coStars && i < 2 ? ['roleCoStar', 'co-star'] : i === 0 ? ['roleFranchise', 'franchise player'] : i === 1 ? ['roleSecond', 'second star'] : ['roleCore', 'core'];
+        push(ctx.roles, st.p, { yr, key: role[0], label: role[1] });
+      });
+    });
+    [['PtsLeader', 'ptsTitle'], ['RebLeader', 'rebTitle'], ['AstLeader', 'astTitle'], ['StlLeader', 'stlTitle'], ['BlkLeader', 'blkTitle']].forEach(([k, key]) =>
+      DB.statLeaders.forEach(r => { const p = r[k] ? resolvePlayer(r[k], r.Season) : null; if (p) { const t = (ctx.titles[p.Player] = ctx.titles[p.Player] || {}); t[key] = (t[key] || 0) + 1; } }));
+    return ctx;
+  });
+}
+const championRole = (p, yr) => (legacyContext().roles[p.Player] || []).find(r => r.yr === yr);
 function legacy(p) {
   return cached('legacy|' + p.Player, () => {
-    const w = legacyWeights();
-    const n = k => { const v = getNum(p[k]); return v === -Infinity ? 0 : v; };
-    const roty = /^o$/i.test(String(p.ROTY || '').trim()) ? 1 : 0;
+    const w = legacyWeights(), ctx = legacyContext();
+    const n = k => { const v = getNum(p[k]); return v === -Infinity ? 0 : Math.round(v); };
+    const roty = /^o$/i.test(String(p.ROTY || '').trim());
+    const rookieTeam = String(p.RookieTeam ?? p['Rookie Team'] ?? '').trim();
+    const teamPicks = [...Array(n('1st Team')).fill(w.allNba1), ...Array(n('2nd Team')).fill(w.allNba2), ...Array(n('3rd Team')).fill(w.allNba3),
+      ...Array(n('1st D Team')).fill(w.allDef1), ...Array(n('2nd D Team')).fill(w.allDef2), ...(rookieTeam === '1st' ? [w.rookie1] : rookieTeam === '2nd' ? [w.rookie2] : [])];
+    // Titles: listed champion stars get their role; titles older than NBA History are
+    // estimated from career level; any other title counts as a rotation player's
+    const roles = ctx.roles[p.Player] || [];
+    const unlisted = Math.max(0, n('Champions') - roles.length);
+    const span = careerSpan(p.Season);
+    const preHistoryRole = n('MVP') > 0 ? w.roleFranchise : (n('1st Team') > 0 || n('All Stars') >= 5) ? w.roleCore : w.roleRotation;
+    const unlistedEach = span && span[0] < ctx.firstHistory ? preHistoryRole : w.roleRotation;
+    const t = ctx.titles[p.Player] || {};
     const parts = {
-      titles: n('Champions') * w.title + n('FMVP') * w.fmvp + Math.max(0, n('Finals App') - n('Champions')) * w.finalsLoss,
-      mvp: n('MVP') * w.mvp,
-      allNba: n('1st Team') * w.allNba1 + n('2nd Team') * w.allNba2 + n('3rd Team') * w.allNba3,
-      allStar: n('All Stars') * w.allStar,
-      defense: n('DPOY') * w.dpoy + n('1st D Team') * w.allDef1 + n('2nd D Team') * w.allDef2,
-      other: roty * w.roty + otherAwardCount(p) * w.otherAward,
-      stats: (n('PTS') * w.pts1000 + n('REB') * w.reb1000 + n('AST') * w.ast1000 + (n('STL') + n('BLK')) * w.stocks1000) / 1000,
+      mvp: decayedPoints(w.mvp, n('MVP'), w.mvpStep, w.mvpFloor, ctx.mvp[p.Player], true),
+      fmvp: decayedPoints(w.fmvp, n('FMVP'), w.fmvpStep, w.fmvpFloor, ctx.fmvp[p.Player], true),
+      titles: roles.reduce((a, r) => a + w[r.key], 0) + unlisted * unlistedEach,
+      teams: teamPicks.sort((a, b) => b - a).reduce((a, v, k) => a + v * Math.max(w.teamFloor, 1 - w.teamStep * k), 0),
+      allStar: decayedPoints(w.allStar, n('All Stars'), w.allStarStep, w.allStarFloor),
+      dpoy: decayedPoints(w.dpoy, n('DPOY'), w.dpoyStep, w.dpoyFloor),
+      statTitles: ['ptsTitle', 'rebTitle', 'astTitle', 'stlTitle', 'blkTitle'].reduce((a, k) => a + decayedPoints(w[k], t[k] || 0, w.titleStep, w.titleFloor), 0),
+      other: (roty ? w.roy : 0) + decayedPoints(w.smoy, awardCount(p, /6th Man\s*\((\d+)\)/i), w.otherStep, w.otherFloor) + decayedPoints(w.mip, awardCount(p, /MIP\s*\((\d+)\)/i), w.otherStep, w.otherFloor),
+      production: (n('PTS') * w.pts1000 + (n('REB') + n('AST') + n('STL') + n('BLK')) * w.other1000) / 1000,
     };
     const total = Object.values(parts).reduce((a, b) => a + b, 0);
     return { total, parts };
   });
 }
+const LEGACY_PARTS = [['mvp', 'MVP'], ['fmvp', 'Finals MVP'], ['titles', 'Title roles'], ['teams', 'All-NBA / Def / Rookie'], ['allStar', 'All-Star'], ['dpoy', 'DPOY'], ['statTitles', 'Stat titles'], ['other', 'ROY / 6MOY / MIP'], ['production', 'Production']];
 function legacyRanking() {
-  return cached('legacyRanking', () => withRanks(everyPlayer().map(p => ({ p, score: legacy(p).total })).sort((a, b) => b.score - a.score), r => r.score.toFixed(1)));
+  return cached('legacyRanking', () => withRanks(everyPlayer().map(p => ({ p, score: legacy(p).total })).sort((a, b) => b.score - a.score), r => Math.round(r.score)));
 }
 const legacyRankOf = p => legacyRanking().find(r => r.p === p)?.rank;
 
@@ -3443,7 +3512,7 @@ function renderDraft() {
   const bestByClass = years.map(y => rows.filter(r => r.d.year === y).sort((a, b) => legacy(b.p).total - legacy(a.p).total)[0]);
   const deepest = years.map(y => ({ y, n: rows.filter(r => r.d.year === y).length })).sort((a, b) => b.n - a.n)[0];
   const tr = r => `<tr><td class="num">${r.d.year}</td><td>${pickLabel(r.d)}</td><td class="stick-1">${nameLink(r.p.Player)}</td><td>${posBadge(r.p.Position)}</td>
-    <td class="num">${legacy(r.p).total.toFixed(1)}</td><td>${draftCareer(r.p)}</td></tr>`;
+    <td class="num">${Math.round(legacy(r.p).total).toLocaleString()}</td><td>${draftCareer(r.p)}</td></tr>`;
   const table = (list, cols) => `<div class="table-wrap"><table><thead><tr><th class="num">Year</th><th>Pick</th><th class="stick-1">Player</th><th>Pos</th><th class="num">Legacy</th><th>Career honors</th></tr></thead><tbody>${list.map(tr).join('')}</tbody></table></div>`;
   document.getElementById('draftContent').innerHTML = `
     <div class="stats-cards">
@@ -3459,12 +3528,12 @@ function renderDraft() {
       <div class="draft-class">${classRows.map(r => `<div class="draft-pick" role="button" tabindex="0" onclick="openPlayerModal('${jsArg(r.p.Player)}')" onkeydown="if(event.key==='Enter')this.click()">
         <div class="dp-slot">${r.d.pick ? '#' + r.d.pick : r.d.kind === 'territorial' ? 'T' : r.d.kind === 'undrafted' ? 'UD' : 'R' + r.d.round}</div>
         <div><div class="dp-name">${r.p.Player} ${posBadge(r.p.Position)}</div><div class="dp-sub">${pickLabel(r.d)} · ${draftCareer(r.p)}</div></div>
-        <div class="dp-legacy"><b>${legacy(r.p).total.toFixed(0)}</b><span>legacy</span></div></div>`).join('')}</div>
+        <div class="dp-legacy"><b>${Math.round(legacy(r.p).total).toLocaleString()}</b><span>legacy</span></div></div>`).join('')}</div>
       <div class="rb-note">Only players in your workbook appear: ${classRows.length} from the ${draftYear} draft.</div></div>
     <div class="rb-grid">
-      <div class="chart-card rb-card rb-years"><div class="chart-title">Every #1 Pick</div>${firsts.map(r => `<div class="rb-row"><span class="rb-rank">${r.d.year}</span><span class="rb-main">${nameLink(r.p.Player)}</span><span class="rb-val">${legacy(r.p).total.toFixed(0)}</span><span class="rb-sub">${draftCareer(r.p)}</span></div>`).join('')}</div>
-      <div class="chart-card rb-card"><div class="chart-title">Biggest Steals</div>${withRanks(steals, r => legacy(r.p).total).map(r => `<div class="rb-row"><span class="rb-rank">${r.rank}</span><span class="rb-main">${nameLink(r.p.Player)}</span><span class="rb-val">${legacy(r.p).total.toFixed(0)}</span><span class="rb-sub">${draftLabel(r.d)} · ${draftCareer(r.p)}</span></div>`).join('')}<div class="rb-note">Pick 10 or later, second round or undrafted, ranked by legacy score</div></div>
-      <div class="chart-card rb-card rb-years"><div class="chart-title">Best Player of Each Class</div>${bestByClass.slice(0, 15).map(r => `<div class="rb-row"><span class="rb-rank">${r.d.year}</span><span class="rb-main">${nameLink(r.p.Player)}</span><span class="rb-val">${legacy(r.p).total.toFixed(0)}</span><span class="rb-sub">${pickLabel(r.d)} · ${draftCareer(r.p)}</span></div>`).join('')}<div class="rb-note">Latest 15 classes · full list below</div></div>
+      <div class="chart-card rb-card rb-years"><div class="chart-title">Every #1 Pick</div>${firsts.map(r => `<div class="rb-row"><span class="rb-rank">${r.d.year}</span><span class="rb-main">${nameLink(r.p.Player)}</span><span class="rb-val">${Math.round(legacy(r.p).total).toLocaleString()}</span><span class="rb-sub">${draftCareer(r.p)}</span></div>`).join('')}</div>
+      <div class="chart-card rb-card"><div class="chart-title">Biggest Steals</div>${withRanks(steals, r => legacy(r.p).total).map(r => `<div class="rb-row"><span class="rb-rank">${r.rank}</span><span class="rb-main">${nameLink(r.p.Player)}</span><span class="rb-val">${Math.round(legacy(r.p).total).toLocaleString()}</span><span class="rb-sub">${draftLabel(r.d)} · ${draftCareer(r.p)}</span></div>`).join('')}<div class="rb-note">Pick 10 or later, second round or undrafted, ranked by legacy score</div></div>
+      <div class="chart-card rb-card rb-years"><div class="chart-title">Best Player of Each Class</div>${bestByClass.slice(0, 15).map(r => `<div class="rb-row"><span class="rb-rank">${r.d.year}</span><span class="rb-main">${nameLink(r.p.Player)}</span><span class="rb-val">${Math.round(legacy(r.p).total).toLocaleString()}</span><span class="rb-sub">${pickLabel(r.d)} · ${draftCareer(r.p)}</span></div>`).join('')}<div class="rb-note">Latest 15 classes · full list below</div></div>
     </div>
     <div class="chart-card"><div class="chart-title">${icon('list')} Every Draft Pick</div>${table(rows)}</div>`;
 }
@@ -3478,18 +3547,22 @@ function renderLegacy() {
   const rows = legacyRanking().filter(r => (!q || normName(r.p.Player).includes(q)) && (!pos || r.p.Position === pos) && (!f || (f === 'active') === isActive(r.p)));
   const w = legacyWeights();
   document.getElementById('legacySub').textContent = `All-time ranking from honors and career production · ${everyPlayer().length} players`;
-  const parts = [['titles','Titles & Finals'],['mvp','MVP'],['allNba','All-NBA'],['allStar','All-Star'],['defense','Defense'],['other','Other'],['stats','Stats']];
+  const fmt = v => Math.round(v).toLocaleString();
   document.getElementById('legacyContent').innerHTML = `
-    <div class="chart-card legacy-formula"><b>How the score works:</b> each honor earns points: MVP ${w.mvp}, title ${w.title}, Finals MVP ${w.fmvp}, All-NBA 1st/2nd/3rd ${w.allNba1}/${w.allNba2}/${w.allNba3}, DPOY ${w.dpoy}, All-Star ${w.allStar}, All-Defensive 1st/2nd ${w.allDef1}/${w.allDef2}, lost Finals ${w.finalsLoss}, ROTY ${w.roty}, other awards ${w.otherAward}; plus ${w.pts1000} per 1,000 career points, ${w.reb1000} per 1,000 rebounds or assists and ${w.stocks1000} per 1,000 steals + blocks.
-      Active players have no career stats yet, so they score on honors only. <button class="card-link" onclick="showSection('settings')">Change the weights</button></div>
+    <div class="chart-card legacy-formula"><b>How the score works.</b> Each honor earns points, and repeats of the same honor earn a little less each time:
+      MVP ${w.mvp} and Finals MVP ${w.fmvp} (back-to-back wins keep full value), DPOY ${w.dpoy}, All-Star ${w.allStar},
+      All-NBA 1st/2nd/3rd ${w.allNba1}/${w.allNba2}/${w.allNba3}, All-Defensive ${w.allDef1}/${w.allDef2}, scoring title ${w.ptsTitle}.
+      Each title earns points for the player's role on that team: ${w.roleSingle} as the only listed star down to ${w.roleRotation} as a rotation player.
+      Career production adds ${w.pts1000} per 1,000 points and ${w.other1000} per 1,000 rebounds, assists or steals + blocks.
+      Active players have no career stats in the workbook yet, so they score on honors only. <button class="card-link" onclick="showSection('settings')">See or change every value</button></div>
     <div class="table-wrap"><table><thead><tr><th class="stick-1 rank-col">#</th><th class="stick-2">Player</th><th>Pos</th><th class="num">Score</th>
-      ${parts.map(([, l]) => `<th class="num">${l}</th>`).join('')}<th class="num">Your Top 20</th></tr></thead><tbody>
+      ${LEGACY_PARTS.map(([, l]) => `<th class="num">${l}</th>`).join('')}<th class="num">Your Top 20</th></tr></thead><tbody>
       ${rows.map(r => { const L = legacy(r.p), t20 = DB.top20.find(x => x.Player === r.p.Player);
         return `<tr><td class="rank-cell stick-1 rank-col ${rankCls(r.rank)}">${r.rank}</td><td class="stick-2">${nameLink(r.p.Player)}${isActive(r.p) ? ' <span class="muted">active</span>' : ''}</td><td>${posBadge(r.p.Position)}</td>
-          <td class="num"><b>${L.total.toFixed(1)}</b></td>${parts.map(([k]) => `<td class="num">${L.parts[k] ? L.parts[k].toFixed(1) : '<span class="muted">0</span>'}</td>`).join('')}
+          <td class="num"><b>${fmt(L.total)}</b></td>${LEGACY_PARTS.map(([k]) => `<td class="num">${L.parts[k] ? fmt(L.parts[k]) : '<span class="muted">0</span>'}</td>`).join('')}
           <td class="num">${t20 ? '#' + t20.Rank + (t20.Rank === r.rank ? '' : ` <span class="muted">(${t20.Rank > r.rank ? '▲' : '▼'}${Math.abs(t20.Rank - r.rank)})</span>`) : '<span class="muted">—</span>'}</td></tr>`; }).join('')}
     </tbody></table></div>
-    <div class="rb-note">"Your Top 20" is the rank from your Top 20 sheet; ▲/▼ shows how many places the formula ranks the player above or below it.</div>`;
+    <div class="rb-note">"Your Top 20" is the rank from your Top 20 sheet; ▲/▼ shows how many places the formula ranks the player above or below it. Title roles come from the champion stars in NBA History; titles from before NBA History starts are estimated from the player's career level.</div>`;
 }
 
 // =====================================================================
@@ -3502,7 +3575,7 @@ function franchiseLegends(team) {
   return everyPlayer().filter(p => playerTeams(p).includes(team)).map(p => {
     const titles = titlesWithTeam(p, team), ret = retiredFor(p).filter(r => r.team === team), oneTeam = new Set(playerTeams(p)).size === 1;
     const L = legacy(p).total;
-    return { p, titles, ret, oneTeam, score: L * (oneTeam ? 1 : 0.5) + titles * 8 + (ret.length ? 25 : 0) };
+    return { p, titles, ret, oneTeam, score: L * (oneTeam ? 1 : 0.5) + titles * 120 + (ret.length ? 300 : 0) };
   }).sort((a, b) => b.score - a.score);
 }
 function legendsHtml(team) {
@@ -3510,7 +3583,7 @@ function legendsHtml(team) {
   if (!list.length) return '';
   const row = (l, i) => `<div class="rb-row"><span class="rb-rank">${i + 1}</span><span class="rb-main">${nameLink(l.p.Player)} ${posBadge(l.p.Position)}
       <span class="journey-tags">${l.ret.map(r => `<em class="tag-ret">#${r.num} retired</em>`).join('')}${l.titles ? `<em class="tag-gold">${icon('trophy')} ${l.titles} here</em>` : ''}${l.oneTeam ? '<em class="tag-plain">One-team career</em>' : ''}${isActive(l.p) ? '<em class="tag-plain">Active</em>' : ''}</span></span>
-      <span class="rb-val">${legacy(l.p).total.toFixed(0)}</span><span class="rb-sub">Career, all teams: ${draftCareer(l.p)}</span></div>`;
+      <span class="rb-val">${Math.round(legacy(l.p).total).toLocaleString()}</span><span class="rb-sub">Career, all teams: ${draftCareer(l.p)}</span></div>`;
   return `<div class="modal-section"><div class="modal-section-title">${icon('star')} Franchise Legends</div>
     <div class="leader-list">${list.slice(0, 8).map(row).join('')}</div>
     ${list.length > 8 ? `<details class="more-legends"><summary>All ${list.length} players who played here</summary>${list.slice(8).map((l, i) => row(l, i + 8)).join('')}</details>` : ''}
@@ -3626,21 +3699,21 @@ function renderSettings() {
       ${res.length ? '' : '<p class="muted">No problems found.</p>'}
       <div class="rb-note">Runs every time you load the workbook. Fix the cells in Excel, then load the file again to clear them.</div></div>
     <div class="chart-card"><div class="card-head"><div class="chart-title">${icon('trophy')} Legacy Formula</div><button class="card-link" onclick="resetLegacyWeights()">Reset to defaults</button></div>
-      <p class="muted" style="margin-bottom:12px">Points each honor is worth in the Legacy Ranking. Changes apply straight away and are saved in this browser.</p>
-      <div class="weights">${Object.keys(LEGACY_DEFAULTS).map(k => `<label class="weight"><span>${LEGACY_LABELS[k]}</span>
-        <input type="number" id="w-${k}" min="0" step="0.5" value="${w[k]}" onchange="saveLegacyWeight('${k}', this.value)"></label>`).join('')}</div></div>
+      <p class="muted" style="margin-bottom:12px">The points system behind the Legacy Ranking. A repeat of the same honor is worth its base points × a multiplier that starts at 1 and drops each time, down to the lowest multiplier. Changes apply straight away and are saved in this browser.</p>
+      ${LEGACY_SCHEMA.map(g => `<div class="weight-group"><div class="weight-title">${g.group}</div><div class="weights">${g.items.map(([k, label]) => `<label class="weight"><span>${label}</span>
+        <input type="number" id="w-${k}" min="0" step="${LEGACY_DEFAULTS[k] < 1 ? 0.05 : 1}" value="${w[k]}" onchange="saveLegacyWeight('${k}', this.value)"></label>`).join('')}</div></div>`).join('')}</div>
     <div class="chart-card"><div class="chart-title">${icon('file')} Saved Workbook</div><p id="settingsSaved" class="muted"></p>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn-primary" onclick="showLoadOverlay()">Load a new workbook</button><button class="icon-btn" onclick="forgetSavedWorkbook();renderSettings()">Forget saved file</button></div></div>`;
   getSavedWorkbook().then(saved => { const el = document.getElementById('settingsSaved'); if (el) el.textContent = saved ? `${saved.name}, saved ${new Date(saved.savedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })} on this device.` : 'No workbook saved on this device.'; });
 }
 function saveLegacyWeight(k, v) {
   const w = legacyWeights(); w[k] = Math.max(0, Number(v) || 0);
-  try { localStorage.setItem('nba2k17-legacy', JSON.stringify(w)); } catch (e) {}
+  try { localStorage.setItem('nba2k17-legacy-v2', JSON.stringify(w)); } catch (e) {}
   engineCache = {};
   renderLegacy(); renderDraft();
 }
 function resetLegacyWeights() {
-  try { localStorage.removeItem('nba2k17-legacy'); } catch (e) {}
+  try { localStorage.removeItem('nba2k17-legacy-v2'); } catch (e) {}
   engineCache = {};
   renderSettings(); renderLegacy(); renderDraft();
 }
