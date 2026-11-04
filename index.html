@@ -38,7 +38,7 @@
   --text:var(--ink); --text2:var(--ink-2); --text3:var(--ink-3);
   --accent:var(--link); --accent2:var(--loss); --gold:var(--champ-ink); --green:var(--win); --blue:var(--link); --purple:var(--p2);
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--logo-plate:#eef1f5;
   --page:#0b111c; --surface:#121a29; --surface-2:#182235; --line:#26324a; --line-strong:#33405c;
   --ink:#e9eef6; --ink-2:#b4bfd0; --ink-3:#8d99ad;
   --brand:#060d1c; --brand-2:#0d1a33; --hero:#14284c; --hero-2:#1d3561; --on-brand:#ffffff; --on-brand-2:#9fb0cc; --brand-accent:#f39a3a;
@@ -49,7 +49,7 @@
   --p1:#4f8ff0; --p2:#e06a1f; --p3:#1fa878;
   --shadow:none; color-scheme:dark;
 }}
-:root[data-theme="dark"]{
+:root[data-theme="dark"]{--logo-plate:#eef1f5;
   --page:#0b111c; --surface:#121a29; --surface-2:#182235; --line:#26324a; --line-strong:#33405c;
   --ink:#e9eef6; --ink-2:#b4bfd0; --ink-3:#8d99ad;
   --brand:#060d1c; --brand-2:#0d1a33; --hero:#14284c; --hero-2:#1d3561; --on-brand:#ffffff; --on-brand-2:#9fb0cc; --brand-accent:#f39a3a;
@@ -517,6 +517,15 @@ tr.row-playoff .st-rank{color:var(--ink);}
 .spot-honors{font-size:14px;font-weight:600;color:var(--ink-2);margin-bottom:10px;}
 .spot .rank-badges{margin-bottom:10px;}
 .spot-teams{font-size:13px;color:var(--ink-3);line-height:1.6;}
+.tlogo{display:inline-block;width:1.3em;height:1.3em;object-fit:contain;vertical-align:-.32em;margin-right:.35em;background:var(--logo-plate,transparent);border-radius:4px;}
+.player-hero .tlogo,.home-hero .tlogo{background:#fff;border-radius:6px;padding:2px;}
+.hero-title .tlogo{width:.95em;height:.95em;vertical-align:-.08em;padding:4px;border-radius:10px;}
+.tlogo-md{width:44px;height:44px;margin:0;flex:none;padding:2px;border-radius:8px;}
+.tlogo-xl{width:96px;height:96px;margin:0;flex:none;padding:8px;border-radius:14px;background:#fff;vertical-align:middle;}
+.team-card-head{display:flex;align-items:center;gap:12px;margin-bottom:2px;}
+.team-hero-head{display:flex;align-items:center;gap:20px;}
+.team-hero-head .ph-name{margin-bottom:10px;}
+@media (max-width:768px){.tlogo-xl{width:64px;height:64px;padding:5px;border-radius:10px;}.team-hero-head{gap:14px;}}
 .ratio-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin-bottom:12px;}
 .ratio-bar input[type=range]{flex:1;min-width:140px;accent-color:var(--link);}
 .ratio-end{font-weight:700;font-size:13px;color:var(--ink-2);}
@@ -1242,6 +1251,81 @@ function redCellsBySheet(wb) {
   } catch (err) { console.warn('Could not read cell colors:', err); }
   return out;
 }
+// Team logos come from the pictures on the "NBA Logo" sheet. A picture is matched
+// to a team by a team name or code typed in a cell just below or beside it; without
+// one, by its spot in the sheet's grid (the layout the workbook already uses).
+const LOGO_SLOTS = {
+  '0,3': 'Atlanta Hawks', '0,6': 'Boston Celtics', '0,9': 'Brooklyn Nets', '0,12': 'Charlotte Hornets', '0,15': 'Chicago Bulls',
+  '0,18': 'Cleveland Cavaliers', '0,21': 'Dallas Mavericks', '0,24': 'Denver Nuggets', '0,27': 'Detroit Pistons', '0,30': 'Golden State Warriors',
+  '2,3': 'Houston Rockets', '2,6': 'Indiana Pacers', '2,9': 'Los Angeles Clippers', '2,12': 'Los Angeles Lakers', '2,15': 'Memphis Grizzlies',
+  '2,18': 'Miami Heat', '2,21': 'Milwaukee Bucks', '2,24': 'Minnesota Timberwolves', '2,27': 'New Orleans Pelicans', '2,30': 'New York Knicks',
+  '4,3': 'Oklahoma City Thunder', '4,6': 'Orlando Magic', '4,9': 'Philadelphia 76ers', '4,12': 'Phoenix Suns', '4,15': 'Portland Trail Blazers',
+  '4,18': 'Sacramento Kings', '4,21': 'San Antonio Spurs', '4,24': 'Toronto Raptors', '4,27': 'Utah Jazz', '4,30': 'Washington Wizards',
+  '6,3': 'Kansas City Knights', '6,6': 'San Diego Surf', '6,9': 'Vancouver Ravens', '6,12': 'Cincinnati Lions',
+};
+let logoUrls = [];
+function readTeamLogos(wb) {
+  logoUrls.forEach(u => URL.revokeObjectURL(u)); logoUrls = [];
+  const logos = {};
+  try {
+    const files = wb.files || {}, dec = new TextDecoder();
+    const raw = k => { const f = files[k] || files['/' + k]; return f && f.content; };
+    const text = k => { const c = raw(k); return !c ? '' : typeof c === 'string' ? c : dec.decode(c); };
+    const attr = (tag, name) => { const m = tag.match(new RegExp('\\b' + name + '="([^"]*)"')); return m ? m[1] : null; };
+    const relsOf = path => { const out = {}; const dir = path.replace(/[^/]*$/, ''), base = path.slice(dir.length);
+      (text(dir + '_rels/' + base + '.rels').match(/<Relationship\b[^>]*>/g) || []).forEach(r => { out[attr(r, 'Id')] = resolvePath(dir, attr(r, 'Target')); }); return out; };
+    const resolvePath = (dir, target) => {
+      if (!target) return '';
+      if (target.startsWith('/')) return target.slice(1);
+      const parts = (dir + target).split('/'), out = [];
+      parts.forEach(p => { if (p === '..') out.pop(); else if (p && p !== '.') out.push(p); });
+      return out.join('/');
+    };
+    const sheetName = wb.SheetNames.find(n => /logo/i.test(n));
+    if (!sheetName) return logos;
+    const wbRels = relsOf('xl/workbook.xml');
+    const sh = (text('xl/workbook.xml').match(/<sheet\b[^>]*>/g) || []).find(t => (attr(t, 'name') || '').replace(/&amp;/g, '&') === sheetName);
+    const sheetPath = sh && wbRels[attr(sh, 'r:id')];
+    if (!sheetPath) return logos;
+    const drawingPath = Object.values(relsOf(sheetPath)).find(t => /drawings\/[^/]+\.xml$/.test(t));
+    if (!drawingPath) return logos;
+    const media = relsOf(drawingPath), ws = wb.Sheets[sheetName];
+    // A team name or code typed near the picture wins over the grid position
+    const labelAt = (c, r) => {
+      for (const [dc, dr] of [[0, 0], [0, 1], [0, 2], [0, 3], [1, 0], [1, 1], [0, -1]]) {
+        const cell = ws && ws[XLSX.utils.encode_cell({ c: c + dc, r: r + dr })];
+        const v = cell && cell.v != null ? String(cell.v).trim() : '';
+        if (!v) continue;
+        const full = TEAM_NAMES[v.toUpperCase()] || DB.teams.find(t => normName(t.Team) === normName(v))?.Team;
+        if (full) return full;
+      }
+      return null;
+    };
+    (text(drawingPath).match(/<xdr:(?:twoCellAnchor|oneCellAnchor|absoluteAnchor)\b[\s\S]*?<\/xdr:(?:twoCellAnchor|oneCellAnchor|absoluteAnchor)>/g) || []).forEach(a => {
+      const from = a.match(/<xdr:from>[\s\S]*?<xdr:col>(\d+)<\/xdr:col>[\s\S]*?<xdr:row>(\d+)<\/xdr:row>/), emb = a.match(/r:embed="([^"]+)"/);
+      if (!from || !emb) return;
+      const c = Number(from[1]), r = Number(from[2]), team = labelAt(c, r) || LOGO_SLOTS[c + ',' + r];
+      const path = media[emb[1]], bytes = path && raw(path);
+      if (!team || !bytes || logos[team]) return;
+      const ext = (path.split('.').pop() || '').toLowerCase();
+      const type = { png: 'image/png', gif: 'image/gif', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', svg: 'image/svg+xml' }[ext] || 'image/png';
+      const url = URL.createObjectURL(new Blob([bytes], { type }));
+      logoUrls.push(url);
+      logos[team] = url;
+    });
+    // Team Record may spell a name differently ("Indaina Pacers"): point close matches at the same logo
+    DB.teams.forEach(t => {
+      if (logos[t.Team]) return;
+      const near = Object.keys(logos).find(k => editDistance(normName(k), normName(t.Team)) <= 2);
+      if (near) logos[t.Team] = logos[near];
+    });
+  } catch (err) { console.warn('Could not read team logos:', err); }
+  return logos;
+}
+function teamLogo(team, cls) {
+  const u = DB.logos && (DB.logos[fullTeamName(team)] || DB.logos[team]);
+  return u ? `<img class="tlogo${cls ? ' ' + cls : ''}" src="${u}" alt="" aria-hidden="true" decoding="async">` : '';
+}
 // Flags which of a player's team stints are in red (aligned with playerTeams)
 function markTitleStints(players, ws, red) {
   if (!red || !red.size || !ws || !ws['!ref'] || !players.headers) return;
@@ -1325,6 +1409,9 @@ function parseWorkbook(wb) {
         return t;
       });
   }
+
+  setProgress('Loading team logos...');
+  DB.logos = readTeamLogos(wb);
 
   setProgress('Loading Stat Leaders...');
   if (wb.Sheets['Season Stat Leader']) {
@@ -1615,7 +1702,7 @@ function teamLink(team, label) {
   const full = fullTeamName(team);
   const known = DB.teams.some(t => t.Team === full);
   const text = label || team;
-  return known ? `<span class="team-link" title="${full}" onclick="event.stopPropagation();openTeamModal('${jsArg(full)}')">${text}</span>` : text;
+  return known ? `<span class="team-link" title="${full}" onclick="event.stopPropagation();openTeamModal('${jsArg(full)}')">${teamLogo(full)}${text}</span>` : text;
 }
 // Escape a value for use inside a single-quoted JS string in an HTML attribute
 function jsArg(v) { return String(v).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
@@ -2107,7 +2194,7 @@ function filterTeams() {
   document.getElementById('teamGrid').innerHTML = arr.map(t => {
     const r = st.find(x => x.team === t.Team);
     return `<div class="team-card" onclick="openTeamModal('${jsArg(t.Team)}')">
-      <div class="team-name">${t.Team}</div>
+      <div class="team-card-head">${teamLogo(t.Team, 'tlogo-md')}<div class="team-name">${t.Team}</div></div>
       <div class="team-card-meta">
         <span class="conf-badge">${t.Conference||'—'}</span>
         ${r ? `<span class="team-rank">#${r.confRk} in ${t.Conference === 'EAST' ? 'East' : 'West'} · #${r.leagueRk} in league</span>` : ''}
@@ -2194,8 +2281,9 @@ function renderTeamPage() {
   parts.push(`<section class="player-hero team-hero">
     <button class="hero-back" onclick="teamBack()" aria-label="Back">← Back</button>
     <div class="ph-main">
-      <div class="hero-kicker">${icon('trophy')} Franchise</div>
-      <h1 class="ph-name">${t.Team}</h1>
+      <div class="team-hero-head">${teamLogo(t.Team, 'tlogo-xl')}<div>
+        <div class="hero-kicker">${icon('trophy')} Franchise</div>
+        <h1 class="ph-name">${t.Team}</h1></div></div>
       <dl class="bio-strip">${bio.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>
     </div>
     <div class="ph-stats">${[['Titles', t.Championship || 0], ['Conf. titles', t['Conference Titles'] || 0], ['Playoffs', t.Playoffs || 0]].map(([k, v]) => `<div><b>${v}</b><span>${k}</span></div>`).join('')}
