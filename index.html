@@ -246,6 +246,8 @@ tr.row-pending td:first-child{font-style:normal;}
 .stat-box .sl{font-size:11px;color:var(--ink-3);letter-spacing:.5px;text-transform:uppercase;margin-top:2px;}
 .stat-box.avg-box{background:var(--playoff-tint);}
 .stat-box.wide{grid-column:span 2;}
+.stat-box .srank{display:inline-block;margin-top:6px;font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;background:var(--line);color:var(--ink-2);}
+.stat-box .srank.podium{background:var(--champ-tint);color:var(--champ-ink);}
 .award-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;}
 .award-box{background:var(--surface-2);border-radius:4px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
 .award-box .an{font-size:13px;color:var(--ink-2);}
@@ -263,6 +265,8 @@ tr.row-pending td:first-child{font-style:normal;}
 .rank-badges{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;}
 .rank-badge{background:var(--playoff-tint);color:var(--ink-2);border-radius:999px;padding:5px 12px;font-size:13px;}
 .rank-badge b{color:var(--ink);font-family:var(--font-display);font-size:15px;margin-right:2px;}
+.rank-badge.rb-podium{background:var(--champ-tint);}
+.rank-badge.rb-podium b{color:var(--champ-ink);}
 .timeline{display:flex;flex-direction:column;}
 .tl-row{display:grid;grid-template-columns:84px 1fr;gap:12px;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--line);}
 .tl-row:last-child{border-bottom:none;}
@@ -2917,17 +2921,20 @@ function careerEvents(name) {
   DB.statLeaders.forEach(r => cats.forEach(([k, unit, label]) => { if (isMe(r[k], r.Season)) add(Number(r.Season), `${label} leader · ${r[unit]} ${unit}`); }));
   return Object.entries(ev).map(([yr, items]) => ({ yr: Number(yr), items })).sort((a, b) => a.yr - b.yr);
 }
-// All-time ranks (top 10 only) among players in the workbook; ties share a rank
+// All-time top-20 ranks among players in the workbook; ties share a rank.
+// Turnovers are left out on purpose: leading them isn't an honor.
+const ALL_TIME_CHECKS = [['PTS','Points','c'],['REB','Rebounds','c'],['AST','Assists','c'],['STL','Steals','c'],['BLK','Blocks','c'],
+  ['MIN','Minutes','c'],['GP','Games','c'],['DD2','Double-doubles','c'],['TD3','Triple-doubles','c'],['FGM','Field goals','c'],['3PM','3-pointers','c'],['FTM','Free throws','c'],
+  ['Champions','Titles','e'],['MVP','MVPs','e'],['FMVP','Finals MVPs','e'],['DPOY','DPOY awards','e'],['All Stars','All-Star selections','e'],['1st Team','All-NBA 1st Teams','e']];
 function allTimeRanks(p) {
   const careers = DB.allPlayers, everyone = [...DB.allPlayers, ...DB.currentPlayers];
-  const checks = [['PTS','Points',careers],['REB','Rebounds',careers],['AST','Assists',careers],['STL','Steals',careers],['BLK','Blocks',careers],
-                  ['Champions','Titles',everyone],['MVP','MVPs',everyone],['FMVP','Finals MVPs',everyone],['All Stars','All-Star selections',everyone],['DPOY','DPOY awards',everyone]];
-  return checks.map(([key, label, pool]) => {
+  return ALL_TIME_CHECKS.map(([key, label, w]) => {
+    const pool = w === 'c' ? careers : everyone;
     if (!pool.includes(p)) return null;
     const v = getNum(p[key]);
     if (v === -Infinity || v <= 0) return null;
-    return { label, rank: 1 + pool.filter(x => getNum(x[key]) > v).length };
-  }).filter(r => r && r.rank <= 10).sort((a, b) => a.rank - b.rank).slice(0, 6);
+    return { key, label, rank: 1 + pool.filter(x => getNum(x[key]) > v).length };
+  }).filter(r => r && r.rank <= 20).sort((a, b) => a.rank - b.rank);
 }
 
 // =====================================================================
@@ -3005,7 +3012,7 @@ function renderPlayerPage() {
   </section>`);
 
   const ranks = allTimeRanks(p);
-  if (ranks.length) parts.push(`<div class="rank-badges">${ranks.map(r => `<span class="rank-badge"><b>#${r.rank}</b> all-time ${r.label}</span>`).join('')}</div>`);
+  if (ranks.length) parts.push(`<div class="rank-badges">${ranks.map(r => `<span class="rank-badge${r.rank <= 3 ? ' rb-podium' : ''}"><b>#${r.rank}</b> all-time ${r.label}</span>`).join('')}</div>`);
 
   // Trophy shelf
   const shelf = [
@@ -3073,7 +3080,9 @@ function renderPlayerPage() {
       <div class="modal-section-title" style="border:0;margin:0 0 6px;padding:0;font-size:13px;color:var(--ink-3)">Per game</div>
       <div class="stat-grid">${[['PPG',avg('PTS')],['RPG',avg('REB')],['APG',avg('AST')],['SPG',avg('STL')],['BPG',avg('BLK')],['MPG',avg('MIN')],['FG%',pctFmt(p['FG%'])],['3P%',pctFmt(p['3P%'])],['FT%',pctFmt(p['FT%'])],['TOV',avg('TO')]].map(([l,v])=>`<div class="stat-box avg-box"><div class="sv">${v}</div><div class="sl">${l}</div></div>`).join('')}</div>
       <div class="modal-section-title" style="border:0;margin:16px 0 6px;padding:0;font-size:13px;color:var(--ink-3)">Totals</div>
-      <div class="stat-grid">${[['Points',numFmt(p.PTS)],['Rebounds',numFmt(p.REB)],['Assists',numFmt(p.AST)],['Steals',numFmt(p.STL)],['Blocks',numFmt(p.BLK)],['Minutes',numFmt(p.MIN)],['Games',numFmt(p.GP)],['Double-doubles',numFmt(p.DD2)],['Triple-doubles',numFmt(p.TD3)],['FGM / FGA',`${numFmt(p.FGM)} / ${numFmt(p.FGA)}`],['3PM / 3PA',`${numFmt(p['3PM'])} / ${numFmt(p['3PA'])}`],['FTM / FTA',`${numFmt(p.FTM)} / ${numFmt(p.FTA)}`]].map(([l,v])=>`<div class="stat-box${String(v).includes('/') ? ' wide' : ''}"><div class="sv">${v}</div><div class="sl">${l}</div></div>`).join('')}</div></div>`);
+      <div class="stat-grid">${[['Points',numFmt(p.PTS),'PTS'],['Rebounds',numFmt(p.REB),'REB'],['Assists',numFmt(p.AST),'AST'],['Steals',numFmt(p.STL),'STL'],['Blocks',numFmt(p.BLK),'BLK'],['Minutes',numFmt(p.MIN),'MIN'],['Games',numFmt(p.GP),'GP'],['Double-doubles',numFmt(p.DD2),'DD2'],['Triple-doubles',numFmt(p.TD3),'TD3'],['FGM / FGA',`${numFmt(p.FGM)} / ${numFmt(p.FGA)}`,'FGM'],['3PM / 3PA',`${numFmt(p['3PM'])} / ${numFmt(p['3PA'])}`,'3PM'],['FTM / FTA',`${numFmt(p.FTM)} / ${numFmt(p.FTA)}`,'FTM']].map(([l,v,k])=>{
+        const r = ranks.find(x => x.key === k);
+        return `<div class="stat-box${String(v).includes('/') ? ' wide' : ''}"><div class="sv">${v}</div><div class="sl">${l}</div>${r ? `<div class="srank${r.rank <= 3 ? ' podium' : ''}">#${r.rank} all-time</div>` : ''}</div>`; }).join('')}</div></div>`);
   } else {
     parts.push(`<div class="chart-card"><p class="muted">Career stats appear once the player retires and is added to your All Players sheet. Active players are tracked by awards in the Current Player sheet.</p></div>`);
   }
