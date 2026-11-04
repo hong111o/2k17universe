@@ -2636,12 +2636,21 @@ function renderRecords() {
   ]);
 
   // ----- Award doubles
-  const doubles = (a, b) => DB.history.filter(h => samePlayer(h[a], h[b], h.Season)).sort((x,y) => y.Season - x.Season)
-    .map(h => ({ main: nameLink(h[a], {season: h.Season}), val: '', sub: seasonLink(h.Season) }));
+  // One row per player: "3 times: 2077–78, 2076–77, 2059–60"
+  const doubles = (a, b) => {
+    const hits = DB.history.filter(h => samePlayer(h[a], h[b], h.Season)).sort((x,y) => y.Season - x.Season);
+    const by = new Map();
+    hits.forEach(h => { const k = playerKey(h[a], h.Season); if (!by.has(k)) by.set(k, []); by.get(k).push(h); });
+    const groups = [...by.values()].map(seasons => ({ seasons })).sort((x,y) => y.seasons.length - x.seasons.length || y.seasons[0].Season - x.seasons[0].Season);
+    const rows = withRanks(groups, g => g.seasons.length).map(({ rank, seasons: g }) => ({ rank, main: nameLink(g[0][a], {season: g[0].Season}), val: '',
+      sub: (g.length > 1 ? `${g.length} times: ` : '') + g.map(h => seasonLink(h.Season)).join(', ') }));
+    rows.total = hits.length; return rows;
+  };
   const mvpFmvp = doubles('MVP', 'FMVP'), mvpDpoy = doubles('MVP', 'DPOY');
+  const dblTitle = (label, r) => `${label} · ${r.total}` + (r.total !== r.length ? ` by ${r.length} players` : '');
   section('Award Doubles', histSpan ? `From NBA History, ${histSpan}` : '', [
-    recordCard(`MVP + Finals MVP (+ title) · ${mvpFmvp.length}`, mvpFmvp),
-    recordCard(`MVP + DPOY · ${mvpDpoy.length}`, mvpDpoy, '', 'No player has won both in the same season yet.'),
+    recordCard(dblTitle('MVP + Finals MVP (+ title)', mvpFmvp), mvpFmvp),
+    recordCard(dblTitle('MVP + DPOY', mvpDpoy), mvpDpoy, '', 'No player has won both in the same season yet.'),
   ]);
 
   // ----- Leader seasons
