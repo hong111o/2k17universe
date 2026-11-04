@@ -10,5 +10,6 @@ They share the saved workbook with the main app (same site), so there's nothing 
 | `v23.html` | v23: points-system legacy formula, title roles in the timeline | legacy score card on player pages |
 | `v24.html` | v24: Legacy Score card, title roles off the timeline | "Defensive POY" labels shortened to DPOY |
 | `v25.html` | v25: DPOY labels | award doubles grouped by player |
+| `v26.html` | v26: award doubles grouped by player | ranked leaders list, fewer notes |
 
 Online: https://hong111o.github.io/2k17universe/versions/v20.html and .../versions/v22.html

@@ -193,6 +193,14 @@ tr.row-pending td:first-child{font-style:normal;}
 .chart-card{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:18px 20px;margin-bottom:16px;box-shadow:var(--shadow);min-width:0;}
 .chart-title{font-family:var(--font-display);font-weight:700;font-size:18px;letter-spacing:.3px;text-transform:uppercase;color:var(--ink);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
 .bar-chart{display:flex;flex-direction:column;gap:6px;}
+.ldr-list{list-style:none;margin:4px 0 0;padding:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(10,auto);grid-auto-flow:column;column-gap:36px;}
+.ldr-row{display:grid;grid-template-columns:30px 1fr auto;align-items:center;column-gap:10px;padding:9px 0;border-bottom:1px solid var(--line);}
+.ldr-rank{font-family:var(--font-display);font-weight:800;font-size:16px;color:var(--ink-3);font-variant-numeric:tabular-nums;}
+.ldr-top .ldr-rank{color:var(--gold);}
+.ldr-name{font-weight:600;font-size:15px;min-width:0;display:flex;flex-direction:column;}
+.ldr-name small{font-weight:400;font-size:12px;color:var(--ink-3);margin-top:2px;display:flex;align-items:center;gap:4px;flex-wrap:wrap;}
+.ldr-val{font-family:var(--font-display);font-weight:800;font-size:18px;color:var(--ink);font-variant-numeric:tabular-nums;text-align:right;}
+@media (max-width:768px){.ldr-list{grid-template-columns:1fr;grid-template-rows:none;grid-auto-flow:row;}}
 .bar-row{display:grid;grid-template-columns:minmax(110px,180px) 1fr;align-items:center;gap:10px;}
 .bar-label{font-size:13px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .bar-track{height:16px;background:var(--surface-2);border-radius:0 4px 4px 0;position:relative;}
@@ -459,7 +467,6 @@ tr.row-playoff .st-rank{color:var(--ink);}
 .adv{background:var(--surface-2);border-radius:6px;padding:10px 12px;display:flex;flex-direction:column;}
 .adv b{font-family:var(--font-display);font-size:26px;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums;}
 .adv span{font-size:13px;font-weight:700;color:var(--ink-2);}
-.adv small{font-size:11px;color:var(--ink-3);margin-top:3px;line-height:1.35;}
 .journey{display:flex;flex-wrap:wrap;align-items:center;gap:8px;}
 .journey-stop{background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:8px 12px;display:flex;flex-direction:column;gap:3px;}
 .journey-n{font-size:11px;font-weight:700;color:var(--ink-3);}
@@ -482,7 +489,7 @@ tr.row-playoff .st-rank{color:var(--ink);}
 .dp-name{font-weight:700;color:var(--link);display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
 .dp-sub{font-size:12px;color:var(--ink-3);}
 .dp-legacy{text-align:center;} .dp-legacy b{display:block;font-family:var(--font-display);font-size:20px;font-weight:800;line-height:1;} .dp-legacy span{font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.5px;}
-.legacy-formula{font-size:13px;color:var(--ink-2);line-height:1.6;}
+.legacy-edit{margin:-4px 0 10px;text-align:right;}
 .tag-plain{background:var(--surface-2);color:var(--ink-2);border:1px solid var(--line);}
 .more-legends summary{cursor:pointer;color:var(--link);font-weight:600;font-size:13px;margin:8px 0;}
 .mast-icon{position:relative;}
@@ -1866,15 +1873,15 @@ function buildRecordTabs(prefix, categories, labels, colors) {
       btn.classList.add('active');
       div.classList.add('active');
     };
-    const color = colors[categories.indexOf(cat) % colors.length];
-    const maxVal = Math.max(...cat.entries.map(e => num(e.value)));
-    div.innerHTML = `<div class="bar-chart">${
-      cat.entries.slice(0,20).map(e => `<div class="bar-row">
-        <div class="bar-label">${nameLink(e.player)}</div>
-        <div class="bar-track"><div class="bar-fill ${color}" style="width:${maxVal>0?(num(e.value)/maxVal*100).toFixed(1):0}%">
-          <span class="bar-val">${e.value}</span></div></div>
-      </div>`).join('')
-    }</div>`;
+    const rows = withRanks(cat.entries.slice(0, 20), e => num(e.value));
+    div.innerHTML = `<ol class="ldr-list">${rows.map(e => {
+      const p = resolvePlayer(e.player), span = p && careerSpan(p.Season);
+      const pg = p && PER_GAME_COL[cat.name] ? perGame(p, cat.name) : null;
+      const sub = p ? posBadge(p.Position) + ' ' + [span ? `${span[0]}–${span[1] === Infinity ? 'now' : span[1]}` : '',
+        pg != null && isFinite(pg) ? `${pg.toFixed(1)} per game` : ''].filter(Boolean).join(' · ') : '';
+      return `<li class="ldr-row${e.rank <= 3 ? ' ldr-top' : ''}"><span class="ldr-rank">${e.rank}</span>
+        <span class="ldr-name">${nameLink(e.player)}${sub ? `<small>${sub}</small>` : ''}</span>
+        <span class="ldr-val">${e.value}</span></li>`; }).join('')}</ol>`;
     tabs.appendChild(btn);
     content.appendChild(div);
   });
@@ -2079,7 +2086,7 @@ function openTeamModal(teamName) {
         if (!champYearsList.length && earlier <= 0) return '';
         return `<div class="modal-section"><div class="modal-section-title">${icon('trophy','ic-champ')} Championship Years</div>
           <div>${champYearsList.map(y=>`<span class="champ-year">${seasonLink(y, String(y))}</span>`).join('')}</div>
-          ${earlier > 0 ? `<div class="title-note">+${earlier} earlier title${earlier > 1 ? 's' : ''} from before ${seasonLabel(firstYr)}, which your NBA History sheet doesn't cover.</div>` : ''}</div>`;
+          ${earlier > 0 ? `<div class="title-note">+${earlier} earlier title${earlier > 1 ? 's' : ''} before ${seasonLabel(firstYr)}</div>` : ''}</div>`;
       })()}
       ${legendsHtml(t.Team)}
       ${(() => {
@@ -2548,7 +2555,7 @@ function recordCard(title, rows, note, empty) {
       <span class="rb-val">${r.val}</span>
       ${r.sub ? `<span class="rb-sub">${r.sub}</span>` : ''}
     </div>`).join('') : `<p class="muted">${empty || 'Nothing recorded yet.'}</p>`;
-  return `<div class="chart-card rb-card"><div class="chart-title">${title}</div>${body}${note ? `<div class="rb-note">${note}</div>` : ''}</div>`;
+  return `<div class="chart-card rb-card"><div class="chart-title">${title}</div>${body}</div>`;
 }
 // Runs of the same value over consecutive seasons: [{key, start, end, len}]
 function seasonRuns(entries) {
@@ -2656,7 +2663,7 @@ function renderRecords() {
   // ----- Leader seasons
   const cats = [['Points per Game','PtsLeader','PtsTeam','PPG'],['Rebounds per Game','RebLeader','RebTeam','RPG'],['Assists per Game','AstLeader','AstTeam','APG'],
                 ['Steals per Game','StlLeader','StlTeam','SPG'],['Blocks per Game','BlkLeader','BlkTeam','BPG'],['Minutes per Game','MinLeader','MinTeam','MPG']];
-  section('Leader Seasons', 'Best seasons by each year’s stat leader, from Season Stat Leader. Grows as you enter more seasons.', cats.map(([title, k, tk, unit]) => {
+  section('Leader Seasons', '', cats.map(([title, k, tk, unit]) => {
     const rows = DB.statLeaders.filter(r => r[k] && !isNaN(parseFloat(r[unit]))).map(r => ({ ...r, v: parseFloat(r[unit]) }));
     const top = withRanks(rows.sort((a,b) => b.v - a.v).slice(0, 10), r => r.v);
     return recordCard(title, top.map(r => ({ rank: r.rank, main: nameLink(r[k], {season: r.Season}), val: r.v.toFixed(1),
@@ -3038,8 +3045,7 @@ function renderPlayerPage() {
       <div class="seg"><button class="${playerState.pool === 'all' ? 'active' : ''}" onclick="setPctPool('all')">All players</button><button class="${playerState.pool === 'pos' ? 'active' : ''}" onclick="setPctPool('pos')">${p.Position}s</button></div></div>
       <div class="pct-list">${rows.map(r => `<div class="pct-row"><span class="pct-label">${r.m.label}</span>
         <span class="pct-track"><i style="width:${Math.max(r.pct, 2)}%" class="${r.pct >= 90 ? 'elite' : r.pct >= 60 ? 'good' : ''}"></i></span>
-        <span class="pct-num">${r.pct}</span><span class="pct-val">${r.m.fmt(r.v)}</span></div>`).join('')}</div>
-      <div class="rb-note">Percentile = share of ${playerState.pool === 'pos' ? 'retired ' + (POS_NAMES[p.Position] || p.Position).toLowerCase() + 's' : 'retired players'} this player is ahead of (${pool.length} players with career stats)</div></div>`;
+        <span class="pct-num">${r.pct}</span><span class="pct-val">${r.m.fmt(r.v)}</span></div>`).join('')}</div></div>`;
   }
   parts.push(`<div class="player-grid">${pctHtml ? `<div class="pg-wide">${pctHtml}</div>` : ''}<div class="${pctHtml ? 'pg-side' : 'pg-full'}">${shelfHtml}${legacyHtml}</div></div>`);
 
@@ -3047,8 +3053,7 @@ function renderPlayerPage() {
   if (hasStats) {
     const adv = advStats(p);
     parts.push(`<div class="chart-card"><div class="chart-title">${icon('line')} Advanced Stats</div>
-      <div class="adv-grid">${ADV_DEFS.map(d => `<div class="adv"><b>${adv[d.key] === null ? '—' : d.fmt(adv[d.key])}</b><span>${d.label}</span><small>${d.how}</small></div>`).join('')}</div>
-      <div class="rb-note">Calculated from the career totals and per-game columns in your workbook. "—" means a stat wasn't recorded for this player.</div></div>`);
+      <div class="adv-grid">${ADV_DEFS.map(d => `<div class="adv" title="${d.how}"><b>${adv[d.key] === null ? '—' : d.fmt(adv[d.key])}</b><span>${d.label}</span></div>`).join('')}</div></div>`);
   }
 
   // Team journey
@@ -3059,8 +3064,7 @@ function renderPlayerPage() {
       return `${i ? '<span class="journey-arrow" aria-hidden="true">→</span>' : ''}<div class="journey-stop">
         <span class="journey-n">${i + 1}</span>${teamLink(t, t)}
         <span class="journey-tags">${titles ? `<em class="tag-gold">${icon('trophy')} ${titles} title${titles > 1 ? 's' : ''}</em>` : ''}${ret.map(r => `<em class="tag-ret">#${r.num} retired</em>`).join('')}</span></div>`;
-    }).join('')}</div>
-    <div class="rb-note">In the order recorded in the player's team columns. Titles per team come from NBA History (champion stars and Finals MVPs), or all titles when the player had one team.</div></div>`);
+    }).join('')}</div></div>`);
 
   // Career numbers
   if (hasStats) {
@@ -3078,8 +3082,7 @@ function renderPlayerPage() {
   const timeline = careerEvents(p.Player);
   if (timeline.length) parts.push(`<div class="chart-card"><div class="chart-title">${icon('calendar')} Career Timeline</div>
     <div class="timeline">${timeline.map(t => `<div class="tl-row"><div class="tl-season">${seasonLink(t.yr)}</div>
-      <div class="tl-items">${t.items.map(e => `<span class="tl-chip ${e.cls}"${e.tip ? ` title="${e.tip}"` : ''}>${e.cls === 'ev-champ' && e.label === 'Champion' ? icon('trophy','ic-champ') + ' ' : ''}${e.label}</span>`).join('')}</div></div>`).join('')}</div>
-    <div class="rb-note">From NBA History, All NBA Team and Season Stat Leader. Titles appear when the player is listed as a champion star or Finals MVP.</div></div>`);
+      <div class="tl-items">${t.items.map(e => `<span class="tl-chip ${e.cls}"${e.tip ? ` title="${e.tip}"` : ''}>${e.cls === 'ev-champ' && e.label === 'Champion' ? icon('trophy','ic-champ') + ' ' : ''}${e.label}</span>`).join('')}</div></div>`).join('')}</div></div>`);
 
   // Similar players
   const sim = similarPlayers(p, 5);
@@ -3087,8 +3090,7 @@ function renderPlayerPage() {
     <div class="sim-grid">${sim.map(sp => `<div class="sim" role="button" tabindex="0" onclick="openPlayerModal('${jsArg(sp.p.Player)}')" onkeydown="if(event.key==='Enter')this.click()">
       <div class="sim-match">${sp.match}%</div><div class="sim-name">${sp.p.Player} ${posBadge(sp.p.Position)}</div>
       <div class="sim-line">${one(perGame(sp.p, 'PTS'))} PPG · ${one(perGame(sp.p, 'REB'))} RPG · ${one(perGame(sp.p, 'AST'))} APG</div>
-      <button class="card-link" onclick="event.stopPropagation();compareWith('${jsArg(p.Player)}','${jsArg(sp.p.Player)}')">Compare</button></div>`).join('')}</div>
-    <div class="rb-note">Closest career profiles by points, rebounds, assists, steals, blocks, minutes and shooting percentages. Match % falls as the profiles differ.</div></div>`);
+      <button class="card-link" onclick="event.stopPropagation();compareWith('${jsArg(p.Player)}','${jsArg(sp.p.Player)}')">Compare</button></div>`).join('')}</div></div>`);
 
   document.getElementById('playerPage').innerHTML = parts.join('');
 }
@@ -3213,7 +3215,7 @@ function renderCompare() {
       <i class="cmp-swatch" style="background:${colors[i]}"></i><span class="cs-name">${nameLink(p.Player)}</span>
       <b>${wins[i]}</b><span class="cs-label">categories led</span></div>`).join('')}</div>`;
   const head = `<thead><tr><th>Stat</th>${players.map((p, i) => `<th><i class="cmp-swatch" style="background:${colors[i]}"></i>${nameLink(p.Player)}<div class="cmp-sub">${p.Position||''} · ${p.Season||''}${isActive(p) ? ' · Active' : ''}</div></th>`).join('')}</tr></thead>`;
-  out.innerHTML = `${board}<div class="cmp-note muted">Bars show each value's percentile among all players in your workbook. ▲ marks the leader of each row.${players.some(isActive) ? ' Active players have awards only, so their stat rows show —.' : ''}</div>
+  out.innerHTML = `${board}
     <div style="overflow-x:auto;margin-top:8px"><table class="cmp-table">${head}<tbody>${rows}</tbody></table></div>`;
 }
 
@@ -3560,12 +3562,11 @@ function renderDraft() {
       <div class="draft-class">${classRows.map(r => `<div class="draft-pick" role="button" tabindex="0" onclick="openPlayerModal('${jsArg(r.p.Player)}')" onkeydown="if(event.key==='Enter')this.click()">
         <div class="dp-slot">${r.d.pick ? '#' + r.d.pick : r.d.kind === 'territorial' ? 'T' : r.d.kind === 'undrafted' ? 'UD' : 'R' + r.d.round}</div>
         <div><div class="dp-name">${r.p.Player} ${posBadge(r.p.Position)}</div><div class="dp-sub">${pickLabel(r.d)} · ${draftCareer(r.p)}</div></div>
-        <div class="dp-legacy"><b>${Math.round(legacy(r.p).total).toLocaleString()}</b><span>legacy</span></div></div>`).join('')}</div>
-      <div class="rb-note">Only players in your workbook appear: ${classRows.length} from the ${draftYear} draft.</div></div>
+        <div class="dp-legacy"><b>${Math.round(legacy(r.p).total).toLocaleString()}</b><span>legacy</span></div></div>`).join('')}</div></div>
     <div class="rb-grid">
       <div class="chart-card rb-card rb-years"><div class="chart-title">Every #1 Pick</div>${firsts.map(r => `<div class="rb-row"><span class="rb-rank">${r.d.year}</span><span class="rb-main">${nameLink(r.p.Player)}</span><span class="rb-val">${Math.round(legacy(r.p).total).toLocaleString()}</span><span class="rb-sub">${draftCareer(r.p)}</span></div>`).join('')}</div>
-      <div class="chart-card rb-card"><div class="chart-title">Biggest Steals</div>${withRanks(steals, r => legacy(r.p).total).map(r => `<div class="rb-row"><span class="rb-rank">${r.rank}</span><span class="rb-main">${nameLink(r.p.Player)}</span><span class="rb-val">${Math.round(legacy(r.p).total).toLocaleString()}</span><span class="rb-sub">${draftLabel(r.d)} · ${draftCareer(r.p)}</span></div>`).join('')}<div class="rb-note">Pick 10 or later, second round or undrafted, ranked by legacy score</div></div>
-      <div class="chart-card rb-card rb-years"><div class="chart-title">Best Player of Each Class</div>${bestByClass.slice(0, 15).map(r => `<div class="rb-row"><span class="rb-rank">${r.d.year}</span><span class="rb-main">${nameLink(r.p.Player)}</span><span class="rb-val">${Math.round(legacy(r.p).total).toLocaleString()}</span><span class="rb-sub">${pickLabel(r.d)} · ${draftCareer(r.p)}</span></div>`).join('')}<div class="rb-note">Latest 15 classes · full list below</div></div>
+      <div class="chart-card rb-card"><div class="chart-title">Biggest Steals</div>${withRanks(steals, r => legacy(r.p).total).map(r => `<div class="rb-row"><span class="rb-rank">${r.rank}</span><span class="rb-main">${nameLink(r.p.Player)}</span><span class="rb-val">${Math.round(legacy(r.p).total).toLocaleString()}</span><span class="rb-sub">${draftLabel(r.d)} · ${draftCareer(r.p)}</span></div>`).join('')}</div>
+      <div class="chart-card rb-card rb-years"><div class="chart-title">Best Player of Each Class</div>${bestByClass.slice(0, 15).map(r => `<div class="rb-row"><span class="rb-rank">${r.d.year}</span><span class="rb-main">${nameLink(r.p.Player)}</span><span class="rb-val">${Math.round(legacy(r.p).total).toLocaleString()}</span><span class="rb-sub">${pickLabel(r.d)} · ${draftCareer(r.p)}</span></div>`).join('')}</div>
     </div>
     <div class="chart-card"><div class="chart-title">${icon('list')} Every Draft Pick</div>${table(rows)}</div>`;
 }
@@ -3577,24 +3578,17 @@ function renderLegacy() {
   const q = normName(document.getElementById('legacySearch').value);
   const f = document.getElementById('legacyFilter').value, pos = document.getElementById('legacyPos').value;
   const rows = legacyRanking().filter(r => (!q || normName(r.p.Player).includes(q)) && (!pos || r.p.Position === pos) && (!f || (f === 'active') === isActive(r.p)));
-  const w = legacyWeights();
   document.getElementById('legacySub').textContent = `All-time ranking from honors and career production · ${everyPlayer().length} players`;
   const fmt = v => Math.round(v).toLocaleString();
   document.getElementById('legacyContent').innerHTML = `
-    <div class="chart-card legacy-formula"><b>How the score works.</b> Each honor earns points, and repeats of the same honor earn a little less each time:
-      MVP ${w.mvp} and Finals MVP ${w.fmvp} (back-to-back wins keep full value), DPOY ${w.dpoy}, All-Star ${w.allStar},
-      All-NBA 1st/2nd/3rd ${w.allNba1}/${w.allNba2}/${w.allNba3}, All-Defensive ${w.allDef1}/${w.allDef2}, scoring title ${w.ptsTitle}.
-      Each title earns points for the player's role on that team: ${w.roleSingle} as the only listed star down to ${w.roleRotation} as a rotation player.
-      Career production adds ${w.pts1000} per 1,000 points and ${w.other1000} per 1,000 rebounds, assists or steals + blocks.
-      Active players have no career stats in the workbook yet, so they score on honors only. <button class="card-link" onclick="showSection('settings')">See or change every value</button></div>
+    <div class="legacy-edit"><button class="card-link" onclick="showSection('settings')">Change the formula in Settings</button></div>
     <div class="table-wrap"><table><thead><tr><th class="stick-1 rank-col">#</th><th class="stick-2">Player</th><th>Pos</th><th class="num">Score</th>
       ${LEGACY_PARTS.map(([, l]) => `<th class="num">${l}</th>`).join('')}<th class="num">Your Top 20</th></tr></thead><tbody>
       ${rows.map(r => { const L = legacy(r.p), t20 = DB.top20.find(x => x.Player === r.p.Player);
         return `<tr><td class="rank-cell stick-1 rank-col ${rankCls(r.rank)}">${r.rank}</td><td class="stick-2">${nameLink(r.p.Player)}${isActive(r.p) ? ' <span class="muted">active</span>' : ''}</td><td>${posBadge(r.p.Position)}</td>
           <td class="num"><b>${fmt(L.total)}</b></td>${LEGACY_PARTS.map(([k]) => `<td class="num">${L.parts[k] ? fmt(L.parts[k]) : '<span class="muted">0</span>'}</td>`).join('')}
           <td class="num">${t20 ? '#' + t20.Rank + (t20.Rank === r.rank ? '' : ` <span class="muted">(${t20.Rank > r.rank ? '▲' : '▼'}${Math.abs(t20.Rank - r.rank)})</span>`) : '<span class="muted">—</span>'}</td></tr>`; }).join('')}
-    </tbody></table></div>
-    <div class="rb-note">"Your Top 20" is the rank from your Top 20 sheet; ▲/▼ shows how many places the formula ranks the player above or below it. Title roles come from the champion stars in NBA History; titles from before NBA History starts are estimated from the player's career level.</div>`;
+    </tbody></table></div>`;
 }
 
 // =====================================================================
@@ -3618,8 +3612,7 @@ function legendsHtml(team) {
       <span class="rb-val">${Math.round(legacy(l.p).total).toLocaleString()}</span><span class="rb-sub">Career, all teams: ${draftCareer(l.p)}</span></div>`;
   return `<div class="modal-section"><div class="modal-section-title">${icon('star')} Franchise Legends</div>
     <div class="leader-list">${list.slice(0, 8).map(row).join('')}</div>
-    ${list.length > 8 ? `<details class="more-legends"><summary>All ${list.length} players who played here</summary>${list.slice(8).map((l, i) => row(l, i + 8)).join('')}</details>` : ''}
-    <div class="rb-note">Ordered by retired numbers, titles won here and one-team careers, then legacy score (the number on the right). Honors in grey are career totals across all teams, since the workbook doesn't record which team each award came with.</div></div>`;
+    ${list.length > 8 ? `<details class="more-legends"><summary>All ${list.length} players who played here</summary>${list.slice(8).map((l, i) => row(l, i + 8)).join('')}</details>` : ''}</div>`;
 }
 
 // =====================================================================
@@ -3728,8 +3721,7 @@ function renderSettings() {
       ${groups.map(([l, t]) => by(l).length ? `<details class="dc-group" ${l === 'error' ? 'open' : ''}><summary>${t} (${by(l).length})</summary>
         <div class="table-wrap dc-table"><table><thead><tr><th>Sheet</th><th>Cell</th><th>Problem</th></tr></thead><tbody>
         ${by(l).map(r => `<tr><td>${r.sheet}</td><td class="nowrap">${r.cell || '—'}</td><td class="dc-msg">${r.msg}</td></tr>`).join('')}</tbody></table></div></details>` : '').join('')}
-      ${res.length ? '' : '<p class="muted">No problems found.</p>'}
-      <div class="rb-note">Runs every time you load the workbook. Fix the cells in Excel, then load the file again to clear them.</div></div>
+      ${res.length ? '' : '<p class="muted">No problems found.</p>'}</div>
     <div class="chart-card"><div class="card-head"><div class="chart-title">${icon('trophy')} Legacy Formula</div><button class="card-link" onclick="resetLegacyWeights()">Reset to defaults</button></div>
       <p class="muted" style="margin-bottom:12px">The points system behind the Legacy Ranking. A repeat of the same honor is worth its base points × a multiplier that starts at 1 and drops each time, down to the lowest multiplier. Changes apply straight away and are saved in this browser.</p>
       ${LEGACY_SCHEMA.map(g => `<div class="weight-group"><div class="weight-title">${g.group}</div><div class="weights">${g.items.map(([k, label]) => `<label class="weight"><span>${label}</span>
