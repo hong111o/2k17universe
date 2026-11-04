@@ -13,5 +13,6 @@ They share the saved workbook with the main app (same site), so there's nothing 
 | `v26.html` | v26: award doubles grouped by player | ranked leaders list, fewer notes |
 | `v27.html` | v27: ranked leaders list, fewer notes | top-20 all-time labels on player pages |
 | `v28.html` | v28: top-20 all-time labels | red team cells read as title teams |
+| `v29.html` | v29: red team cells read as title teams | team page, dynasties, what's new, legacy slider, home extras |
 
 Online: https://hong111o.github.io/2k17universe/versions/v20.html and .../versions/v22.html
