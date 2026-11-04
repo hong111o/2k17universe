@@ -1,0 +1,40 @@
+const { chromium } = require(process.argv[2] + '/node_modules/playwright');
+(async () => {
+  const [,, pw, html, xlsm, out] = process.argv;
+  const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1400, height: 1100 } });
+  const errs = []; p.on('pageerror', e => errs.push(e.message));
+  await p.route(/cdnjs\.cloudflare\.com\/ajax\/libs\/xlsx/, r => r.fulfill({ path: pw + '/node_modules/xlsx/dist/xlsx.full.min.js', contentType: 'application/javascript' }));
+  await p.route(/fonts\.googleapis/, r => r.abort());
+  await p.goto('file://' + html); await p.setInputFiles('#fileInput', xlsm);
+  await p.waitForSelector('#app', { state: 'visible', timeout: 60000 });
+  const r = {};
+  const txt = async sel => (await p.locator(sel).first().innerText().catch(() => '')).replace(/\s+/g, ' ').trim();
+  const open = async n => { await p.evaluate(n => openPlayerModal(n), n); await p.waitForTimeout(250); };
+  await open('Jerry West');
+  r.westPerGame = await txt('#playerPage .stat-grid');
+  r.westTableSPG = await p.evaluate(() => { const w = DB.allPlayers.find(x => x.Player === 'Jerry West'); return [fmtStatVal(w,'STL','avg'), fmtStatVal(w,'BLK','avg'), fmtStatVal(w,'PTS','avg')]; });
+  await open('Patrick Dean');
+  r.deanRanks = await txt('#playerPage .rank-badges');
+  r.deanTimeline = await txt('#playerPage .timeline');
+  
+  await p.screenshot({ path: out + '/p-dean-full.png', fullPage: false });
+  await open('Michael Jordan');
+  r.mjRanks = await txt('#playerPage .rank-badges');
+  r.mjTimeline = (await txt('#playerPage .timeline')).slice(0, 600);
+  await open('LeBron James');
+  r.lbRanks = await txt('#playerPage .rank-badges');
+  await open('H.McDaniels');
+  r.mcdTimeline = await txt('#playerPage .timeline');
+  await p.evaluate(() => { closeModal(); openTeamModal('Washington Wizards'); }); await p.waitForTimeout(250);
+  r.wasTitles = await txt('#modalContent .modal-section');
+  await p.evaluate(() => openTeamModal('Boston Celtics')); await p.waitForTimeout(250);
+  r.bosNote = await txt('#modalContent .title-note');
+  await p.evaluate(() => openTeamModal('Detroit Pistons')); await p.waitForTimeout(250);
+  r.detNote = await txt('#modalContent .title-note');
+  // compare uses per-game columns too
+  r.cmp = await p.evaluate(() => { closeModal(); showSection('compare'); cmpSelect(1,'Jerry West'); cmpSelect(2,'Michael Jordan'); renderCompare();
+    return [...document.querySelectorAll('#cmpResult tr')].find(tr => tr.children[0]?.textContent === 'Steals per game')?.innerText.replace(/\s+/g,' '); });
+  r.errors = errs;
+  console.log(JSON.stringify(r, null, 1));
+  await b.close();
+})();

@@ -1,0 +1,9 @@
+{
+  "name": "2k17-dashboard-tests",
+  "private": true,
+  "description": "Browser checks for the dashboard. Run: tests/run-all.sh /path/to/2K17.xlsm",
+  "dependencies": {
+    "playwright": "1.56.1",
+    "xlsx": "0.18.5"
+  }
+}
