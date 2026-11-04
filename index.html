@@ -2398,7 +2398,7 @@ function renderHome() {
     <div class="hero-awards">
       <div class="hero-award"><div class="ha-label">Finals MVP</div><div class="ha-name">${award(h.FMVP)}</div></div>
       <div class="hero-award"><div class="ha-label">MVP</div><div class="ha-name">${award(h.MVP)}</div></div>
-      <div class="hero-award"><div class="ha-label">Defensive POY</div><div class="ha-name">${award(h.DPOY)}</div></div>
+      <div class="hero-award"><div class="ha-label">DPOY</div><div class="ha-name">${award(h.DPOY)}</div></div>
       ${best ? `<div class="hero-award"><div class="ha-label">Best Record</div><div class="ha-name">${teamLink(best.team)} <span class="nowrap">${best.w}-${best.l}</span></div></div>` : ''}
     </div>
   </section>`);
@@ -2861,7 +2861,7 @@ function initDecades() {
     const infoHtml = [
       decadeInfoItem('Best Franchise', [d.info.franchise1, d.info.franchise2].filter(Boolean)),
       decadeInfoItem('Decade MVP', d.info.mvpList || []),
-      decadeInfoItem('Decade Defensive POY', d.info.dotyList || []),
+      decadeInfoItem('Decade DPOY', d.info.dotyList || []),
     ].join('');
     return `<div class="decade-card">
       <div class="decade-name">${d.decade}${d.era?' — '+d.era:''}</div>
@@ -2994,7 +2994,7 @@ function renderPlayerPage() {
   // Trophy shelf
   const shelf = [
     ['trophy', 'Championships', n('Champions'), 'gold'], ['crown', 'MVP', n('MVP'), 'gold'], ['medal', 'Finals MVP', n('FMVP'), 'gold'],
-    ['shield', 'Defensive POY', n('DPOY'), ''], ['star', 'All-Star', n('All Stars'), ''],
+    ['shield', 'DPOY', n('DPOY'), ''], ['star', 'All-Star', n('All Stars'), ''],
     ['list', 'All-NBA 1st', n('1st Team'), ''], ['list', 'All-NBA 2nd', n('2nd Team'), ''], ['list', 'All-NBA 3rd', n('3rd Team'), ''],
     ['shield', 'All-Defense 1st', n('1st D Team'), ''], ['shield', 'All-Defense 2nd', n('2nd D Team'), ''],
     ['star', 'Rookie of the Year', /^o$/i.test(String(p.ROTY || '').trim()) ? 1 : 0, ''],
@@ -3174,7 +3174,7 @@ function compareMetrics() {
     { label: 'All-NBA selections', get: award('All NBA Team'), fmt: v => v, awards: true },
     { label: 'All-NBA 1st Team', get: award('1st Team'), fmt: v => v, awards: true },
     { label: 'All-Star selections', get: award('All Stars'), fmt: v => v, awards: true },
-    { label: 'Defensive POY', get: award('DPOY'), fmt: v => v, awards: true },
+    { label: 'DPOY', get: award('DPOY'), fmt: v => v, awards: true },
     { label: 'All-Defensive selections', get: p => award('1st D Team')(p) + award('2nd D Team')(p), fmt: v => v, awards: true },
     { label: 'Legacy score', get: p => legacy(p).total, fmt: v => Math.round(v).toLocaleString(), awards: true },
   ];
