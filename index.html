@@ -541,6 +541,14 @@ tr.row-playoff .st-rank{color:var(--ink);}
 .team-hero-head .ph-name{margin-bottom:10px;}
 @media (max-width:768px){.tlogo-xl{width:64px;height:64px;padding:5px;border-radius:10px;}.team-hero-head{gap:14px;}}
 .rb-val-sm{font-size:14px;}
+.fold-head{cursor:pointer;user-select:none;}
+.fold .fold-head .chart-title::after,.fold > .chart-title.fold-head::after{content:'';display:inline-block;width:8px;height:8px;margin-left:10px;border-right:2px solid var(--ink-3);border-bottom:2px solid var(--ink-3);transform:translateY(-3px) rotate(45deg);transition:transform .15s;}
+.fold.folded .fold-head .chart-title::after,.fold.folded > .chart-title.fold-head::after{transform:translateY(0) rotate(-45deg);}
+.fold.folded > :not(.fold-head):not(.fold-keep){display:none !important;}
+.fold.folded > .fold-head{margin-bottom:0;}
+.fold.folded .fold-head .seg{display:none;}
+.fold.folded > .fold-keep{margin-top:10px;}
+.fold-head:focus-visible{outline:2px solid var(--focus);outline-offset:4px;border-radius:4px;}
 .ratio-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin-bottom:12px;}
 .ratio-bar input[type=range]{flex:1;min-width:140px;accent-color:var(--link);}
 .ratio-end{font-weight:700;font-size:13px;color:var(--ink-2);}
@@ -2352,8 +2360,10 @@ function renderTeamPage() {
   const seasonRow = si => `<div class="rb-row"><span class="rb-rank"></span><span class="rb-main">${seasonLink(si.yr)}</span><span class="rb-val">${si.w}-${si.l}</span>
     <span class="rb-sub">${si.isChamp ? 'Won the title' : si.isRU ? 'Lost in the Finals' : si.madePlayoffs ? `#${si.confRk} in the ${t.Conference === 'EAST' ? 'East' : 'West'}` : `Missed the playoffs (#${si.confRk})`}</span></div>`;
   if (seasonInfo.length) {
-    side.push(`<div class="chart-card rb-card"><div class="chart-title">Best Seasons</div>${[...seasonInfo].sort((a, b) => b.w - a.w || b.yr - a.yr).slice(0, 5).map(seasonRow).join('')}</div>`);
-    side.push(`<div class="chart-card rb-card"><div class="chart-title">Worst Seasons</div>${[...seasonInfo].sort((a, b) => a.w - b.w || b.yr - a.yr).slice(0, 5).map(seasonRow).join('')}</div>`);
+    side.push(`<div class="chart-card rb-card bw-card"><div class="card-head"><div class="chart-title">${icon('calendar')} Best &amp; Worst Seasons</div>
+      <div class="seg"><button class="active" onclick="bwSwitch(this, 'best')">Best</button><button onclick="bwSwitch(this, 'worst')">Worst</button></div></div>
+      <div class="bw-list" data-list="best">${[...seasonInfo].sort((a, b) => b.w - a.w || b.yr - a.yr).slice(0, 5).map(seasonRow).join('')}</div>
+      <div class="bw-list" data-list="worst" hidden>${[...seasonInfo].sort((a, b) => a.w - b.w || b.yr - a.yr).slice(0, 5).map(seasonRow).join('')}</div></div>`);
   }
   const retired = retiredForTeam(teamName);
   if (retired.length) side.push(`<div class="chart-card"><div class="chart-title">${icon('jersey')} Retired Numbers</div>
@@ -2379,8 +2389,49 @@ function renderTeamPage() {
       <span class="rb-sub">${draftCareer(p)}</span></div>`).join('')}<div class="muted" style="font-size:12px;margin-top:6px">Last team listed on their row · number = All-Star selections</div></div>`);
 
   parts.push(`<div class="player-grid"><div>${main.join('')}</div><div>${side.join('')}</div></div>`);
-  document.getElementById('teamPage').innerHTML = parts.join('');
+  const tp = document.getElementById('teamPage');
+  tp.innerHTML = parts.join('');
+  applyFolds(tp, TEAM_FOLDS);
   winChartData = { team: t, seasons: [...seasonInfo].reverse() };
+}
+
+// =====================================================================
+// FOLDING CARDS: secondary cards on the team and player pages start closed;
+// tapping the title opens or closes them, and the choice is remembered
+// =====================================================================
+const TEAM_FOLDS = { 'Finals Rivalries': false, 'Season by Season': false, 'Best Runs': false, 'Started Here': false, 'Active Players Here': false };
+const PLAYER_FOLDS = { 'Percentile Ranks': false, 'Advanced Stats': false, 'Similar Players': false, 'Legacy Score': false };
+function foldState() { return readJSON('nba2k17-folds') || {}; }
+function applyFolds(root, defaults) {
+  const saved = foldState();
+  root.querySelectorAll('.chart-card').forEach(card => {
+    const title = card.querySelector('.chart-title');
+    const name = title && title.textContent.trim();
+    if (!name || !(name in defaults)) return;
+    const head = title.closest('.card-head') || title;
+    if (head.parentElement !== card) return;
+    head.classList.add('fold-head');
+    card.classList.add('fold');
+    const open = name in saved ? saved[name] : defaults[name];
+    card.classList.toggle('folded', !open);
+    head.setAttribute('role', 'button'); head.tabIndex = 0;
+    head.setAttribute('aria-expanded', String(open));
+    const toggle = e => {
+      if (e.target.closest('button, a, .seg, .team-link, .name-link, select')) return;
+      if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      const nowOpen = card.classList.toggle('folded') === false;
+      head.setAttribute('aria-expanded', String(nowOpen));
+      const st = foldState(); st[name] = nowOpen; writeJSON('nba2k17-folds', st);
+    };
+    head.addEventListener('click', toggle);
+    head.addEventListener('keydown', toggle);
+  });
+}
+function bwSwitch(btn, which) {
+  const card = btn.closest('.bw-card');
+  card.querySelectorAll('.seg button').forEach(b => b.classList.toggle('active', b === btn));
+  card.querySelectorAll('.bw-list').forEach(l => { l.hidden = l.dataset.list !== which; });
 }
 
 // =====================================================================
@@ -2740,15 +2791,6 @@ function renderHome() {
     <button class="card-link" onclick="showSection('allnba')">All selections</button></div>
     <div class="first-team">${first.slots.map(sl => `<div class="ft-player"><div class="ft-pos">${{G:'GUARD',F:'FORWARD',C:'CENTER'}[sl.pos]||sl.pos}</div>
       <div class="ft-name">${nameLink(resolvePlayer(sl.player, yr)?.Player || sl.player, {season: yr})}</div></div>`).join('')}</div></div>`);
-  if (homeHighlights.length) cards.push(`<div class="chart-card span-8"><div class="card-head"><div class="chart-title">${icon('list')} From the Record Book</div>
-    <button class="card-link" onclick="showSection('records')">Record Book</button></div>
-    <div class="leader-list">${homeHighlights.map(r => `<div class="rb-row"><span class="rb-rank"></span><span class="rb-main">${r.label}: ${r.main}</span><span class="rb-val">${r.val}</span><span class="rb-sub">${r.sub}</span></div>`).join('')}</div></div>`);
-  cards.push(`<div class="chart-card span-4"><div class="chart-title">League at a Glance</div>
-    <div class="glance">
-      <div><b>${DB.history.length}</b><span>Seasons</span></div>
-      <div><b>${DB.teams.length}</b><span>Franchises</span></div>
-      <div><b>${DB.allPlayers.length + DB.currentPlayers.length}</b><span>Players</span></div>
-    </div></div>`);
   parts.push(`<div class="home-grid">${cards.join('')}</div>`);
   el.innerHTML = parts.join('');
 }
@@ -3487,7 +3529,7 @@ function renderPlayerPage() {
     ...(unlistedTitles ? [`${unlistedTitles} ${span0 && span0[0] < legacyContext().firstHistory ? 'before NBA History starts (estimated)' : 'as rotation player'}`] : [])].join(' · ');
   const legacyHtml = `<div class="chart-card"><div class="card-head"><div class="chart-title">${icon('chart')} Legacy Score</div>
       <button class="card-link" onclick="showSection('legacy')">Full ranking</button></div>
-    <div class="legacy-total"><b>${Math.round(L.total).toLocaleString()}</b><span>points${rk ? ` · #${rk} of ${everyPlayer().length}` : ''}</span></div>
+    <div class="legacy-total fold-keep"><b>${Math.round(L.total).toLocaleString()}</b><span>points${rk ? ` · #${rk} of ${everyPlayer().length}` : ''}</span></div>
     ${partRows.length ? `<div class="lg-parts">${partRows.map(r => `<div class="lg-part"><span>${r.label}</span><span class="lg-track"><i style="width:${Math.max(2, r.v / partRows[0].v * 100)}%"></i></span><b>${Math.round(r.v).toLocaleString()}</b></div>`).join('')}</div>` : '<p class="muted">No points yet.</p>'}
     ${roleLine ? `<div class="lg-roles"><b>Titles:</b> ${roleLine}</div>` : ''}</div>`;
   const shelfHtml = `<div class="chart-card"><div class="chart-title">${icon('trophy', 'ic-champ')} Trophy Shelf</div>
@@ -3558,7 +3600,9 @@ function renderPlayerPage() {
       <div class="sim-line">${one(perGame(sp.p, 'PTS'))} PPG · ${one(perGame(sp.p, 'REB'))} RPG · ${one(perGame(sp.p, 'AST'))} APG</div>
       <button class="card-link" onclick="event.stopPropagation();compareWith('${jsArg(p.Player)}','${jsArg(sp.p.Player)}')">Compare</button></div>`).join('')}</div></div>`);
 
-  document.getElementById('playerPage').innerHTML = parts.join('');
+  const pp = document.getElementById('playerPage');
+  pp.innerHTML = parts.join('');
+  applyFolds(pp, PLAYER_FOLDS);
 }
 // Open Compare with one or two players already picked
 function compareWith(a, b) {

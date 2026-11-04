@@ -21,5 +21,6 @@ They share the saved workbook with the main app (same site), so there's nothing 
 | `v34.html` | v34: Finals MVP chip light gold | rookie awards in the timeline |
 | `v35.html` | v35: rookie awards in the timeline | All-NBA tiers one blue |
 | `v36.html` | v36: All-NBA tiers one blue | Finals rivalries and Started Here on team pages |
+| `v37.html` | v37: Finals rivalries and Started Here | folding cards, best/worst merged, home trimmed |
 
 Online: https://hong111o.github.io/2k17universe/versions/v20.html and .../versions/v22.html
