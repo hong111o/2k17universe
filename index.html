@@ -29,7 +29,7 @@
   --silver:#7d8696; --silver-tint:#f1f3f6; --playoff-tint:#eef4ff;
   --win:#15803d; --loss:#c0262d;
   --p1:#1d5fd1; --p2:#e8590c; --p3:#0f9b6e;
-  --ev-mvp:#7c3aed; --ev-dpoy:#0f8a6a; --ev-nba:#1d5fd1; --ev-stat:#c2410c;
+  --ev-mvp:#7c3aed; --ev-dpoy:#0f8a6a; --ev-nba:#1d5fd1; --ev-stat:#c2410c; --ev-roy:#be185d;
   --shadow:0 1px 2px rgba(14,26,43,.06);
   --font-display:'Barlow Condensed','Arial Narrow',Arial,sans-serif;
   --font-body:'Barlow',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
@@ -48,7 +48,7 @@
   --silver:#8f99aa; --silver-tint:#1c2433; --playoff-tint:#14223a;
   --win:#4cc38a; --loss:#f2727a;
   --p1:#4f8ff0; --p2:#e06a1f; --p3:#1fa878;
-  --ev-mvp:#b794ff; --ev-dpoy:#3fd0a4; --ev-nba:#6ea8ff; --ev-stat:#ff9b5c;
+  --ev-mvp:#b794ff; --ev-dpoy:#3fd0a4; --ev-nba:#6ea8ff; --ev-stat:#ff9b5c; --ev-roy:#f78fc0;
   --shadow:none; color-scheme:dark;
 }}
 :root[data-theme="dark"]{--logo-plate:#eef1f5;
@@ -60,7 +60,7 @@
   --silver:#8f99aa; --silver-tint:#1c2433; --playoff-tint:#14223a;
   --win:#4cc38a; --loss:#f2727a;
   --p1:#4f8ff0; --p2:#e06a1f; --p3:#1fa878;
-  --ev-mvp:#b794ff; --ev-dpoy:#3fd0a4; --ev-nba:#6ea8ff; --ev-stat:#ff9b5c;
+  --ev-mvp:#b794ff; --ev-dpoy:#3fd0a4; --ev-nba:#6ea8ff; --ev-stat:#ff9b5c; --ev-roy:#f78fc0;
   --shadow:none; color-scheme:dark;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -281,9 +281,11 @@ tr.row-pending td:first-child{font-style:normal;}
 .tl-chip.ev-fmvp{background:var(--champ-tint);color:var(--champ-ink);border-color:transparent;}
 .tl-chip.ev-mvp{--ev:var(--ev-mvp);} .tl-chip.ev-dpoy{--ev:var(--ev-dpoy);} .tl-chip.ev-stat{--ev:var(--ev-stat);}
 .tl-chip.ev-nba1,.tl-chip.ev-nba2,.tl-chip.ev-nba3{--ev:var(--ev-nba);}
-.tl-chip.ev-mvp,.tl-chip.ev-dpoy,.tl-chip.ev-stat,.tl-chip.ev-nba1,.tl-chip.ev-nba2,.tl-chip.ev-nba3{color:var(--ev);background:color-mix(in srgb,var(--ev) 14%,var(--surface));border-color:color-mix(in srgb,var(--ev) 40%,transparent);}
+.tl-chip.ev-roy,.tl-chip.ev-rookie{--ev:var(--ev-roy);}
+.tl-chip.ev-mvp,.tl-chip.ev-dpoy,.tl-chip.ev-stat,.tl-chip.ev-nba1,.tl-chip.ev-nba2,.tl-chip.ev-nba3,.tl-chip.ev-roy,.tl-chip.ev-rookie{color:var(--ev);background:color-mix(in srgb,var(--ev) 14%,var(--surface));border-color:color-mix(in srgb,var(--ev) 40%,transparent);}
 .tl-chip.ev-nba2{background:color-mix(in srgb,var(--ev) 7%,var(--surface));}
 .tl-chip.ev-nba3{background:var(--surface);border-style:dashed;}
+.tl-chip.ev-rookie{background:color-mix(in srgb,var(--ev) 7%,var(--surface));}
 .tl-key{display:flex;flex-wrap:wrap;gap:6px;margin:-4px 0 12px;}
 .tl-key .tl-chip{font-size:11px;padding:1px 7px;}
 .title-note{color:var(--ink-3);font-size:13px;margin-top:6px;}
@@ -3333,6 +3335,14 @@ function careerEvents(name) {
   }));
   const cats = [['PtsLeader','PPG','Scoring'],['RebLeader','RPG','Rebounding'],['AstLeader','APG','Assists'],['StlLeader','SPG','Steals'],['BlkLeader','BPG','Blocks']];
   DB.statLeaders.forEach(r => cats.forEach(([k, unit, label]) => { if (isMe(r[k], r.Season)) add(Number(r.Season), `${label} leader · ${r[unit]} ${unit}`, 'ev-stat'); }));
+  // Rookie honors carry no year in the workbook; a rookie award belongs to the first season
+  const me = everyPlayer().find(x => x.Player === name), first = me && careerSpan(me.Season)?.[0];
+  if (first) {
+    const tip = 'The workbook doesn\'t record the year; shown in the first season';
+    if (/^o$/i.test(String(me.ROTY || '').trim())) add(first, 'Rookie of the Year', 'ev-roy', tip);
+    const rt = String(me.RookieTeam ?? me['Rookie Team'] ?? '').trim();
+    if (rt === '1st' || rt === '2nd') add(first, `All-Rookie ${rt} Team`, 'ev-rookie', tip);
+  }
   return Object.entries(ev).map(([yr, items]) => ({ yr: Number(yr), items })).sort((a, b) => a.yr - b.yr);
 }
 // All-time top-20 ranks among players in the workbook; ties share a rank.
@@ -3507,8 +3517,8 @@ function renderPlayerPage() {
   // Timeline
   const timeline = careerEvents(p.Player);
   if (timeline.length) parts.push(`<div class="chart-card"><div class="chart-title">${icon('calendar')} Career Timeline</div>
-    <div class="tl-key">${[['ev-champ', 'Title'], ['ev-fmvp', 'Finals MVP'], ['ev-mvp', 'MVP'], ['ev-dpoy', 'DPOY'], ['ev-nba1', 'All-NBA'], ['ev-stat', 'Stat leader']]
-      .filter(([c]) => timeline.some(t => t.items.some(e => c === 'ev-nba1' ? /^ev-nba/.test(e.cls) : e.cls === c)))
+    <div class="tl-key">${[['ev-champ', 'Title'], ['ev-fmvp', 'Finals MVP'], ['ev-mvp', 'MVP'], ['ev-dpoy', 'DPOY'], ['ev-nba1', 'All-NBA'], ['ev-stat', 'Stat leader'], ['ev-roy', 'Rookie']]
+      .filter(([c]) => timeline.some(t => t.items.some(e => c === 'ev-nba1' ? /^ev-nba/.test(e.cls) : c === 'ev-roy' ? /^ev-(roy|rookie)$/.test(e.cls) : e.cls === c)))
       .map(([c, l]) => `<span class="tl-chip ${c}">${l}</span>`).join('')}</div>
     <div class="timeline">${timeline.map(t => `<div class="tl-row"><div class="tl-season">${seasonLink(t.yr)}</div>
       <div class="tl-items">${t.items.map(e => `<span class="tl-chip ${e.cls}"${e.tip ? ` title="${e.tip}"` : ''}>${e.cls === 'ev-champ' && e.label === 'Champion' ? icon('trophy','ic-champ') + ' ' : ''}${e.label}</span>`).join('')}</div></div>`).join('')}</div></div>`);

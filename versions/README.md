@@ -18,5 +18,6 @@ They share the saved workbook with the main app (same site), so there's nothing 
 | `v31.html` | v31: team logos from the NBA Logo sheet | stricter logo labels, VAN/CIN codes |
 | `v32.html` | v32: stricter logo labels, VAN/CIN codes | coloured timeline awards, draft nav fits on phones |
 | `v33.html` | v33: coloured timeline awards, draft nav fits on phones | Finals MVP chip back to light gold |
+| `v34.html` | v34: Finals MVP chip light gold | rookie awards in the timeline |
 
 Online: https://hong111o.github.io/2k17universe/versions/v20.html and .../versions/v22.html
