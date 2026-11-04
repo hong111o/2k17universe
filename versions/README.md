@@ -20,5 +20,6 @@ They share the saved workbook with the main app (same site), so there's nothing 
 | `v33.html` | v33: coloured timeline awards, draft nav fits on phones | Finals MVP chip back to light gold |
 | `v34.html` | v34: Finals MVP chip light gold | rookie awards in the timeline |
 | `v35.html` | v35: rookie awards in the timeline | All-NBA tiers one blue |
+| `v36.html` | v36: All-NBA tiers one blue | Finals rivalries and Started Here on team pages |
 
 Online: https://hong111o.github.io/2k17universe/versions/v20.html and .../versions/v22.html
