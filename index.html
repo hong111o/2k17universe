@@ -1061,7 +1061,7 @@ function handleFile(file) {
 function loadWorkbookData(buf, fileName, savedAt) {
   try {
     setProgress('Parsing Excel data...');
-    const wb = XLSX.read(new Uint8Array(buf), { type: 'array', cellDates: true });
+    const wb = XLSX.read(new Uint8Array(buf), { type: 'array', cellDates: true, bookFiles: true });
     setProgress('Processing sheets...');
     parseWorkbook(wb);
   } catch(err) {
@@ -1167,9 +1167,61 @@ function rowsToObjects(rows) {
   return out;
 }
 
+// Red text in a team cell means the player won a title with that team.
+// SheetJS doesn't expose font colors, so this reads styles.xml and the sheet
+// XML from the workbook's raw files. Returns { sheetName: Set of red cell refs }.
+function redCellsBySheet(wb) {
+  const out = {};
+  try {
+    const files = wb.files || {}, dec = new TextDecoder();
+    const text = k => { const f = files[k] || files['/' + k]; const c = f && f.content; return !c ? '' : typeof c === 'string' ? c : dec.decode(c); };
+    const attr = (tag, name) => { const m = tag.match(new RegExp('\\b' + name + '="([^"]*)"')); return m ? m[1] : null; };
+    const styles = text('xl/styles.xml'); if (!styles) return out;
+    const fontsXml = (styles.match(/<fonts\b[^>]*>([\s\S]*?)<\/fonts>/) || [])[1] || '';
+    const redFont = (fontsXml.match(/<font\b[^>]*?(?:\/>|>[\s\S]*?<\/font>)/g) || []).map(f => {
+      const c = (f.match(/<color\b[^>]*>/) || [])[0]; if (!c) return false;
+      const rgb = attr(c, 'rgb'), idx = attr(c, 'indexed');
+      if (rgb && rgb.length >= 6) { const h = rgb.slice(-6), r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16); return r >= 0xC0 && g <= 0x50 && b <= 0x50; }
+      return idx === '2' || idx === '10';
+    });
+    const xfsXml = (styles.match(/<cellXfs\b[^>]*>([\s\S]*?)<\/cellXfs>/) || [])[1] || '';
+    const redXf = (xfsXml.match(/<xf\b[^>]*>/g) || []).map(x => !!redFont[Number(attr(x, 'fontId') || 0)]);
+    if (!redXf.some(Boolean)) return out;
+    const rels = {};
+    (text('xl/_rels/workbook.xml.rels').match(/<Relationship\b[^>]*>/g) || []).forEach(r => { rels[attr(r, 'Id')] = attr(r, 'Target'); });
+    (text('xl/workbook.xml').match(/<sheet\b[^>]*>/g) || []).forEach(sh => {
+      const name = (attr(sh, 'name') || '').replace(/&amp;/g, '&').replace(/&apos;/g, "'").replace(/&quot;/g, '"');
+      let target = rels[attr(sh, 'r:id')]; if (!target) return;
+      target = target.startsWith('/') ? target.slice(1) : 'xl/' + target.replace(/^\.\//, '');
+      const set = new Set();
+      (text(target).match(/<c\b[^>]*>/g) || []).forEach(c => { const st = attr(c, 's'); if (st && redXf[Number(st)]) set.add(attr(c, 'r')); });
+      out[name] = set;
+    });
+  } catch (err) { console.warn('Could not read cell colors:', err); }
+  return out;
+}
+// Flags which of a player's team stints are in red (aligned with playerTeams)
+function markTitleStints(players, ws, red) {
+  if (!red || !red.size || !ws || !ws['!ref'] || !players.headers) return;
+  const start = XLSX.utils.decode_range(ws['!ref']).s.c;
+  players.forEach(p => {
+    const stints = [];
+    for (let i = 1; i <= 11; i++) {
+      const k = i === 1 ? 'Team' : 'Team' + i, col = players.headers.indexOf(k);
+      if (col >= 0 && p[k]) stints.push(red.has(XLSX.utils.encode_col(start + col) + p._row));
+    }
+    p._titleStints = stints;
+  });
+  DB.hasTitleColors = true;
+}
+
 function parseWorkbook(wb) {
   setProgress('Loading All Players...');
-  DB.allPlayers = rowsToObjects(sheetToArr(wb.Sheets['All Players'] || wb.Sheets[wb.SheetNames[0]]));
+  const apSheet = wb.Sheets['All Players'] ? 'All Players' : wb.SheetNames[0];
+  DB.allPlayers = rowsToObjects(sheetToArr(wb.Sheets[apSheet]));
+  DB.hasTitleColors = false;
+  const redCells = redCellsBySheet(wb);
+  markTitleStints(DB.allPlayers, wb.Sheets[apSheet], redCells[apSheet]);
 
   setProgress('Loading Positional rankings...');
   ['PG','SG','SF','PF','C'].forEach(pos => {
@@ -1261,6 +1313,7 @@ function parseWorkbook(wb) {
         return obj;
       });
     DB.currentPlayers.headers = cpHeaders;
+    markTitleStints(DB.currentPlayers, wb.Sheets['Current Player'], redCells['Current Player']);
   }
 
   setProgress('Loading All-NBA Teams...');
@@ -3067,10 +3120,13 @@ function renderPlayerPage() {
   const teams = playerTeams(p), retired = retiredFor(p);
   if (teams.length) parts.push(`<div class="chart-card"><div class="chart-title">${icon('jersey')} Team Journey</div>
     <div class="journey">${teams.map((t, i) => {
-      const titles = titlesWithTeam(p, t), ret = retired.filter(r => r.team === t);
+      const red = p._titleStints, ret = retired.filter(r => r.team === t);
+      // With red cells, mark the exact stint; a team with two red stints gets no count (it isn't known per stint)
+      const twice = red && teams.filter((x, j) => x === t && red[j]).length > 1;
+      const titles = red && !red[i] ? 0 : titlesWithTeam(p, t), label = twice ? 'Title' : `${titles} title${titles > 1 ? 's' : ''}`;
       return `${i ? '<span class="journey-arrow" aria-hidden="true">→</span>' : ''}<div class="journey-stop">
         <span class="journey-n">${i + 1}</span>${teamLink(t, t)}
-        <span class="journey-tags">${titles ? `<em class="tag-gold">${icon('trophy')} ${titles} title${titles > 1 ? 's' : ''}</em>` : ''}${ret.map(r => `<em class="tag-ret">#${r.num} retired</em>`).join('')}</span></div>`;
+        <span class="journey-tags">${titles ? `<em class="tag-gold">${icon('trophy')} ${label}</em>` : ''}${ret.map(r => `<em class="tag-ret">#${r.num} retired</em>`).join('')}</span></div>`;
     }).join('')}</div></div>`);
 
   // Career numbers
@@ -3510,9 +3566,17 @@ function similarPlayers(p, count) {
 
 // Titles a player won with a given team: seasons where they are a listed champion
 // star or Finals MVP and that team won; players with one team get all their titles
+// Titles won with a team: NBA History gives exact counts; red team cells in the
+// workbook mark every title team (also before 1979–80 and for non-star players)
+function titleTeams(p) { return p._titleStints ? playerTeams(p).filter((t, i) => p._titleStints[i]) : null; }
 function titlesWithTeam(p, team) {
-  const teams = playerTeams(p);
-  if (teams.length === 1 && teams[0] === team) return getNum(p.Champions) > 0 ? getNum(p.Champions) : 0;
+  const teams = playerTeams(p), total = Math.max(getNum(p.Champions), 0);
+  if (teams.length === 1 && teams[0] === team) return total;
+  const hist = titlesWithTeamHistory(p, team), red = titleTeams(p);
+  if (red && red.includes(team)) return new Set(red).size === 1 ? Math.max(hist, total) : Math.max(hist, 1);
+  return hist;
+}
+function titlesWithTeamHistory(p, team) {
   return cached('titlesWith|' + p.Player + '|' + team, () => DB.history.filter(h => {
     const champ = fullTeamName(extractChampTeam(h.Finals || ''));
     if (champ !== team) return false;
@@ -3604,7 +3668,7 @@ function renderLegacy() {
 // FRANCHISE LEGENDS (team popup)
 // Awards are career totals, so a player's honors may come from other teams.
 // Legends are ordered by what ties them to this franchise: a retired number,
-// titles won here (NBA History) and a one-team career, then legacy score.
+// titles won here (NBA History and red team cells) and a one-team career, then legacy score.
 // =====================================================================
 function franchiseLegends(team) {
   return everyPlayer().filter(p => playerTeams(p).includes(team)).map(p => {
@@ -3666,6 +3730,15 @@ function runDataCheck() {
     for (let i = 1; i <= 11; i++) { const k = i === 1 ? 'Team' : 'Team' + i, v = r[k]; if (v && !TEAM_NAMES[v]) add('warn', 'All Players', cellOf(r, k), `${r.Player}: team code "${v}" isn't recognized${TEAM_NAMES[String(v).toUpperCase()] ? ` (did you mean ${String(v).toUpperCase()}?)` : ''}.`); }
     if (r.Draft && !/^\d{2}(Rnd\dPick\d+|Territorial|Undrafted|Rnd\d \(ABA\))$/.test(String(r.Draft))) add('info', 'All Players', cellOf(r, 'Draft'), `${r.Player}: draft code "${r.Draft}" is unusual; read as ${draftLabel(draftInfo(r))}.`);
   });
+  // Red team cells (title teams) must agree with Champions
+  if (DB.hasTitleColors) [['All Players', DB.allPlayers], ['Current Player', DB.currentPlayers]].forEach(([sheet, list]) => (list || []).forEach(r => {
+    if (!r._titleStints || !r.Player) return;
+    const champs = Math.max(getNum(r.Champions), 0), red = new Set(titleTeams(r)).size;
+    const at = cellOf(r, 'Champions', list.headers) || cellOf(r, 'Team', list.headers);
+    if (champs && !red) add('warn', sheet, at, `${r.Player}: ${champs} title${champs > 1 ? 's' : ''}, but no team cell is in red.`);
+    else if (!champs && red) add('warn', sheet, at, `${r.Player}: ${red} team${red > 1 ? 's are' : ' is'} in red, but Champions is ${r.Champions ?? 'empty'}.`);
+    else if (red > champs) add('warn', sheet, at, `${r.Player}: ${red} teams are in red, but only ${champs} title${champs > 1 ? 's' : ''}.`);
+  }));
   // 4. Ranking sheets must match All Players
   [['Top 20', DB.top20], ...POSITIONS.map(pos => [pos, DB.positions[pos]])].forEach(([sheet, list]) => (list || []).forEach(r => {
     const base = DB.allPlayers.find(x => x.Player === r.Player);

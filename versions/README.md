@@ -12,5 +12,6 @@ They share the saved workbook with the main app (same site), so there's nothing 
 | `v25.html` | v25: DPOY labels | award doubles grouped by player |
 | `v26.html` | v26: award doubles grouped by player | ranked leaders list, fewer notes |
 | `v27.html` | v27: ranked leaders list, fewer notes | top-20 all-time labels on player pages |
+| `v28.html` | v28: top-20 all-time labels | red team cells read as title teams |
 
 Online: https://hong111o.github.io/2k17universe/versions/v20.html and .../versions/v22.html
