@@ -1290,10 +1290,11 @@ function readTeamLogos(wb) {
     const drawingPath = Object.values(relsOf(sheetPath)).find(t => /drawings\/[^/]+\.xml$/.test(t));
     if (!drawingPath) return logos;
     const media = relsOf(drawingPath), ws = wb.Sheets[sheetName];
-    // A team name or code typed near the picture wins over the grid position
-    const labelAt = (c, r) => {
-      for (const [dc, dr] of [[0, 0], [0, 1], [0, 2], [0, 3], [1, 0], [1, 1], [0, -1]]) {
-        const cell = ws && ws[XLSX.utils.encode_cell({ c: c + dc, r: r + dr })];
+    // A team name or code typed in the cell right under the picture, or right beside it,
+    // wins over the grid position
+    const labelAt = (c, r, toC, toR) => {
+      for (const [lc, lr] of [[c, toR + 1], [toC + 1, r], [toC + 1, toR]]) {
+        const cell = ws && ws[XLSX.utils.encode_cell({ c: lc, r: lr })];
         const v = cell && cell.v != null ? String(cell.v).trim() : '';
         if (!v) continue;
         const full = TEAM_NAMES[v.toUpperCase()] || DB.teams.find(t => normName(t.Team) === normName(v))?.Team;
@@ -1304,7 +1305,9 @@ function readTeamLogos(wb) {
     (text(drawingPath).match(/<xdr:(?:twoCellAnchor|oneCellAnchor|absoluteAnchor)\b[\s\S]*?<\/xdr:(?:twoCellAnchor|oneCellAnchor|absoluteAnchor)>/g) || []).forEach(a => {
       const from = a.match(/<xdr:from>[\s\S]*?<xdr:col>(\d+)<\/xdr:col>[\s\S]*?<xdr:row>(\d+)<\/xdr:row>/), emb = a.match(/r:embed="([^"]+)"/);
       if (!from || !emb) return;
-      const c = Number(from[1]), r = Number(from[2]), team = labelAt(c, r) || LOGO_SLOTS[c + ',' + r];
+      const to = a.match(/<xdr:to>[\s\S]*?<xdr:col>(\d+)<\/xdr:col>[\s\S]*?<xdr:row>(\d+)<\/xdr:row>/);
+      const c = Number(from[1]), r = Number(from[2]), toC = to ? Number(to[1]) : c, toR = to ? Number(to[2]) : r;
+      const team = labelAt(c, r, toC, toR) || LOGO_SLOTS[c + ',' + r];
       const path = media[emb[1]], bytes = path && raw(path);
       if (!team || !bytes || logos[team]) return;
       const ext = (path.split('.').pop() || '').toLowerCase();
@@ -1693,7 +1696,7 @@ const TEAM_NAMES = {
   NOP:'New Orleans Pelicans',NO:'New Orleans Pelicans',NYK:'New York Knicks',NY:'New York Knicks',
   OKC:'Oklahoma City Thunder',ORL:'Orlando Magic',PHI:'Philadelphia 76ers',PHX:'Phoenix Suns',
   POR:'Portland Trail Blazers',SAC:'Sacramento Kings',SA:'San Antonio Spurs',SAS:'San Antonio Spurs',
-  TOR:'Toronto Raptors',UTA:'Utah Jazz',WAS:'Washington Wizards',SD:'San Diego Surf',KC:'Kansas City Knights'
+  TOR:'Toronto Raptors',UTA:'Utah Jazz',WAS:'Washington Wizards',SD:'San Diego Surf',KC:'Kansas City Knights',VAN:'Vancouver Ravens',CIN:'Cincinnati Lions'
 };
 function fullTeamName(abbr) { return TEAM_NAMES[abbr] || TEAM_NAMES[String(abbr||'').toUpperCase()] || abbr; }
 // Clickable team name if the team exists in Team Record; accepts a code (LAL) or full name

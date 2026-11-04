@@ -15,5 +15,6 @@ They share the saved workbook with the main app (same site), so there's nothing 
 | `v28.html` | v28: top-20 all-time labels | red team cells read as title teams |
 | `v29.html` | v29: red team cells read as title teams | team page, dynasties, what's new, legacy slider, home extras |
 | `v30.html` | v30: team page, dynasties, what's new, legacy slider, home extras | team logos from the NBA Logo sheet |
+| `v31.html` | v31: team logos from the NBA Logo sheet | stricter logo labels, VAN/CIN codes |
 
 Online: https://hong111o.github.io/2k17universe/versions/v20.html and .../versions/v22.html
