@@ -684,3 +684,6 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
   .stat-table .team-tag .team-link{font-size:0;}
   .stat-table .team-tag .team-link .tlogo{font-size:15px;margin-right:0;}
 }
+/* Grid columns must be allowed to shrink, or a wide table pushes the whole page sideways */
+.player-grid > div{min-width:0;}
+@media (max-width:400px){ .stat-table td,.stat-table th{padding-left:6px;padding-right:6px;font-size:13px;} }

@@ -347,13 +347,11 @@ function renderAwards() {
   const label = AWARD_TABS.find(([k]) => k === awardTab)[1];
   const champOf = yr => finalsTeams(yr).champ;
   const rows = list.map((x, i) => ({ ...x, nth: nth[i] })).reverse().map(x => {
-    const p = resolvePlayer(x.name, x.yr), extras = [];
-    if (awardTab === 'MVP') { const h = DB.history.find(z => Number(z.Season) === x.yr); if (h && samePlayer(h.FMVP, x.name, x.yr)) extras.push('also Finals MVP'); if (h && samePlayer(h.DPOY, x.name, x.yr)) extras.push('also DPOY'); }
-    if (awardTab === 'FMVP' && !x.team && champOf(x.yr)) extras.push(`with ${teamLink(champOf(x.yr))}`);
+    const p = resolvePlayer(x.name, x.yr);
     const team = x.team || (awardTab === 'FMVP' ? champOf(x.yr) : null);
     return `<tr><td class="stick-1">${seasonLink(x.yr)}</td><td>${nameLink(x.name, { season: x.yr })} ${p ? posBadge(p.Position) : ''}</td>
       ${awardTab === 'ROY' ? '' : `<td class="nowrap">${team ? teamLink(team, teamCode(team)) : '<span class="muted">—</span>'}</td>`}
-      <td class="num">${x.nth > 1 ? `<b>${ordinal(x.nth)}</b>` : '1st'}</td><td class="muted">${extras.join(' · ')}</td></tr>`;
+      <td class="num">${x.nth > 1 ? `<b>${ordinal(x.nth)}</b>` : '1st'}</td></tr>`;
   }).join('');
   const most = withRanks(Object.entries(counts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).filter(([, c]) => c >= 2).slice(0, 15), ([, c]) => c);
   const span = list.length ? `${seasonLabel(list[0].yr)} to ${seasonLabel(list[list.length - 1].yr)}` : '';
@@ -361,7 +359,7 @@ function renderAwards() {
     ? `${list.length} Rookies of the Year from All Players and Current Player · shown in each player's first season, since the year isn't recorded`
     : `${list.length} ${label} winners from NBA History${span ? ', ' + span : ''}`;
   document.getElementById('awardsContent').innerHTML = `<div class="player-grid">
-    <div><div class="table-wrap"><table><thead><tr><th class="stick-1">Season</th><th>${label}</th>${awardTab === 'ROY' ? '' : '<th>Team</th>'}<th class="num">Career #</th><th>Notes</th></tr></thead><tbody>${rows || '<tr><td colspan="4" class="muted">No winners recorded.</td></tr>'}</tbody></table></div></div>
+    <div><div class="table-wrap stat-table"><table><thead><tr><th class="stick-1">Season</th><th>${label}</th>${awardTab === 'ROY' ? '' : '<th>Team</th>'}<th class="num" title="Which win of the player's career">Win</th></tr></thead><tbody>${rows || '<tr><td colspan="4" class="muted">No winners recorded.</td></tr>'}</tbody></table></div></div>
     <div>${(() => {
       // Which franchises its winners played for (from the logos beside each name in NBA History)
       if (awardTab === 'ROY') return '';
