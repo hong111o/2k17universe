@@ -49,7 +49,7 @@ function setupToolbarToggles() {
     btn.className = 'icon-btn tb-toggle'; btn.type = 'button';
     btn.setAttribute('aria-expanded', 'false');
     const count = () => controls.filter(c => (c.tagName === 'SELECT' && !c.classList.contains('m-sort') && c.selectedIndex > 0) || (c.matches('label.check') && c.querySelector('input').checked)).length;
-    const label = () => { const n = count(); btn.innerHTML = `${tb.querySelector('select.m-sort') ? 'Filter &amp; Sort' : 'Filters'}${n ? ` <span class="tb-badge">${n}</span>` : ''}`; };
+    const label = () => { const n = count(); btn.innerHTML = `${tb.querySelector('select.m-sort, #teamSortFilter') ? 'Filter &amp; Sort' : 'Filters'}${n ? ` <span class="tb-badge">${n}</span>` : ''}`; };
     btn.onclick = () => { const open = tb.classList.toggle('open'); btn.setAttribute('aria-expanded', String(open)); };
     tb.addEventListener('change', label);
     label();
@@ -156,12 +156,12 @@ function buildRecordTabs(prefix, categories, labels, colors) {
 let playersState = { filtered: [], page: 1, perPage: 30 };
 // The same four filters (team, decade, draft, honors) on every player list. All Players has them in
 // its HTML; Top 20, By Position and Active Players get copies here, with ids prefixed by the list.
-const FILTER_LISTS = { player: 'filterPlayers', top20: 'filterTop20', pos: 'filterPos', cur: 'filterCurrent' };
+const FILTER_LISTS = { player: 'filterPlayers', top20: 'filterTop20', pos: 'filterPos', cur: 'filterCurrent', legacy: 'renderLegacy' };
 function addFilterMenus() {
   const proto = ['Team', 'Decade', 'Draft', 'Honor'].map(k => document.getElementById('player' + k + 'Filter'));
   Object.entries(FILTER_LISTS).forEach(([prefix, fn]) => {
     if (prefix === 'player' || document.getElementById(prefix + 'TeamFilter')) return;
-    const tb = document.querySelector(`#sec-${{ top20: 'top20', pos: 'bypos', cur: 'current' }[prefix]} .toolbar`);
+    const tb = document.querySelector(`#sec-${{ top20: 'top20', pos: 'bypos', cur: 'current', legacy: 'legacy' }[prefix]} .toolbar`);
     const anchor = tb.querySelector('.search-wrap ~ select:not(.m-sort)') || tb.querySelector('.search-wrap');
     let after = anchor;
     proto.forEach(src => {
@@ -237,7 +237,8 @@ function goPlayersPage(p) { playersState.page = p; renderPlayers(); }
 let top20State = { filtered: [], page: 1, perPage: 20 };
 function filterTop20() {
   const q = document.getElementById('top20Search').value.toLowerCase();
-  top20State.filtered = DB.top20.filter(p => (!q || String(p.Player||'').toLowerCase().includes(q)) && playerMatchesFilters(p, 'top20'));
+  const pos = document.getElementById('top20PosFilter')?.value;
+  top20State.filtered = DB.top20.filter(p => (!q || String(p.Player||'').toLowerCase().includes(q)) && (!pos || (resolvePlayer(p.Player) || p).Position === pos) && playerMatchesFilters(p, 'top20'));
   top20State.page = 1;
   document.getElementById('top20Count').textContent = top20State.filtered.length + ' players';
   renderTop20();

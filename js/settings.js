@@ -218,9 +218,13 @@ function flipSortDir(key) {
 function mobileSort(key, col) {
   if (!col) delete sortStates[key];
   else sortStates[key] = { col, dir: mSortDir[key] };
-  if (key === 'top20' && !col) sortStates.top20 = { col: 'Rank', dir: -mSortDir[key] };
-  if (key === 'pos' && !col && mSortDir[key] > 0) sortStates.pos = { col: 'Rank', dir: -1 };
-  if (key === 'cur' && !col && mSortDir[key] > 0) sortStates.cur = { col: 'Season', dir: -1 };
+  // No column picked: the button reverses the list's own order (sheet order, rank or newest first)
+  if (!col) {
+    if (key === 'top20') sortStates.top20 = { col: 'Rank', dir: -mSortDir[key] };
+    else if (key === 'pos') sortStates.pos = { col: 'Rank', dir: -mSortDir[key] };
+    else if (key === 'cur') { if (mSortDir[key] > 0) sortStates.cur = { col: 'Season', dir: -1 }; }
+    else if (mSortDir[key] > 0) sortStates[key] = { col: '_row', dir: -1 };
+  }
   if (key === 'cur') { curState.page = 1; renderCurrent(); return; }
   ({ players: playersState, top20: top20State, pos: posState })[key].page = 1;
   TABLE_RENDERERS[key]();

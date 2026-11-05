@@ -4,13 +4,24 @@
 // =====================================================================
 // TEAMS
 // =====================================================================
+// Franchises can be sorted high-to-low or low-to-high on any of the menu's measures
+let teamSortDir = -1;
+function teamSortVal(t, sc) {
+  if (sc === '_lastWins') { const r = DB.latestSeason && t.seasonRecords?.[DB.latestSeason]; return r ? r.rawW : -Infinity; }
+  const v = getNum(t[sc]); return v === -Infinity ? (teamSortDir < 0 ? -Infinity : Infinity) : v;
+}
+function flipTeamSort() {
+  teamSortDir = -teamSortDir;
+  document.getElementById('teamSortDir').textContent = teamSortDir < 0 ? '↓ High first' : '↑ Low first';
+  filterTeams();
+}
 function filterTeams() {
   const q = document.getElementById('teamSearch').value.toLowerCase();
   const conf = document.getElementById('teamConfFilter').value;
   const sc = document.getElementById('teamSortFilter').value || 'Glory Score';
   const arr = DB.teams.filter(t => t.Team &&
     (!q || String(t.Team).toLowerCase().includes(q)) &&
-    (!conf || t.Conference === conf)).sort((a, b) => getNum(b[sc]) - getNum(a[sc]));
+    (!conf || t.Conference === conf)).sort((a, b) => (teamSortVal(a, sc) - teamSortVal(b, sc)) * teamSortDir || a.Team.localeCompare(b.Team));
   const latest = DB.latestSeason;
   const st = latest ? seasonStandings(latest) : [];
   const fmt1dp = v => (v !== null && v !== undefined && v !== '—' && !isNaN(parseFloat(v))) ? parseFloat(v).toFixed(1) : '—';

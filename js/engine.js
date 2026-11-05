@@ -342,7 +342,7 @@ function renderLegacy() {
   syncRatioBar();
   const q = normName(document.getElementById('legacySearch').value);
   const f = document.getElementById('legacyFilter').value, pos = document.getElementById('legacyPos').value;
-  const rows = legacyRanking().filter(r => (!q || normName(r.p.Player).includes(q)) && (!pos || r.p.Position === pos) && (!f || (f === 'active') === isActive(r.p)));
+  const rows = legacyRanking().filter(r => (!q || normName(r.p.Player).includes(q)) && (!pos || r.p.Position === pos) && (!f || (f === 'active') === isActive(r.p)) && playerMatchesFilters(r.p, 'legacy'));
   document.getElementById('legacySub').textContent = `All-time ranking from honors and career production · ${everyPlayer().length} players`;
   const fmt = v => Math.round(v).toLocaleString();
   document.getElementById('legacyContent').innerHTML = `
