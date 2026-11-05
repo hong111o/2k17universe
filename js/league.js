@@ -634,39 +634,42 @@ function renderRecords() {
 // =====================================================================
 // STAT LEADERS
 // =====================================================================
-let statState = { filtered: [], page: 1, perPage: 40 };
+let statState = { filtered: [], page: 1, perPage: 40, cat: 'Pts' };
 const STAT_LEADER_KEYS = ['PtsLeader','RebLeader','AstLeader','StlLeader','BlkLeader','MinLeader'];
 // Seasons are listed in the sheet before their leaders are typed in
 function statRowEntered(s) { return STAT_LEADER_KEYS.some(k => s[k]); }
+// One table per stat (tabs), so each fits a phone: Season, Leader, Team, value and which title it was
+const STAT_CATS = [['Pts', 'Points', 'PPG'], ['Reb', 'Rebounds', 'RPG'], ['Ast', 'Assists', 'APG'], ['Stl', 'Steals', 'SPG'], ['Blk', 'Blocks', 'BPG'], ['Min', 'Minutes', 'MPG']];
+function setStatCat(k) { statState.cat = k; filterStat(); }
 function filterStat() {
+  const cat = statState.cat || 'Pts', [, label, unit] = STAT_CATS.find(c => c[0] === cat);
+  document.getElementById('statCatTabs').innerHTML = STAT_CATS.map(([k, l]) => `<button class="${k === cat ? 'active' : ''}" onclick="setStatCat('${k}')">${l}</button>`).join('');
   const q = document.getElementById('statSearch').value.toLowerCase();
-  const matches = DB.statLeaders.filter(s =>
-    !q || String(s.Season).includes(q) ||
-    STAT_LEADER_KEYS.some(k => String(s[k]||'').toLowerCase().includes(q)));
+  const has = s => !!s[cat + 'Leader'];
+  const matches = DB.statLeaders.filter(s => !q || String(s.Season).includes(q) || seasonLabel(s.Season).includes(q) || String(s[cat + 'Leader'] || '').toLowerCase().includes(q));
   const showMissing = document.getElementById('statShowMissing')?.checked;
-  statState.filtered = showMissing ? matches : matches.filter(statRowEntered);
+  statState.filtered = showMissing ? matches : matches.filter(has);
   statState.page = 1;
-  const entered = matches.filter(statRowEntered).length;
-  const missing = matches.length - entered;
-  document.getElementById('statCount').textContent = `${entered} seasons entered` + (missing ? ` · ${missing} not entered yet` : '');
+  const entered = matches.filter(has).length, missing = matches.length - entered;
+  document.getElementById('statCount').textContent = `${entered} seasons with a ${label.toLowerCase()} leader` + (missing ? ` · ${missing} not entered` : '');
   renderStat();
 }
 function renderStat() {
   const { filtered, page, perPage } = statState;
-  const sorted = [...filtered].sort((a,b) => getNum(b.Season) - getNum(a.Season));
-  const slice = sorted.slice((page-1)*perPage, page*perPage);
-  const seasonCell = s => `<td class="stick-1">${seasonLink(s.Season, seasonLabel(s.Season))}</td>`;
-  document.getElementById('statBody').innerHTML = slice.map(s => !statRowEntered(s)
-    ? `<tr class="row-pending">${seasonCell(s)}<td colspan="15">Not entered yet</td></tr>`
-    : `<tr>
-    ${seasonCell(s)}
-    <td style="font-weight:600">${nameLink(s.PtsLeader, {season: s.Season})}</td><td class="team-tag">${teamLink(s.PtsTeam)}</td><td class="num highlight">${s.PPG||'—'}</td>
-    <td style="font-weight:600">${nameLink(s.RebLeader, {season: s.Season})}</td><td class="team-tag">${teamLink(s.RebTeam)}</td><td class="num">${s.RPG||'—'}</td>
-    <td style="font-weight:600">${nameLink(s.AstLeader, {season: s.Season})}</td><td class="team-tag">${teamLink(s.AstTeam)}</td><td class="num">${s.APG||'—'}</td>
-    <td style="font-weight:600">${nameLink(s.StlLeader, {season: s.Season})}</td><td class="num">${s.SPG||'—'}</td>
-    <td style="font-weight:600">${nameLink(s.BlkLeader, {season: s.Season})}</td><td class="num">${s.BPG||'—'}</td>
-    <td style="font-weight:600">${nameLink(s.MinLeader, {season: s.Season})}</td><td class="num">${s.MPG||'—'}</td>
-  </tr>`).join('');
+  const cat = statState.cat || 'Pts', [, label, unit] = STAT_CATS.find(c => c[0] === cat);
+  // Which title of the player's career each one was (counted oldest first)
+  const nth = new Map(), seen = {};
+  [...DB.statLeaders].filter(s => s[cat + 'Leader']).sort((a, b) => a.Season - b.Season).forEach(s => {
+    const k = playerKey(s[cat + 'Leader'], s.Season); seen[k] = (seen[k] || 0) + 1; nth.set(s, seen[k]); });
+  const fmt = v => { const n = parseFloat(v); return isNaN(n) ? '—' : Number.isInteger(n) ? n.toFixed(1) : String(n); };
+  const sorted = [...filtered].sort((a, b) => getNum(b.Season) - getNum(a.Season));
+  const slice = sorted.slice((page - 1) * perPage, page * perPage);
+  document.getElementById('statHead').innerHTML = `<th class="stick-1">Season</th><th>${label} Leader</th><th>Team</th><th class="num">${unit}</th><th class="num">Title</th>`;
+  document.getElementById('statBody').innerHTML = slice.map(s => !s[cat + 'Leader']
+    ? `<tr class="row-pending"><td class="stick-1">${seasonLink(s.Season)}</td><td colspan="4">Not entered yet</td></tr>`
+    : `<tr><td class="stick-1">${seasonLink(s.Season)}</td><td style="font-weight:600">${nameLink(s[cat + 'Leader'], { season: s.Season })}</td>
+      <td class="team-tag">${teamLink(s[cat + 'Team'])}</td><td class="num highlight">${fmt(s[unit])}</td>
+      <td class="num">${nth.get(s) > 1 ? `<b>${ordinal(nth.get(s))}</b>` : '1st'}</td></tr>`).join('');
   renderPag('statPag', filtered.length, perPage, page, 'goStatPage');
 }
 function goStatPage(p) { statState.page = p; renderStat(); }

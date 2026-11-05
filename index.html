@@ -329,19 +329,14 @@
 <div id="sec-statleaders" class="section">
   <div class="section-title">Season Stat Leaders</div>
   <div class="section-sub">Yearly Statistical Leaders</div>
+  <div class="seg stat-tabs" id="statCatTabs"></div>
   <div class="toolbar">
     <div class="search-wrap"><span class="icon"><svg class="ic"><use href="#i-search"/></svg></span><input type="text" id="statSearch" placeholder="Search season or player..." oninput="filterStat()"></div>
     <label class="check"><input type="checkbox" id="statShowMissing" onchange="filterStat()"> Show seasons not entered</label>
     <span class="results-count" id="statCount"></span>
   </div>
-  <div class="table-wrap"><table>
-    <thead><tr>
-      <th class="stick-1">Season</th><th>Pts Leader</th><th>Team</th><th class="num">PPG</th>
-      <th>Reb Leader</th><th>Team</th><th class="num">RPG</th>
-      <th>Ast Leader</th><th>Team</th><th class="num">APG</th>
-      <th>Stl Leader</th><th class="num">SPG</th><th>Blk Leader</th><th class="num">BPG</th>
-      <th>Min Leader</th><th class="num">MPG</th>
-    </tr></thead>
+  <div class="table-wrap stat-table"><table>
+    <thead><tr id="statHead"></tr></thead>
     <tbody id="statBody"></tbody>
   </table></div>
   <div class="pagination" id="statPag"></div>

@@ -673,3 +673,14 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
   .cmp-score b{font-size:30px;}
   .cmp-score .cs-name{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 }
+.stat-tabs{margin-bottom:14px;max-width:100%;overflow-x:auto;scrollbar-width:none;}
+.stat-tabs button{flex:none;}
+.stat-table table{min-width:0;width:100%;}
+.stat-table td,.stat-table th{white-space:nowrap;}
+@media (max-width:768px){
+  .toolbar.has-toggle .results-count{flex-basis:100%;}
+  .stat-table td,.stat-table th{padding-left:8px;padding-right:8px;}
+  .stat-table td:nth-child(2){white-space:normal;}
+  .stat-table .team-tag .team-link{font-size:0;}
+  .stat-table .team-tag .team-link .tlogo{font-size:15px;margin-right:0;}
+}
