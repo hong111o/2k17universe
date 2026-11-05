@@ -3,14 +3,13 @@
 Each file here is a complete earlier version of the dashboard that still opens on its own.
 They share the saved workbook with the main app (same site), so there's nothing to reload.
 
-Kept: two milestones (v20, v22) and the last 10 versions. Older ones (v23–v33) were removed from this folder;
+Kept: two milestones (v20, v22) and the last 10 versions. Older ones (v23–v34) were removed from this folder;
 they are still in the git history if ever needed.
 
 | File | Version | Saved before |
 |---|---|---|
 | `v20.html` | v20: phone app, custom icon, locked table headers | player pages, compare v2, draft, legacy ranking, search, data check |
 | `v22.html` | v22: player pages, compare v2, draft, simple legacy formula, search, data check | points-system legacy formula |
-| `v34.html` | v34: Finals MVP chip light gold | rookie awards in the timeline |
 | `v35.html` | v35: rookie awards in the timeline | All-NBA tiers one blue |
 | `v36.html` | v36: All-NBA tiers one blue | Finals rivalries and Started Here on team pages |
 | `v37.html` | v37: Finals rivalries and Started Here | folding cards, best/worst merged, home trimmed |
@@ -20,6 +19,7 @@ they are still in the git history if ever needed.
 | `v41.html` | v41: All-NBA check skips seasons not in the sheet | sort direction on phones, filters on every player list |
 | `v42.html` | v42: sort direction on phones, filters on player lists | High/Low fix, same filters and sort options on every player list, team sort direction |
 | `v43.html` | v43: High/Low fix, shared filters, team sort direction | Stat Leaders split into one table per stat |
+| `v44.html` | v44: Stat Leaders one table per stat | award winners' teams from NBA History logos |
 
 Online: https://hong111o.github.io/2k17universe/versions/v20.html and .../versions/v22.html
 

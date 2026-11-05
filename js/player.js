@@ -340,7 +340,7 @@ function renderAwards() {
     list = everyPlayer().filter(p => /^o$/i.test(String(p.ROTY || '').trim())).map(p => ({ yr: careerSpan(p.Season)?.[0], name: p.Player, key: p.Player }))
       .filter(x => x.yr).sort((a, b) => a.yr - b.yr);
   } else {
-    list = DB.history.filter(h => h[awardTab] && h[awardTab] !== '-').map(h => ({ yr: Number(h.Season), name: h[awardTab], key: playerKey(h[awardTab], h.Season) }))
+    list = DB.history.filter(h => h[awardTab] && h[awardTab] !== '-').map(h => ({ yr: Number(h.Season), name: h[awardTab], key: playerKey(h[awardTab], h.Season), team: h[awardTab + 'Team'] }))
       .filter(x => !isNaN(x.yr)).sort((a, b) => a.yr - b.yr);
   }
   const counts = {}, nth = list.map(x => (counts[x.key] = (counts[x.key] || 0) + 1));
@@ -349,8 +349,10 @@ function renderAwards() {
   const rows = list.map((x, i) => ({ ...x, nth: nth[i] })).reverse().map(x => {
     const p = resolvePlayer(x.name, x.yr), extras = [];
     if (awardTab === 'MVP') { const h = DB.history.find(z => Number(z.Season) === x.yr); if (h && samePlayer(h.FMVP, x.name, x.yr)) extras.push('also Finals MVP'); if (h && samePlayer(h.DPOY, x.name, x.yr)) extras.push('also DPOY'); }
-    if (awardTab === 'FMVP' && champOf(x.yr)) extras.push(`with ${teamLink(champOf(x.yr))}`);
+    if (awardTab === 'FMVP' && !x.team && champOf(x.yr)) extras.push(`with ${teamLink(champOf(x.yr))}`);
+    const team = x.team || (awardTab === 'FMVP' ? champOf(x.yr) : null);
     return `<tr><td class="stick-1">${seasonLink(x.yr)}</td><td>${nameLink(x.name, { season: x.yr })} ${p ? posBadge(p.Position) : ''}</td>
+      ${awardTab === 'ROY' ? '' : `<td class="nowrap">${team ? teamLink(team, teamCode(team)) : '<span class="muted">—</span>'}</td>`}
       <td class="num">${x.nth > 1 ? `<b>${ordinal(x.nth)}</b>` : '1st'}</td><td class="muted">${extras.join(' · ')}</td></tr>`;
   }).join('');
   const most = withRanks(Object.entries(counts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).filter(([, c]) => c >= 2).slice(0, 15), ([, c]) => c);
@@ -359,8 +361,16 @@ function renderAwards() {
     ? `${list.length} Rookies of the Year from All Players and Current Player · shown in each player's first season, since the year isn't recorded`
     : `${list.length} ${label} winners from NBA History${span ? ', ' + span : ''}`;
   document.getElementById('awardsContent').innerHTML = `<div class="player-grid">
-    <div><div class="table-wrap"><table><thead><tr><th class="stick-1">Season</th><th>${label}</th><th class="num">Career #</th><th>Notes</th></tr></thead><tbody>${rows || '<tr><td colspan="4" class="muted">No winners recorded.</td></tr>'}</tbody></table></div></div>
-    <div>${most.length ? `<div class="chart-card rb-card"><div class="chart-title">${icon('trophy', 'ic-champ')} Most ${label}${awardTab === 'ROY' ? '' : 's'}</div>
+    <div><div class="table-wrap"><table><thead><tr><th class="stick-1">Season</th><th>${label}</th>${awardTab === 'ROY' ? '' : '<th>Team</th>'}<th class="num">Career #</th><th>Notes</th></tr></thead><tbody>${rows || '<tr><td colspan="4" class="muted">No winners recorded.</td></tr>'}</tbody></table></div></div>
+    <div>${(() => {
+      // Which franchises its winners played for (from the logos beside each name in NBA History)
+      if (awardTab === 'ROY') return '';
+      const byTeam = {};
+      list.forEach(x => { const t = x.team || (awardTab === 'FMVP' ? champOf(x.yr) : null); if (t) byTeam[t] = (byTeam[t] || 0) + 1; });
+      const rows2 = withRanks(Object.entries(byTeam).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 10), ([, c]) => c);
+      return rows2.length ? `<div class="chart-card rb-card"><div class="chart-title">${icon('people')} ${label}s by Team</div>
+        ${rows2.map(r => `<div class="rb-row"><span class="rb-rank">${r.rank}</span><span class="rb-main">${teamLink(r[0])}</span><span class="rb-val">${r[1]}</span></div>`).join('')}</div>` : '';
+    })()}${most.length ? `<div class="chart-card rb-card"><div class="chart-title">${icon('trophy', 'ic-champ')} Most ${label}${awardTab === 'ROY' ? '' : 's'}</div>
       ${most.map(m => `<div class="rb-row"><span class="rb-rank">${m.rank}</span><span class="rb-main">${nameLink(m[0])}</span><span class="rb-val">${m[1]}</span></div>`).join('')}</div>` : ''}</div>
   </div>`;
 }

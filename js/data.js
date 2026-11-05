@@ -211,9 +211,9 @@ const LOGO_SLOTS = {
   '4,18': 'Sacramento Kings', '4,21': 'San Antonio Spurs', '4,24': 'Toronto Raptors', '4,27': 'Utah Jazz', '4,30': 'Washington Wizards',
   '6,3': 'Kansas City Knights', '6,6': 'San Diego Surf', '6,9': 'Vancouver Ravens', '6,12': 'Cincinnati Lions',
 };
-let logoUrls = [];
+let logoUrls = [], logoMediaTeam = {};
 function readTeamLogos(wb) {
-  logoUrls.forEach(u => URL.revokeObjectURL(u)); logoUrls = [];
+  logoUrls.forEach(u => URL.revokeObjectURL(u)); logoUrls = []; logoMediaTeam = {};
   const logos = {};
   try {
     const files = wb.files || {}, dec = new TextDecoder();
@@ -257,6 +257,7 @@ function readTeamLogos(wb) {
       const c = Number(from[1]), r = Number(from[2]), toC = to ? Number(to[1]) : c, toR = to ? Number(to[2]) : r;
       const team = labelAt(c, r, toC, toR) || LOGO_SLOTS[c + ',' + r];
       const path = media[emb[1]], bytes = path && raw(path);
+      if (team && path && !logoMediaTeam[path]) logoMediaTeam[path] = team;   // other sheets reuse these image files
       if (!team || !bytes || logos[team]) return;
       const ext = (path.split('.').pop() || '').toLowerCase();
       const type = { png: 'image/png', gif: 'image/gif', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', svg: 'image/svg+xml' }[ext] || 'image/png';
@@ -273,6 +274,44 @@ function readTeamLogos(wb) {
   } catch (err) { console.warn('Could not read team logos:', err); }
   return logos;
 }
+// NBA History has a small team logo beside each MVP, Finals MVP and DPOY (columns B, E and G).
+// Those pictures reuse the NBA Logo sheet's image files, so each one tells us the winner's team.
+function readAwardTeams(wb) {
+  const out = {};
+  try {
+    const files = wb.files || {}, dec = new TextDecoder();
+    const text = k => { const f = files[k] || files['/' + k], c = f && f.content; return !c ? '' : typeof c === 'string' ? c : dec.decode(c); };
+    const attr = (tag, name) => { const m = tag.match(new RegExp('\\b' + name + '="([^"]*)"')); return m ? m[1] : null; };
+    const resolve = (dir, target) => { if (!target) return ''; if (target.startsWith('/')) return target.slice(1);
+      const out2 = []; (dir + target).split('/').forEach(p => { if (p === '..') out2.pop(); else if (p && p !== '.') out2.push(p); }); return out2.join('/'); };
+    const relsOf = path => { const o = {}, dir = path.replace(/[^/]*$/, ''), base = path.slice(dir.length);
+      (text(dir + '_rels/' + base + '.rels').match(/<Relationship\b[^>]*>/g) || []).forEach(r => { o[attr(r, 'Id')] = resolve(dir, attr(r, 'Target')); }); return o; };
+    const sh = (text('xl/workbook.xml').match(/<sheet\b[^>]*>/g) || []).find(t => (attr(t, 'name') || '').replace(/&amp;/g, '&') === 'NBA History');
+    const sheetPath = sh && relsOf('xl/workbook.xml')[attr(sh, 'r:id')];
+    const drawingPath = sheetPath && Object.values(relsOf(sheetPath)).find(t => /drawings\/[^/]+\.xml$/.test(t));
+    if (!drawingPath || !DB.historyCols) return out;
+    const media = relsOf(drawingPath), cols = DB.historyCols;
+    const byRow = new Map(DB.history.map(h => [h._row, h]));
+    (text(drawingPath).match(/<xdr:(?:twoCellAnchor|oneCellAnchor)\b[\s\S]*?<\/xdr:(?:twoCellAnchor|oneCellAnchor)>/g) || []).forEach(a => {
+      const from = a.match(/<xdr:from>[\s\S]*?<xdr:col>(\d+)<\/xdr:col>[\s\S]*?<xdr:row>(\d+)<\/xdr:row>/), emb = a.match(/r:embed="([^"]+)"/);
+      if (!from || !emb) return;
+      const c = Number(from[1]), h = byRow.get(Number(from[2]) + 1), team = logoMediaTeam[media[emb[1]]];
+      if (!h || !team) return;
+      // The logo belongs to the award column right beside it
+      const kind = Object.entries(cols).map(([k, col]) => [k, Math.abs(col - c)]).sort((x, y) => x[1] - y[1])[0];
+      if (kind && kind[1] <= 1) h[kind[0] + 'Team'] = team;
+    });
+  } catch (err) { console.warn('Could not read award teams:', err); }
+  // A logo picture that isn't on the NBA Logo sheet can't be recognised; a one-team career still tells us
+  (DB.history || []).forEach(h => ['MVP', 'FMVP', 'DPOY'].forEach(k => {
+    if (!h[k] || h[k] === '-' || h[k + 'Team']) return;
+    const p = resolvePlayer(h[k], h.Season), teams = p ? [...new Set(playerTeams(p))] : [];
+    if (teams.length === 1) h[k + 'Team'] = teams[0];
+  }));
+  return out;
+}
+// Short code for a full team name (Washington Wizards -> WAS), for compact tables
+function teamCode(full) { return Object.keys(TEAM_NAMES).find(k => TEAM_NAMES[k] === full && k.length === 3) || Object.keys(TEAM_NAMES).find(k => TEAM_NAMES[k] === full) || full; }
 // The sheet's logos are up to ~900px; drawing them once at 160px keeps memory low on phones
 async function shrinkLogos(size = 160) {
   if (!DB.logos || typeof createImageBitmap !== 'function') return;
@@ -332,6 +371,7 @@ const TEAM_RECORD_COLS = [['Rank', 0], ['Team', 1], ['Conference', 2], ['Champio
   ['Glory Score', 7], ['Last Title', 8], ['Last Finals', 9], ['Last Playoffs', 10], ['Est. Date', 11], ['Avg. W Last 5Y', 12], ['Avg. W Last 10Y', 13]];
 function parseWorkbook(wb) {
   layoutWarnings = [];
+  DB.historyCols = null;
   setProgress('Loading All Players...');
   const apSheet = wb.Sheets['All Players'] ? 'All Players' : wb.SheetNames[0];
   DB.allPlayers = rowsToObjects(sheetToArr(wb.Sheets[apSheet]));
@@ -368,6 +408,7 @@ function parseWorkbook(wb) {
         Season: r[cSeason], MVP: r[cMVP], FMVP: r[cFMVP], Finals: r[cFinals], DPOY: r[cDPOY],
         Star1: r[starCols[0]], Star2: r[starCols[1]], Star3: r[starCols[2]]
       }));
+    DB.historyCols = { MVP: cMVP, FMVP: cFMVP, DPOY: cDPOY };
   }
 
   setProgress('Loading Teams...');
@@ -408,6 +449,7 @@ function parseWorkbook(wb) {
 
   setProgress('Loading team logos...');
   DB.logos = readTeamLogos(wb);
+  readAwardTeams(wb);
 
   setProgress('Loading Stat Leaders...');
   if (wb.Sheets['Season Stat Leader']) {

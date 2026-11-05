@@ -114,9 +114,10 @@ function renderHistory() {
   const slice = sorted.slice((page-1)*perPage, page*perPage);
   document.getElementById('histBody').innerHTML = slice.map(h => {
     const champAbbr = extractChampTeam(h.Finals||'');
-    const histName = name => (!name || name === '-')
+    // Winner's name, with the team logo from the NBA History sheet in front of it
+    const histName = (name, team) => (!name || name === '-')
       ? '<td class="muted">—</td>'
-      : `<td>${nameLink(name, {season: h.Season})}</td>`;
+      : `<td class="nowrap">${team ? teamLogo(team) : ''}${nameLink(name, {season: h.Season})}</td>`;
     // "Name (97)" -> linked name plus its rating
     const starCell = name => {
       if (!name) return '<td class="muted">—</td>';
@@ -128,9 +129,9 @@ function renderHistory() {
       <td class="stick-1">${seasonLink(h.Season, seasonLabel(h.Season))}</td>
       <td><span class="hist-champion">${champAbbr ? icon('trophy','ic-champ') + ' ' + teamLink(champAbbr, fullTeamName(champAbbr)) : '—'}</span></td>
       <td class="muted">${h.Finals||'—'}</td>
-      ${histName(h.FMVP)}
-      ${histName(h.MVP)}
-      ${histName(h.DPOY)}
+      ${histName(h.FMVP, h.FMVPTeam)}
+      ${histName(h.MVP, h.MVPTeam)}
+      ${histName(h.DPOY, h.DPOYTeam)}
       ${starCell(h.Star1)}${starCell(h.Star2)}${starCell(h.Star3)}
     </tr>`;
   }).join('');
@@ -197,9 +198,9 @@ function renderHome() {
       <div class="hero-sub">${ru ? `Beat ${teamLink(ru)} ${score} in the Finals` : ''}${champRow ? ` · ${champRow.w}-${champRow.l} regular season` : ''} · ${seasonLink(yr, 'Season recap')}</div>
     </div>
     <div class="hero-awards">
-      <div class="hero-award"><div class="ha-label">Finals MVP</div><div class="ha-name">${award(h.FMVP)}</div></div>
-      <div class="hero-award"><div class="ha-label">MVP</div><div class="ha-name">${award(h.MVP)}</div></div>
-      <div class="hero-award"><div class="ha-label">DPOY</div><div class="ha-name">${award(h.DPOY)}</div></div>
+      <div class="hero-award"><div class="ha-label">Finals MVP</div><div class="ha-name">${h.FMVPTeam ? teamLogo(h.FMVPTeam) : ''}${award(h.FMVP)}</div></div>
+      <div class="hero-award"><div class="ha-label">MVP</div><div class="ha-name">${h.MVPTeam ? teamLogo(h.MVPTeam) : ''}${award(h.MVP)}</div></div>
+      <div class="hero-award"><div class="ha-label">DPOY</div><div class="ha-name">${h.DPOYTeam ? teamLogo(h.DPOYTeam) : ''}${award(h.DPOY)}</div></div>
       ${best ? `<div class="hero-award"><div class="ha-label">Best Record</div><div class="ha-name">${teamLink(best.team)} <span class="nowrap">${best.w}-${best.l}</span></div></div>` : ''}
     </div>
   </section>`);
@@ -424,9 +425,9 @@ function renderSeason() {
   sections.push(`<div class="stats-cards sh-awards">
     ${tile(icon('trophy','ic-champ') + ' Champion', champ ? teamLink(champ) : '<span class="muted">—</span>',
       ru ? `beat ${teamLink(ru)} ${finalsScore}${champRow ? ` · ${champRow.w}-${champRow.l} season` : ''}` : '')}
-    ${tile('Finals MVP', award(h?.FMVP))}
-    ${tile('MVP', award(h?.MVP))}
-    ${tile('DPOY', award(h?.DPOY))}
+    ${tile('Finals MVP', award(h?.FMVP), h?.FMVPTeam ? teamLink(h.FMVPTeam) : '')}
+    ${tile('MVP', award(h?.MVP), h?.MVPTeam ? teamLink(h.MVPTeam) : '')}
+    ${tile('DPOY', award(h?.DPOY), h?.DPOYTeam ? teamLink(h.DPOYTeam) : '')}
     ${best ? tile('Best Record', teamLink(best.team), `${best.w}-${best.l}`) : ''}
   </div>`);
 
