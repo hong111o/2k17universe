@@ -206,10 +206,21 @@ function playerCard(row, rank, mode, active) {
   </div>`;
 }
 // Phone "Sort by" picker: same sort state the table headers use
+// Phone sort menus: the column comes from the menu, the direction from the ↓/↑ button next to it
+const mSortDir = { players: -1, top20: -1, pos: -1, cur: -1 };
+function flipSortDir(key) {
+  mSortDir[key] = -mSortDir[key];
+  const btn = document.getElementById(key + 'SortDir');
+  if (btn) btn.textContent = mSortDir[key] < 0 ? '↓ High first' : '↑ Low first';
+  const sel = btn?.parentElement.querySelector('select.m-sort');
+  mobileSort(key, sel ? sel.value : '');
+}
 function mobileSort(key, col) {
   if (!col) delete sortStates[key];
-  else sortStates[key] = { col, dir: -1 };
-  if (key === 'top20' && !col) sortStates.top20 = { col: 'Rank', dir: 1 };
+  else sortStates[key] = { col, dir: mSortDir[key] };
+  if (key === 'top20' && !col) sortStates.top20 = { col: 'Rank', dir: -mSortDir[key] };
+  if (key === 'pos' && !col && mSortDir[key] > 0) sortStates.pos = { col: 'Rank', dir: -1 };
+  if (key === 'cur' && !col && mSortDir[key] > 0) sortStates.cur = { col: 'Season', dir: -1 };
   if (key === 'cur') { curState.page = 1; renderCurrent(); return; }
   ({ players: playersState, top20: top20State, pos: posState })[key].page = 1;
   TABLE_RENDERERS[key]();

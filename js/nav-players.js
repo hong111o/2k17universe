@@ -49,7 +49,7 @@ function setupToolbarToggles() {
     btn.className = 'icon-btn tb-toggle'; btn.type = 'button';
     btn.setAttribute('aria-expanded', 'false');
     const count = () => controls.filter(c => (c.tagName === 'SELECT' && !c.classList.contains('m-sort') && c.selectedIndex > 0) || (c.matches('label.check') && c.querySelector('input').checked)).length;
-    const label = () => { const n = count(); btn.innerHTML = `Filters${n ? ` <span class="tb-badge">${n}</span>` : ''}`; };
+    const label = () => { const n = count(); btn.innerHTML = `${tb.querySelector('select.m-sort') ? 'Filter &amp; Sort' : 'Filters'}${n ? ` <span class="tb-badge">${n}</span>` : ''}`; };
     btn.onclick = () => { const open = tb.classList.toggle('open'); btn.setAttribute('aria-expanded', String(open)); };
     tb.addEventListener('change', label);
     label();
@@ -154,21 +154,44 @@ function buildRecordTabs(prefix, categories, labels, colors) {
 // ALL PLAYERS
 // =====================================================================
 let playersState = { filtered: [], page: 1, perPage: 30 };
-// Fill the All Players filter menus from the workbook (teams, decades, draft years)
-function populatePlayerFilters() {
-  const fill = (id, opts) => { const el = document.getElementById(id); const keep = el.value; el.innerHTML = el.options[0].outerHTML + opts.map(([v, l]) => `<option value="${v}">${l}</option>`).join(''); el.value = opts.some(([v]) => String(v) === keep) ? keep : ''; };
-  const teams = [...new Set(DB.allPlayers.flatMap(playerTeams))].filter(t => DB.teams.some(x => x.Team === t)).sort();
-  fill('playerTeamFilter', teams.map(t => [t, t]));
-  const decades = new Set();
-  DB.allPlayers.forEach(p => { const sp = careerSpan(p.Season); if (!sp) return; for (let d = Math.floor((sp[0] - 1) / 10) * 10; d <= Math.min(sp[1], 3000) - 1; d += 10) decades.add(d); });
-  fill('playerDecadeFilter', [...decades].sort((a, b) => b - a).map(d => [d, `${d}s`]));
-  const drafts = new Set(); let undrafted = false;
-  DB.allPlayers.forEach(p => { const d = draftInfo(p); if (!d) return; if (d.kind === 'undrafted') undrafted = true; else if (d.year) drafts.add(d.year); });
-  fill('playerDraftFilter', [...[...drafts].sort((a, b) => b - a).map(y => [y, `${y} draft`]), ...(undrafted ? [['undrafted', 'Undrafted']] : [])]);
+// The same four filters (team, decade, draft, honors) on every player list. All Players has them in
+// its HTML; Top 20, By Position and Active Players get copies here, with ids prefixed by the list.
+const FILTER_LISTS = { player: 'filterPlayers', top20: 'filterTop20', pos: 'filterPos', cur: 'filterCurrent' };
+function addFilterMenus() {
+  const proto = ['Team', 'Decade', 'Draft', 'Honor'].map(k => document.getElementById('player' + k + 'Filter'));
+  Object.entries(FILTER_LISTS).forEach(([prefix, fn]) => {
+    if (prefix === 'player' || document.getElementById(prefix + 'TeamFilter')) return;
+    const tb = document.querySelector(`#sec-${{ top20: 'top20', pos: 'bypos', cur: 'current' }[prefix]} .toolbar`);
+    const anchor = tb.querySelector('.search-wrap ~ select:not(.m-sort)') || tb.querySelector('.search-wrap');
+    let after = anchor;
+    proto.forEach(src => {
+      const el = src.cloneNode(true);
+      el.id = src.id.replace(/^player/, prefix); el.setAttribute('onchange', fn + '()'); el.value = '';
+      after.after(el); after = el;
+    });
+  });
 }
-function playerMatchesFilters(p) {
-  const team = document.getElementById('playerTeamFilter')?.value, dec = document.getElementById('playerDecadeFilter')?.value;
-  const draft = document.getElementById('playerDraftFilter')?.value, honor = document.getElementById('playerHonorFilter')?.value;
+function populatePlayerFilters() {
+  addFilterMenus();
+  const fill = (id, opts) => { const el = document.getElementById(id); const keep = el.value; el.innerHTML = el.options[0].outerHTML + opts.map(([v, l]) => `<option value="${v}">${l}</option>`).join(''); el.value = opts.some(([v]) => String(v) === keep) ? keep : ''; };
+  const everyone = everyPlayer();
+  const teamsAll = [...new Set(everyone.flatMap(playerTeams))].filter(t => DB.teams.some(x => x.Team === t)).sort();
+  const fillAll = (k, opts) => Object.keys(FILTER_LISTS).forEach(pf => fill(pf + k + 'Filter', opts));
+  fillAll('Team', teamsAll.map(t => [t, t]));
+  const decades = new Set();
+  everyone.forEach(p => { const sp = careerSpan(p.Season); if (!sp) return; for (let d = Math.floor((sp[0] - 1) / 10) * 10; d <= Math.min(sp[1], DB.latestSeason || 3000) - 1; d += 10) decades.add(d); });
+  fillAll('Decade', [...decades].sort((a, b) => b - a).map(d => [d, `${d}s`]));
+  const drafts = new Set(); let undrafted = false;
+  everyone.forEach(p => { const d = draftInfo(p); if (!d) return; if (d.kind === 'undrafted') undrafted = true; else if (d.year) drafts.add(d.year); });
+  fillAll('Draft', [...[...drafts].sort((a, b) => b - a).map(y => [y, `${y} draft`]), ...(undrafted ? [['undrafted', 'Undrafted']] : [])]);
+}
+// prefix picks the list's menus ('player', 'top20', 'pos', 'cur'). Rows from the Top 20 and
+// position sheets are matched to the player's full row so teams, draft and honors are known.
+function playerMatchesFilters(row, prefix = 'player') {
+  const v = k => document.getElementById(prefix + k + 'Filter')?.value;
+  const team = v('Team'), dec = v('Decade'), draft = v('Draft'), honor = v('Honor');
+  if (!team && !dec && !draft && !honor) return true;
+  const p = (prefix === 'top20' || prefix === 'pos') ? (resolvePlayer(row.Player) || row) : row;
   if (team && !playerTeams(p).includes(team)) return false;
   if (dec) { const sp = careerSpan(p.Season), d = Number(dec); if (!sp || sp[0] - 1 > d + 9 || sp[1] - 1 < d) return false; }
   if (draft) { const d = draftInfo(p); if (!d || (draft === 'undrafted' ? d.kind !== 'undrafted' : d.year !== Number(draft))) return false; }
@@ -214,7 +237,7 @@ function goPlayersPage(p) { playersState.page = p; renderPlayers(); }
 let top20State = { filtered: [], page: 1, perPage: 20 };
 function filterTop20() {
   const q = document.getElementById('top20Search').value.toLowerCase();
-  top20State.filtered = DB.top20.filter(p => !q || String(p.Player||'').toLowerCase().includes(q));
+  top20State.filtered = DB.top20.filter(p => (!q || String(p.Player||'').toLowerCase().includes(q)) && playerMatchesFilters(p, 'top20'));
   top20State.page = 1;
   document.getElementById('top20Count').textContent = top20State.filtered.length + ' players';
   renderTop20();
@@ -256,7 +279,7 @@ function switchPos(pos) {
 function filterPos() {
   const q = document.getElementById('posSearch').value.toLowerCase();
   posState.filtered = (DB.positions[posState.cur]||[]).filter(p =>
-    !q || String(p.Player||'').toLowerCase().includes(q));
+    (!q || String(p.Player||'').toLowerCase().includes(q)) && playerMatchesFilters(p, 'pos'));
   posState.page = 1;
   renderPos();
 }

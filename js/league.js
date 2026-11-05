@@ -680,7 +680,7 @@ function filterCurrent() {
   const pos = document.getElementById('curPosFilter').value;
   curState.filtered = DB.currentPlayers.filter(p =>
     (!q || String(p.Player||'').toLowerCase().includes(q)) &&
-    (!pos || p.Position === pos));
+    (!pos || p.Position === pos) && playerMatchesFilters(p, 'cur'));
   curState.page = 1;
   document.getElementById('curCount').textContent = curState.filtered.length + ' players';
   // Set subtitle with season
