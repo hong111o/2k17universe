@@ -71,14 +71,19 @@ function runDataCheck() {
     const headers = isActive(p) ? DB.currentPlayers.headers : H, sheet = isActive(p) ? 'Current Player' : 'All Players';
     ['MVP','FMVP','DPOY'].forEach(k => { const have = num(p, k) || 0, hist = histCount[k + '|' + p.Player] || 0;
       if (have !== hist) add('error', sheet, cellOf(p, k, headers), `${p.Player}: ${k} is ${have}, but NBA History lists ${hist}.`); }); });
-  // 6. All-NBA counts vs the All NBA Team sheet, for careers it fully covers
+  // 6. All-NBA counts vs the All NBA Team sheet. The sheet can have gaps (seasons never
+  //    entered), so counts must match only when every season of the career is in the sheet;
+  //    otherwise the sheet can only be wrong if it lists MORE selections than the player has.
   if (DB.allNbaSeasons.length) {
-    const firstAN = Math.min(...DB.allNbaSeasons.map(x => Number(x.season))), cnt = {};
+    const covered = new Set(DB.allNbaSeasons.filter(s => s.teams.some(t => t.slots.length)).map(s => Number(s.season))), cnt = {};
     DB.allNbaSeasons.forEach(s => s.teams.forEach(t => t.slots.forEach(sl => { const p = resolvePlayer(sl.player, s.season); if (p) cnt[t.team + '|' + p.Player] = (cnt[t.team + '|' + p.Player] || 0) + 1; })));
-    everyPlayer().forEach(p => { const span = careerSpan(p.Season); if (!span || span[0] < firstAN) return;
+    const lastSeason = DB.latestSeason || Math.max(...covered);
+    everyPlayer().forEach(p => { const span = careerSpan(p.Season); if (!span) return;
+      let full = true;
+      for (let y = span[0]; y <= Math.min(span[1], lastSeason); y++) if (!covered.has(y)) { full = false; break; }
       const headers = isActive(p) ? DB.currentPlayers.headers : H, sheet = isActive(p) ? 'Current Player' : 'All Players';
       [[1,'1st Team'],[2,'2nd Team'],[3,'3rd Team']].forEach(([n, k]) => { const have = num(p, k) || 0, got = cnt[n + '|' + p.Player] || 0;
-        if (have !== got) add('error', sheet, cellOf(p, k, headers), `${p.Player}: ${k} All-NBA is ${have}, but the All NBA Team sheet lists ${got}.`); }); });
+        if (full ? have !== got : got > have) add('error', sheet, cellOf(p, k, headers), `${p.Player}: ${k} All-NBA is ${have}, but the All NBA Team sheet lists ${got}${full ? '' : ' (more than the player has, even though some of their seasons are missing from that sheet)'}.`); }); });
   }
   // 7. Names that only match a player approximately
   const seen = new Set();
