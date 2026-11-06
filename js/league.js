@@ -135,6 +135,19 @@ function renderHistory() {
       ${starCell(h.Star1)}${starCell(h.Star2)}${starCell(h.Star3)}
     </tr>`;
   }).join('');
+  // Phones: one card per season instead of the nine-column table
+  const nm = (name, h) => String(name).replace(/\s*\(\d+\)\s*$/, '').trim();
+  document.getElementById('histCards').innerHTML = slice.map(h => {
+    const champAbbr = extractChampTeam(h.Finals || ''), { ru } = finalsTeams(h.Season);
+    const award = (label, name, team) => name && name !== '-' ? `<div class="hc-award"><span>${label}</span><b>${team ? teamLogo(team) : ''}${nameLink(name, { season: h.Season })}</b></div>` : '';
+    const stars = [h.Star1, h.Star2, h.Star3].filter(Boolean).map(s => { const r = String(s).match(/\((\d+)\)$/)?.[1]; return `${nameLink(nm(s), { season: h.Season })}${r ? ` <span class="muted">${r}</span>` : ''}`; });
+    return `<div class="hcard">
+      <div class="hc-top"><span class="hc-season">${seasonLink(h.Season)}</span><span class="hc-score">${h.Finals || ''}</span></div>
+      <div class="hc-champ">${champAbbr ? `${icon('trophy', 'ic-champ')} ${teamLink(champAbbr, fullTeamName(champAbbr))}${ru ? ` <span class="muted nowrap">over ${teamLink(ru, teamCode(ru))}</span>` : ''}` : '<span class="muted">Champion not recorded</span>'}</div>
+      <div class="hc-awards">${award('Finals MVP', h.FMVP, h.FMVPTeam)}${award('MVP', h.MVP, h.MVPTeam)}${award('DPOY', h.DPOY, h.DPOYTeam)}</div>
+      ${stars.length ? `<div class="hc-stars"><span>Champion stars</span> ${stars.join(' · ')}</div>` : ''}
+    </div>`;
+  }).join('');
   renderPag('histPag', filtered.length, perPage, page, 'goHistPage');
 }
 function goHistPage(p) { histState.page = p; renderHistory(); }

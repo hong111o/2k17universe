@@ -687,3 +687,16 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
 /* Grid columns must be allowed to shrink, or a wide table pushes the whole page sideways */
 .player-grid > div{min-width:0;}
 @media (max-width:400px){ .stat-table td,.stat-table th{padding-left:6px;padding-right:6px;font-size:13px;} }
+/* League History cards (phones) */
+.hcard{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;box-shadow:var(--shadow);}
+.hc-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
+.hc-season{font-family:var(--font-display);font-weight:800;font-size:20px;}
+.hc-score{font-size:13px;color:var(--ink-3);font-variant-numeric:tabular-nums;}
+.hc-champ{font-weight:700;font-size:15px;margin:4px 0 10px;}
+.hc-champ .muted{font-weight:500;font-size:13px;}
+.hc-awards{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:14px;}
+.hc-award{display:contents;}
+.hc-award span{color:var(--ink-3);font-size:12px;font-weight:600;align-self:center;}
+.hc-award b{font-weight:600;min-width:0;}
+.hc-stars{margin-top:10px;padding-top:8px;border-top:1px solid var(--line);font-size:13px;line-height:1.6;}
+.hc-stars > span:first-child{color:var(--ink-3);font-size:12px;font-weight:600;margin-right:4px;}

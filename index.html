@@ -271,7 +271,7 @@
     <button class="sub-tab active" onclick="switchHistView('history')">League History</button>
     <button class="sub-tab" onclick="switchHistView('standings')">Season Standings</button>
   </div>
-  <div id="historyView">
+  <div id="historyView" class="has-cards">
     <div class="toolbar">
       <div class="search-wrap"><span class="icon"><svg class="ic"><use href="#i-search"/></svg></span><input type="text" id="histSearch" placeholder="Search season, player, team..." oninput="filterHistory()"></div>
     </div>
@@ -286,6 +286,7 @@
       </tr></thead>
       <tbody id="histBody"></tbody>
     </table></div>
+    <div class="pcards hist-cards" id="histCards"></div>
     <div class="pagination" id="histPag"></div>
   </div>
   <div id="standingsView" style="display:none;">
