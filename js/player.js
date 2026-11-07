@@ -184,6 +184,18 @@ function renderPlayerPage() {
 
   // Team journey
   const teams = playerTeams(p), retired = retiredFor(p);
+  // Years with each team: from the Retired # tab when it lists this player there (two spells
+  // with one team are split between the two stops), or the whole career for a one-team career
+  const oneTeam = new Set(teams).size === 1;
+  const stintYears = (t, i) => {
+    const row = (DB.retiredList || []).find(r => r.years && r.type === 'Player' && teamByCode(r.code)?.Team === t && resolvePlayer(r.who) === p);
+    if (row) {
+      const parts2 = row.years.split(/\s*,\s*/), nth = teams.slice(0, i).filter(x => x === t).length, count = teams.filter(x => x === t).length;
+      return count > 1 && parts2.length === count ? parts2[nth] : row.years;
+    }
+    if (oneTeam && span) return `${span[0] - 1}–${span[1] === Infinity ? 'present' : span[1]}`;
+    return '';
+  };
   if (teams.length) parts.push(`<div class="chart-card"><div class="chart-title">${icon('jersey')} Team Journey</div>
     <div class="journey">${teams.map((t, i) => {
       const red = p._titleStints, ret = retired.filter(r => r.team === t);
@@ -192,6 +204,7 @@ function renderPlayerPage() {
       const titles = red && !red[i] ? 0 : titlesWithTeam(p, t), label = twice ? 'Title' : `${titles} title${titles > 1 ? 's' : ''}`;
       return `${i ? '<span class="journey-arrow" aria-hidden="true">→</span>' : ''}<div class="journey-stop">
         <span class="journey-n">${i + 1}</span>${teamLink(t, t)}
+        ${stintYears(t, i) ? `<span class="journey-years">${stintYears(t, i)}</span>` : ''}
         <span class="journey-tags">${titles ? `<em class="tag-gold">${icon('trophy')} ${label}</em>` : ''}${ret.map(r => `<em class="tag-ret">#${r.num} retired</em>`).join('')}</span></div>`;
     }).join('')}</div></div>`);
 

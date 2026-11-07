@@ -164,6 +164,7 @@ function renderTeamPage() {
   main.push(`<div class="chart-card">${legendsHtml(t.Team)}</div>`);
   if (seasonInfo.length >= 2) main.push(`<div class="chart-card"><div class="chart-title">${icon('line')} Wins per Season</div>
     <div class="wc-key"><span><i class="wc-dot champ"></i>Champion</span><span><i class="wc-dot silver"></i>Lost Finals</span><span><i class="wc-rule"></i>.500 (41 wins)</span></div>
+    <div class="seg wc-range" id="winRange"></div>
     <div class="win-chart" id="winChart"></div></div>`);
   if (seasonInfo.length) main.push(`<div class="chart-card"><div class="chart-title">${icon('calendar')} Season by Season</div>
     <div class="season-scroll"><table class="standings-table">
@@ -318,10 +319,30 @@ function teamsOfDecades() {
 // Finals losses; hover or arrow keys show that season's details.
 // =====================================================================
 let winChartData = null;
+// A long history is shown 20 seasons at a time (newest first by default), or all at once
+function winChartWindows(all) {
+  if (!all.length) return [];
+  // Blocks line up on decades (1960-79, 1980-99, 2000-19...), newest first
+  const first = all[0].yr, last = all[all.length - 1].yr, out = [];
+  for (let from = Math.floor(last / 20) * 20; from + 19 >= first; from -= 20) { const to = from + 19; if (all.some(s => s.yr >= from && s.yr <= to)) out.push({ from, to }); }
+  return out;
+}
+function setWinRange(i) { winChartData.range = i; renderWinChart(); }
 function renderWinChart() {
   const el = document.getElementById('winChart');
   if (!el || !winChartData) return;
-  const data = winChartData.seasons, conf = winChartData.team.Conference;
+  const all = winChartData.seasons, conf = winChartData.team.Conference;
+  const wins = winChartWindows(all), span = all.length ? all[all.length - 1].yr - all[0].yr : 0;
+  const rangeEl = document.getElementById('winRange');
+  if (winChartData.range === undefined) winChartData.range = span > 30 ? 0 : -1;   // -1 = all seasons
+  if (rangeEl) {
+    rangeEl.hidden = span <= 30;
+    rangeEl.innerHTML = wins.map((w, i) => `<button class="${winChartData.range === i ? 'active' : ''}" onclick="setWinRange(${i})">${w.from}–${String(w.to).slice(-2)}</button>`).reverse().join('')
+      + `<button class="${winChartData.range === -1 ? 'active' : ''}" onclick="setWinRange(-1)">All</button>`;
+  }
+  const win = wins[winChartData.range];
+  const data = win ? all.filter(s => s.yr >= win.from && s.yr <= win.to) : all;
+  if (!data.length) { el.innerHTML = ''; return; }
   const W = Math.max(el.clientWidth, 280), H = 210;
   const m = { l: 30, r: 48, t: 12, b: 24 };
   const pw = W - m.l - m.r, ph = H - m.t - m.b;
@@ -334,7 +355,8 @@ function renderWinChart() {
   let svg = [0, 20, 41, 60, 80].map(v =>
     `<line x1="${m.l}" x2="${m.l+pw}" y1="${y(v)}" y2="${y(v)}" class="${v === 41 ? 'wc-ref' : 'wc-grid'}"/>` +
     `<text x="${m.l-6}" y="${y(v)+4}" class="wc-tick" text-anchor="end">${v}</text>`).join('');
-  const step = (y1 - y0) > 30 ? 10 : 5;
+  // As many year labels as fit (about one per 46px)
+  const fit = Math.max(2, Math.floor(pw / 46)), step = [1, 2, 5, 10, 20, 25, 50].find(s => (y1 - y0) / s <= fit) || 50;
   for (let yr = Math.ceil(y0/step)*step; yr <= y1; yr += step)
     svg += `<text x="${x(yr)}" y="${H-6}" class="wc-tick" text-anchor="middle">${yr}</text>`;
 
