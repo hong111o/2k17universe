@@ -83,16 +83,17 @@ function normName(v) {
   return String(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
     .replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
 }
+// Typo distance between two names; two swapped neighbouring letters ("Geogre") count as one typo
 function editDistance(a, b) {
   if (Math.abs(a.length - b.length) > 3) return 99;
-  let prev = Array.from({length: b.length + 1}, (_, j) => j);
-  for (let i = 1; i <= a.length; i++) {
-    const cur = [i];
-    for (let j = 1; j <= b.length; j++)
-      cur[j] = Math.min(prev[j] + 1, cur[j-1] + 1, prev[j-1] + (a[i-1] === b[j-1] ? 0 : 1));
-    prev = cur;
-  }
-  return prev[b.length];
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++)
+    for (let j = 1; j <= b.length; j++) {
+      d[i][j] = Math.min(d[i-1][j] + 1, d[i][j-1] + 1, d[i-1][j-1] + (a[i-1] === b[j-1] ? 0 : 1));
+      if (i > 1 && j > 1 && a[i-1] === b[j-2] && a[i-2] === b[j-1]) d[i][j] = Math.min(d[i][j], d[i-2][j-2] + 1);
+    }
+  return d[a.length][b.length];
 }
 // "1985-93,94-98,01-03" -> [1985, 2003]; "2060-" (still active) -> [2060, Infinity]
 function careerSpan(season) {

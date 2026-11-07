@@ -196,6 +196,25 @@ function renderPlayerPage() {
     if (oneTeam && span) return `${span[0] - 1}–${span[1] === Infinity ? 'present' : span[1]}`;
     return '';
   };
+  // Fill the gaps from the career span: a stop between two known ones (or the career's start
+  // or end) ran from where the previous one ended to where the next one began
+  const known = teams.map((t, i) => stintYears(t, i));
+  const ends = y => { const n = String(y).match(/\d{4}/g); return n ? { from: Number(n[0]), to: /present/i.test(y) ? 'present' : Number(n[n.length - 1]) } : null; };
+  const careerFrom = span ? span[0] - 1 : null, careerTo = span ? (span[1] === Infinity ? 'present' : span[1]) : null;
+  // Only when the team list is complete: if a team's known years show more spells than the row
+  // lists stops for it (Garnett's two Minnesota spells, one Minnesota column), the order can't be trusted
+  const spells = known.flatMap(y => y ? y.split(/\s*,\s*/).map(ends).filter(Boolean) : []);
+  const complete = teams.every((t, i) => !known[i] || known[i].split(',').length <= teams.filter(x => x === t).length);
+  const yearsOf = known.map((y, i) => {
+    if (y || !span || !complete) return y;
+    const prev = i === 0 ? { to: careerFrom } : known[i - 1] ? ends(known[i - 1]) : null;
+    const next = i === teams.length - 1 ? { from: careerTo } : known[i + 1] ? ends(known[i + 1]) : null;
+    if (!prev || !next || prev.to == null || next.from == null) return '';
+    const from = prev.to, to = next.from === 'present' ? Infinity : next.from;
+    // Must be a real stretch that no known spell already covers
+    if (from >= to || spells.some(sp => sp.from < to && (sp.to === 'present' ? Infinity : sp.to) > from)) return '';
+    return `${from}–${next.from}`;
+  });
   if (teams.length) parts.push(`<div class="chart-card"><div class="chart-title">${icon('jersey')} Team Journey</div>
     <div class="journey">${teams.map((t, i) => {
       const red = p._titleStints, ret = retired.filter(r => r.team === t);
@@ -204,7 +223,7 @@ function renderPlayerPage() {
       const titles = red && !red[i] ? 0 : titlesWithTeam(p, t), label = twice ? 'Title' : `${titles} title${titles > 1 ? 's' : ''}`;
       return `${i ? '<span class="journey-arrow" aria-hidden="true">→</span>' : ''}<div class="journey-stop">
         <span class="journey-n">${i + 1}</span>${teamLink(t, t)}
-        ${stintYears(t, i) ? `<span class="journey-years">${stintYears(t, i)}</span>` : ''}
+        ${yearsOf[i] ? `<span class="journey-years">${yearsOf[i]}</span>` : ''}
         <span class="journey-tags">${titles ? `<em class="tag-gold">${icon('trophy')} ${label}</em>` : ''}${ret.map(r => `<em class="tag-ret">#${r.num} retired</em>`).join('')}</span></div>`;
     }).join('')}</div></div>`);
 
