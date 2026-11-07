@@ -384,7 +384,7 @@ function setCmpKind(kind) {
   if (kind === 'teams') renderTeamCompare();
 }
 function populateTeamCompare() {
-  const teams = [...DB.teams].sort((a, b) => (a.Rank || 99) - (b.Rank || 99)).map(t => t.Team);
+  const teams = DB.teams.filter(t => !t.defunct).sort((a, b) => (a.Rank || 99) - (b.Rank || 99)).map(t => t.Team);
   [1, 2, 3].forEach(n => {
     const el = document.getElementById('cmpTeam' + n), keep = el.value;
     el.innerHTML = (n === 3 ? '<option value="">None</option>' : '<option value="">Pick a team…</option>') + teams.map(t => `<option>${t}</option>`).join('');
@@ -398,7 +398,7 @@ function teamCompareStats(team) {
   const recs = Object.values(t.seasonRecords || {});
   const w = recs.reduce((a, r) => a + r.w, 0), l = recs.reduce((a, r) => a + r.l, 0);
   return { t, won, lost, w, l, seasons: recs.length, best: recs.length ? Math.max(...recs.map(r => r.w)) : null, sixty: recs.filter(r => r.w >= 60).length,
-    retired: retiredForTeam(team).length, legend: franchiseLegends(team)[0], oneTeam: franchiseLegends(team).filter(x => x.oneTeam).length };
+    retired: retiredForTeam(team).filter(r => r.type === 'Player').length, legend: franchiseLegends(team)[0], oneTeam: franchiseLegends(team).filter(x => x.oneTeam).length };
 }
 function renderTeamCompare() {
   const picks = [1, 2, 3].map(n => document.getElementById('cmpTeam' + n)?.value).map((v, i) => v ? { v, n: i + 1 } : null).filter(Boolean);
@@ -504,7 +504,7 @@ function renderSearch() {
   const players = everyPlayer().map(p => ({ p, sc: score(p.Player) })).filter(x => x.sc < 9)
     .sort((a, b) => a.sc - b.sc || legacy(b.p).total - legacy(a.p).total).slice(0, 8)
     .map(({ p }) => ({ kind: 'Player', label: p.Player, sub: `${POS_NAMES[p.Position] || ''}${p.Season ? ' · ' + p.Season : ''}${isActive(p) ? ' · Active' : ''}`, go: () => openPlayer(p) }));
-  const teams = DB.teams.filter(t => score(t.Team) < 9).slice(0, 5)
+  const teams = DB.teams.filter(t => !t.defunct && score(t.Team) < 9).slice(0, 5)
     .map(t => ({ kind: 'Team', label: t.Team, sub: `${t.Conference} · ${t.Championship || 0} titles`, go: () => { closeSearch(); openTeamModal(t.Team); } }));
   const yrs = allSeasonYears().filter(y => String(y).includes(q.replace(/\D/g, '')) && /\d/.test(q) || seasonLabel(y).replace(/\D/g, '').includes(q.replace(/\D/g, '')) && q.replace(/\D/g, '').length >= 2)
     .slice(0, 5).map(y => ({ kind: 'Season', label: seasonLabel(y), sub: (() => { const f = finalsTeams(y); return f.champ ? 'Champion: ' + f.champ : ''; })(), go: () => { closeSearch(); openSeason(y); } }));

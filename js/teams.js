@@ -19,7 +19,7 @@ function filterTeams() {
   const q = document.getElementById('teamSearch').value.toLowerCase();
   const conf = document.getElementById('teamConfFilter').value;
   const sc = document.getElementById('teamSortFilter').value || 'Glory Score';
-  const arr = DB.teams.filter(t => t.Team &&
+  const arr = DB.teams.filter(t => t.Team && !t.defunct &&
     (!q || String(t.Team).toLowerCase().includes(q)) &&
     (!conf || t.Conference === conf)).sort((a, b) => (teamSortVal(a, sc) - teamSortVal(b, sc)) * teamSortDir || a.Team.localeCompare(b.Team));
   const latest = DB.latestSeason;
@@ -39,7 +39,7 @@ function filterTeams() {
         <div class="team-stat"><div class="tv">${t.Championship||0}</div><div class="tl">Titles</div></div>
         <div class="team-stat"><div class="tv">${t['Conference Titles']||0}</div><div class="tl">Conf</div></div>
         <div class="team-stat"><div class="tv">${t.Playoffs||0}</div><div class="tl">Playoffs</div></div>
-        <div class="team-stat"><div class="tv ${r ? recClass(r.w) : ''}">${r ? r.w+'-'+r.l : t['Last Title']||'—'}</div><div class="tl">${r ? seasonLabel(latest) : 'Last Title'}</div></div>
+        <div class="team-stat"><div class="tv ${r ? recClass(r.w, r.l) : ''}">${r ? r.w+'-'+r.l : t['Last Title']||'—'}</div><div class="tl">${r ? seasonLabel(latest) : 'Last Title'}</div></div>
       </div>
       <div class="team-avgs">Avg. wins <span class="nowrap">5 yrs ${avgSpan(t['Avg. W Last 5Y'])}</span> · <span class="nowrap">10 yrs ${avgSpan(t['Avg. W Last 10Y'])}</span></div>
     </div>`;
@@ -76,7 +76,20 @@ function teamBack() {
   if (history.length > 1) history.back();
   else showSection('teams');
 }
+// Retired numbers for a team: the Retired # tab (real life, with years and coaches/others)
+// joined with the "# Retired" columns of All Players; a number shows once per person
 function retiredForTeam(teamName) {
+  const out = [], seen = new Set(), key = (num, who) => String(num).replace(/\D/g, '') + '|' + normName(who);
+  (DB.retiredList || []).forEach(r => {
+    const t = teamByCode(r.code);
+    if (!t || t.Team !== teamName) return;
+    const p = r.type === 'Player' ? resolvePlayer(r.who) : null;
+    seen.add(key(r.num, p ? p.Player : r.who));
+    out.push({ num: r.num, player: p ? p.Player : r.who, linked: !!p, type: r.type, years: r.years });
+  });
+  return out.concat(retiredFromPlayers(teamName).filter(r => !seen.has(key(r.num, r.player))).map(r => ({ ...r, linked: true, type: 'Player' })));
+}
+function retiredFromPlayers(teamName) {
   const out = [];
   DB.allPlayers.forEach(p => {
     ['# Retired', '# Retired2', '# Retired3'].forEach(k => {
@@ -97,7 +110,9 @@ function renderTeamPage() {
   const seasons = Object.keys(t.seasonRecords || {}).map(Number).sort((a, b) => b - a);
   const seasonInfo = seasons.map(yr => {
     const r = seasonStandings(yr).find(x => x.team === teamName);
-    return { yr, w: r.w, l: r.l, confRk: r.confRk, leagueRk: r.leagueRk, isChamp: won.includes(yr), isRU: lost.includes(yr), madePlayoffs: r.playoffs };
+    // cw = wins scaled to 82 games, so older shorter seasons sit right on the wins chart
+    return { yr, w: r.w, l: r.l, pct: r.w / Math.max(r.w + r.l, 1), cw: r.w / Math.max(r.w + r.l, 1) * 82, conf: r.conf, label: r.label,
+      confRk: r.confRk, leagueRk: r.leagueRk, isChamp: won.includes(yr), isRU: lost.includes(yr), madePlayoffs: r.playoffs };
   });
   const totW = seasonInfo.reduce((a, s) => a + s.w, 0), totL = seasonInfo.reduce((a, s) => a + s.l, 0);
   const firstHist = finals.length ? Math.min(...finals.map(f => f.yr)) : null;
@@ -107,7 +122,7 @@ function renderTeamPage() {
   const bio = [
     ['Conference', t.Conference === 'EAST' ? 'East' : t.Conference === 'WEST' ? 'West' : (t.Conference || '—')],
     ['Established', t['Est. Date'] || '—'],
-    ['Glory rank', t.Rank ? `#${t.Rank} of ${DB.teams.length}` : '—'],
+    ['Glory rank', t.Rank ? `#${t.Rank} of ${DB.teams.filter(x => !x.defunct).length}` : '—'],
     ['Glory score', t['Glory Score'] || 0],
     ...(seasonInfo.length ? [[`Record (${seasonInfo.length} seasons)`, `${totW.toLocaleString()}-${totL.toLocaleString()} (${(totW / Math.max(totW + totL, 1)).toFixed(3).replace(/^0/, '')})`]] : []),
     ...(won.length + lost.length ? [['Finals record', `${won.length}-${lost.length}`]] : []),
@@ -154,9 +169,9 @@ function renderTeamPage() {
     <div class="season-scroll"><table class="standings-table">
       <thead><tr><th>Season</th><th class="num">Record</th><th class="num">Conf</th><th class="num">League</th><th class="num">Win%</th><th>Result</th></tr></thead>
       <tbody>${seasonInfo.map(si => `<tr class="${si.isChamp ? 'row-champ' : si.isRU ? 'row-ru' : si.madePlayoffs ? 'row-playoff' : ''}">
-        <td>${seasonLink(si.yr)}</td><td class="num ${recClass(si.w)}">${si.w}-${si.l}</td>
+        <td>${seasonLink(si.yr)}${si.label ? `<div class="muted st-era">${si.label}</div>` : ''}</td><td class="num ${recClass(si.w, si.l)}">${si.w}-${si.l}</td>
         <td class="num">${si.confRk > 0 ? '#' + si.confRk : '—'}</td><td class="num">${si.leagueRk > 0 ? '#' + si.leagueRk : '—'}</td>
-        <td class="num">${(si.w / 82).toFixed(3).replace(/^0/, '')}</td>
+        <td class="num">${si.pct.toFixed(3).replace(/^0/, '')}</td>
         <td>${resultMark(si.isChamp, si.isRU, true) || (si.madePlayoffs ? '<span class="muted">Playoffs</span>' : '')}</td></tr>`).join('')}</tbody>
     </table></div></div>`);
 
@@ -167,16 +182,20 @@ function renderTeamPage() {
       <span class="rb-sub">${runLabel(r)}</span></div>`).join('')}
     <button class="card-link" onclick="showSection('records');setTimeout(()=>document.getElementById('rb-dynasties')?.scrollIntoView(),50)">All dynasties</button></div>`);
   const seasonRow = si => `<div class="rb-row"><span class="rb-rank"></span><span class="rb-main">${seasonLink(si.yr)}</span><span class="rb-val">${si.w}-${si.l}</span>
-    <span class="rb-sub">${si.isChamp ? 'Won the title' : si.isRU ? 'Lost in the Finals' : si.madePlayoffs ? `#${si.confRk} in the ${t.Conference === 'EAST' ? 'East' : 'West'}` : `Missed the playoffs (#${si.confRk})`}</span></div>`;
+    <span class="rb-sub">${si.isChamp ? 'Won the title' : si.isRU ? 'Lost in the Finals' : si.madePlayoffs === false ? `Missed the playoffs (#${si.confRk})` : `#${si.confRk} in the ${confName(si.conf)}`}${si.label ? ` · ${si.label}` : ''}</span></div>`;
   if (seasonInfo.length) {
     side.push(`<div class="chart-card rb-card bw-card"><div class="card-head"><div class="chart-title">${icon('calendar')} Best &amp; Worst Seasons</div>
       <div class="seg"><button class="active" onclick="bwSwitch(this, 'best')">Best</button><button onclick="bwSwitch(this, 'worst')">Worst</button></div></div>
-      <div class="bw-list" data-list="best">${[...seasonInfo].sort((a, b) => b.w - a.w || b.yr - a.yr).slice(0, 5).map(seasonRow).join('')}</div>
-      <div class="bw-list" data-list="worst" hidden>${[...seasonInfo].sort((a, b) => a.w - b.w || b.yr - a.yr).slice(0, 5).map(seasonRow).join('')}</div></div>`);
+      <div class="bw-list" data-list="best">${[...seasonInfo].sort((a, b) => b.pct - a.pct || b.w - a.w || b.yr - a.yr).slice(0, 5).map(seasonRow).join('')}</div>
+      <div class="bw-list" data-list="worst" hidden>${[...seasonInfo].sort((a, b) => a.pct - b.pct || a.w - b.w || b.yr - a.yr).slice(0, 5).map(seasonRow).join('')}</div></div>`);
   }
   const retired = retiredForTeam(teamName);
-  if (retired.length) side.push(`<div class="chart-card"><div class="chart-title">${icon('jersey')} Retired Numbers</div>
-    <div class="chip-row">${retired.map(r => `<div class="jersey"><div class="jersey-num">${r.num}</div><div class="jersey-name">${nameLink(r.player)}</div></div>`).join('')}</div></div>`);
+  const jerseys = retired.filter(r => r.type === 'Player'), others = retired.filter(r => r.type !== 'Player');
+  const byNum = (a, b) => (parseInt(a.num) || 999) - (parseInt(b.num) || 999);
+  if (retired.length) side.push(`<div class="chart-card"><div class="chart-title">${icon('jersey')} Retired Numbers <span class="muted">${retired.length}</span></div>
+    <div class="chip-row">${jerseys.sort(byNum).map(r => `<div class="jersey" ${r.years ? `title="${r.years}"` : ''}><div class="jersey-num">${r.num}</div>
+      <div class="jersey-name">${r.linked ? nameLink(r.player) : `<span class="name-plain">${r.player}</span>`}</div>${r.years ? `<div class="jersey-years">${r.years}</div>` : ''}</div>`).join('')}</div>
+    ${others.length ? `<div class="jersey-others"><div class="jo-title">Also honored</div>${others.map(r => `<div class="jo-row"><b>${r.num && r.num !== '—' ? r.num : '—'}</b> ${r.player} <span class="muted">${r.type}${r.years ? ' · ' + r.years : ''}</span></div>`).join('')}</div>` : ''}</div>`);
   const activeHere = DB.currentPlayers.filter(p => { const ts = playerTeams(p); return ts[ts.length - 1] === teamName; })
     .sort((a, b) => legacy(b).total - legacy(a).total);
   // Players whose first listed team is this one
@@ -321,16 +340,16 @@ function renderWinChart() {
 
   // Line, broken where the team has no record for a season
   let d = '';
-  data.forEach((s, i) => { d += (i && s.yr === data[i-1].yr + 1 ? 'L' : 'M') + x(s.yr).toFixed(1) + ' ' + y(s.w).toFixed(1); });
+  data.forEach((s, i) => { d += (i && s.yr === data[i-1].yr + 1 ? 'L' : 'M') + x(s.yr).toFixed(1) + ' ' + y(s.cw ?? s.w).toFixed(1); });
   svg += `<path d="${d}" class="wc-line"/>`;
   data.forEach(s => {
-    if (s.isChamp) svg += `<circle cx="${x(s.yr)}" cy="${y(s.w)}" r="5" class="wc-mark" fill="var(--champ)"/>`;
-    else if (s.isRU) svg += `<circle cx="${x(s.yr)}" cy="${y(s.w)}" r="4.5" class="wc-mark" fill="var(--silver)"/>`;
+    if (s.isChamp) svg += `<circle cx="${x(s.yr)}" cy="${y(s.cw ?? s.w)}" r="5" class="wc-mark" fill="var(--champ)"/>`;
+    else if (s.isRU) svg += `<circle cx="${x(s.yr)}" cy="${y(s.cw ?? s.w)}" r="4.5" class="wc-mark" fill="var(--silver)"/>`;
   });
   // Direct label on the latest season only
   const last = data[data.length-1];
-  if (!last.isChamp && !last.isRU) svg += `<circle cx="${x(last.yr)}" cy="${y(last.w)}" r="4" class="wc-mark" fill="var(--link)"/>`;
-  svg += `<text x="${x(last.yr)+8}" y="${y(last.w)+4}" class="wc-end">${last.w}-${last.l}</text>`;
+  if (!last.isChamp && !last.isRU) svg += `<circle cx="${x(last.yr)}" cy="${y(last.cw ?? last.w)}" r="4" class="wc-mark" fill="var(--link)"/>`;
+  svg += `<text x="${x(last.yr)+8}" y="${y(last.cw ?? last.w)+4}" class="wc-end">${last.w}-${last.l}</text>`;
   // Hover layer
   svg += `<line class="wc-cross" y1="${m.t}" y2="${m.t+ph}" visibility="hidden"/><circle class="wc-focus wc-mark" r="4.5" fill="var(--link)" visibility="hidden"/>`;
 
@@ -343,12 +362,12 @@ function renderWinChart() {
   let cur = -1;
   const show = i => {
     cur = Math.max(0, Math.min(data.length - 1, i));
-    const s = data[cur], cx = x(s.yr), cy = y(s.w);
+    const s = data[cur], cx = x(s.yr), cy = y(s.cw ?? s.w);
     cross.setAttribute('x1', cx); cross.setAttribute('x2', cx); cross.setAttribute('visibility', 'visible');
     focus.setAttribute('cx', cx); focus.setAttribute('cy', cy); focus.setAttribute('visibility', 'visible');
-    const result = resultMark(s.isChamp, s.isRU, true) || (s.madePlayoffs ? 'Made playoffs' : 'Missed playoffs');
-    tip.innerHTML = `<div class="wc-tip-title">${seasonLabel(s.yr)}</div>
-      <div><strong>${s.w}-${s.l}</strong> · #${s.confRk} ${conf === 'EAST' ? 'East' : 'West'} · #${s.leagueRk} league</div>
+    const result = resultMark(s.isChamp, s.isRU, true) || (s.madePlayoffs === true ? 'Made playoffs' : s.madePlayoffs === false ? 'Missed playoffs' : '');
+    tip.innerHTML = `<div class="wc-tip-title">${seasonLabel(s.yr)}${s.label ? ` · ${s.label}` : ''}</div>
+      <div><strong>${s.w}-${s.l}</strong> · #${s.confRk} ${confName(s.conf || conf)} · #${s.leagueRk} league</div>
       <div class="wc-tip-sub">${result}</div>`;
     tip.hidden = false;
     // Keep the tooltip inside the chart: flip to the left of the point near the right edge

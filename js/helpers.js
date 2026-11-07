@@ -119,6 +119,8 @@ function buildPlayerIndex() {
 }
 // Returns the player record a sheet name refers to, or null if unknown or ambiguous.
 // season (optional) picks between players who share a short name, e.g. "B.James".
+// Earlier names of players (normalised) -> the name used on their player row
+const NAME_ALIASES = { lalcindor: 'Kareem Abdul-Jabbar', lewalcindor: 'Kareem Abdul-Jabbar', chrisjackson: 'Mahmoud Abdul-Rauf', ronartest: 'Metta World Peace' };
 function resolvePlayer(raw, season) {
   if (!raw) return null;
   const key = raw + '|' + (season || '');
@@ -141,6 +143,9 @@ function resolvePlayer(raw, season) {
     return best <= maxDist ? out : [];
   };
   let result = null;
+  // Players who changed their name: the earlier name points at the row's current name
+  const alias = NAME_ALIASES[normName(raw).replace(/ /g, '')];
+  if (alias && alias !== raw) return (resolveCache[key] = resolvePlayer(alias, season));
   const n = normName(raw);
   const exact = playerIndex.filter(c => c.name === raw || c.norm === n);
   if (exact.length) {
@@ -151,7 +156,11 @@ function resolvePlayer(raw, season) {
       // "H.McDaniels" -> first initial + surname, allowing a small typo in the surname
       const initial = abbr[1].toLowerCase(), rest = normName(abbr[2]);
       const sameInitial = playerIndex.filter(c => c.initial === initial);
-      result = pick(closest(sameInitial, 'rest', rest, rest.length >= 7 ? 2 : 1));
+      let cands = closest(sameInitial, 'rest', rest, rest.length >= 7 ? 2 : 1);
+      // A short name in a season list must belong to someone playing that season:
+      // "C.Hawkins" in 1970 is Connie Hawkins, not a player who started in 2063
+      if (season) { const yr = Number(season); cands = cands.filter(c => !c.span || (yr >= c.span[0] && yr <= c.span[1])); }
+      result = pick(cands);
     } else if (n.length >= 6) {
       // Misspelt full name, e.g. "Michael Jordon"
       result = pick(closest(playerIndex, 'norm', n, n.length >= 10 ? 2 : 1));

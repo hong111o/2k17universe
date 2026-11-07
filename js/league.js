@@ -35,20 +35,22 @@ function initStandings() {
 function buildStandingsTable(teamsArr, season, champFull, ruFull, topN, showConf) {
   topN = topN || 8;
   showConf = showConf !== undefined ? showConf : true;
-  const top1W = teamsArr.length > 0 ? teamsArr[0].seasonRecords[season].w : 0;
+  const top = teamsArr.length > 0 ? teamsArr[0].seasonRecords[season] : null;
+  const hist = top && top.hist;
   return teamsArr.map((t, i) => {
     const rec = t.seasonRecords[season];
     const isChamp = champFull && t.Team === champFull;
     const isRU = ruFull && t.Team === ruFull;
-    const madePlayoffs = (i + 1) <= topN;
-    const pct = (rec.w / 82).toFixed(3).replace(/^0/, '');
-    const gb = i === 0 ? '—' : (top1W - rec.w).toFixed(1).replace('.0', '');
-    const rowCls = [isChamp ? 'row-champ' : isRU ? 'row-ru' : madePlayoffs ? 'row-playoff' : '', i + 1 === topN ? 'cut' : ''].join(' ');
+    // Older seasons: shade only teams the sheet marks as playoff teams, and no cut line
+    const madePlayoffs = hist ? rec.playoffs === true : (i + 1) <= topN;
+    const pct = (rec.w / Math.max(rec.w + rec.l, 1)).toFixed(3).replace(/^0/, '');
+    const gb = i === 0 ? '—' : (((top.w - rec.w) + (rec.l - top.l)) / 2).toFixed(1).replace('.0', '');
+    const rowCls = [isChamp ? 'row-champ' : isRU ? 'row-ru' : madePlayoffs ? 'row-playoff' : '', !hist && i + 1 === topN ? 'cut' : ''].join(' ');
     return `<tr class="${rowCls}">
       <td class="st-rank">${i + 1}</td>
-      <td>${teamLink(t.Team)}</td>
-      ${showConf ? `<td><span class="conf-badge">${t.Conference}</span></td>` : ''}
-      <td class="num ${recClass(rec.w)}">${rec.w}-${rec.l}</td>
+      <td>${teamLink(t.Team, rec.label || t.Team)}</td>
+      ${showConf ? `<td><span class="conf-badge">${rec.conf || t.Conference}</span></td>` : ''}
+      <td class="num ${recClass(rec.w, rec.l)}">${rec.w}-${rec.l}</td>
       <td class="num">${pct}</td>
       <td class="num">${gb}</td>
       <td>${resultMark(isChamp, isRU, false)}</td>
@@ -62,15 +64,17 @@ function standingsHead(showConf) {
 // East and West tables side by side (stacked on phones); '' if the season has no team records
 function splitStandingsHtml(season) {
   const { champ, ru } = finalsTeams(season);
-  const conf = c => DB.teams.filter(t => t.Conference === c && t.seasonRecords?.[season])
-    .sort((a,b) => b.seasonRecords[season].rawW - a.seasonRecords[season].rawW);
-  const east = conf('EAST'), west = conf('WEST');
-  if (!east.length && !west.length) return '';
-  const block = (label, teams) => `<div>
-      <div class="conf-title">${label}</div>
+  const confOf = t => t.seasonRecords[season].conf || t.Conference;
+  const playing = DB.teams.filter(t => t.seasonRecords?.[season]);
+  const confs = ['EAST', 'WEST', 'CENTRAL'].filter(c => playing.some(t => confOf(t) === c));
+  if (!confs.length) return '';
+  const hist = playing.some(t => t.seasonRecords[season].hist);
+  const block = c => { const teams = playing.filter(t => confOf(t) === c).sort((a,b) => b.seasonRecords[season].rawW - a.seasonRecords[season].rawW);
+    return `<div>
+      <div class="conf-title">${confTitle(c, season)}</div>
       <div style="overflow-x:auto"><table class="standings-table">${standingsHead(false)}<tbody>${buildStandingsTable(teams,season,champ,ru,8,false)}</tbody></table></div>
-    </div>`;
-  return `<div class="split-standings">${block('Eastern Conference',east)}${block('Western Conference',west)}</div>`;
+    </div>`; };
+  return `<div class="split-standings${confs.length > 2 ? ' three' : ''}">${confs.map(block).join('')}</div>`;
 }
 function renderStandings() {
   const season = document.getElementById('standingsSeason').value;
@@ -80,11 +84,12 @@ function renderStandings() {
   const { champ: champFull, ru: ruFull } = finalsTeams(season);
   const allTeams = DB.teams.filter(t => t.seasonRecords?.[season]);
   const byRaw = t => t.seasonRecords[season].rawW;
+  const confOf = t => t.seasonRecords[season].conf || t.Conference;
 
   if (conf === 'SPLIT') {
     document.getElementById('standingsContent').innerHTML = splitStandingsHtml(season);
   } else {
-    let teams = conf ? allTeams.filter(t=>t.Conference===conf) : allTeams;
+    let teams = conf ? allTeams.filter(t => confOf(t) === conf) : allTeams;
     teams = [...teams].sort((a,b)=>byRaw(b)-byRaw(a));
     const topN = conf ? 8 : 16;
     const showC = !conf; // show Conf column only in Full League view
@@ -127,7 +132,7 @@ function renderHistory() {
     };
     return `<tr>
       <td class="stick-1">${seasonLink(h.Season, seasonLabel(h.Season))}</td>
-      <td><span class="hist-champion">${champAbbr ? icon('trophy','ic-champ') + ' ' + teamLink(champAbbr, fullTeamName(champAbbr)) : '—'}</span></td>
+      <td><span class="hist-champion">${champAbbr ? icon('trophy','ic-champ') + ' ' + teamIn(fullTeamName(champAbbr), h.Season) : '—'}</span></td>
       <td class="muted">${h.Finals||'—'}</td>
       ${histName(h.FMVP, h.FMVPTeam)}
       ${histName(h.MVP, h.MVPTeam)}
@@ -143,7 +148,7 @@ function renderHistory() {
     const stars = [h.Star1, h.Star2, h.Star3].filter(Boolean).map(s => { const r = String(s).match(/\((\d+)\)$/)?.[1]; return `${nameLink(nm(s), { season: h.Season })}${r ? ` <span class="muted">${r}</span>` : ''}`; });
     return `<div class="hcard">
       <div class="hc-top"><span class="hc-season">${seasonLink(h.Season)}</span><span class="hc-score">${h.Finals || ''}</span></div>
-      <div class="hc-champ">${champAbbr ? `${icon('trophy', 'ic-champ')} ${teamLink(champAbbr, fullTeamName(champAbbr))}${ru ? ` <span class="muted nowrap">over ${teamLink(ru, teamCode(ru))}</span>` : ''}` : '<span class="muted">Champion not recorded</span>'}</div>
+      <div class="hc-champ">${champAbbr ? `${icon('trophy', 'ic-champ')} ${teamIn(fullTeamName(champAbbr), h.Season)}${ru ? ` <span class="muted nowrap">over ${teamLink(ru, teamCode(ru))}</span>` : ''}` : '<span class="muted">Champion not recorded</span>'}</div>
       <div class="hc-awards">${award('Finals MVP', h.FMVP, h.FMVPTeam)}${award('MVP', h.MVP, h.MVPTeam)}${award('DPOY', h.DPOY, h.DPOYTeam)}</div>
       ${stars.length ? `<div class="hc-stars"><span>Champion stars</span> ${stars.join(' · ')}</div>` : ''}
     </div>`;
@@ -158,20 +163,32 @@ function goHistPage(p) { histState.page = p; renderHistory(); }
 let standingsCache = {};
 // Every team's record and ranks for one season; [] if Team Record has no column for it.
 // Playoffs = top 8 in conference (the 2K17 format; the sheet doesn't store it).
+// Older seasons (Team History) carry their own conference and playoff note; playoffs there are
+// only known when the sheet says so (null otherwise), since formats changed many times.
 function seasonStandings(yr) {
   if (standingsCache[yr]) return standingsCache[yr];
   const teams = DB.teams.filter(t => t.seasonRecords?.[yr]);
-  const rows = teams.map(t => ({ team: t.Team, conf: t.Conference, w: t.seasonRecords[yr].w, l: t.seasonRecords[yr].l, raw: t.seasonRecords[yr].rawW }));
+  const rows = teams.map(t => { const rec = t.seasonRecords[yr];
+    return { team: t.Team, label: rec.label || '', conf: rec.conf || t.Conference, w: rec.w, l: rec.l, raw: rec.rawW, hist: !!rec.hist, histPlayoffs: rec.playoffs }; });
   [...rows].sort((a,b) => b.raw - a.raw).forEach((r, i) => r.leagueRk = i + 1);
-  ['EAST','WEST'].forEach(c => rows.filter(r => r.conf === c).sort((a,b) => b.raw - a.raw).forEach((r, i) => r.confRk = i + 1));
-  rows.forEach(r => r.playoffs = r.confRk <= 8);
+  [...new Set(rows.map(r => r.conf))].forEach(c => rows.filter(r => r.conf === c).sort((a,b) => b.raw - a.raw).forEach((r, i) => r.confRk = i + 1));
+  rows.forEach(r => r.playoffs = r.hist ? r.histPlayoffs : r.confRk <= 8);
   return (standingsCache[yr] = rows);
 }
+const CONF_NAMES = { EAST: 'East', WEST: 'West', CENTRAL: 'Central' };
+const confName = c => CONF_NAMES[c] || c;
+// Before 1970-71 the NBA had divisions where it now has conferences
+const confTitle = (c, season) => ({ EAST: 'Eastern', WEST: 'Western', CENTRAL: 'Central' }[c] || c) + (Number(season) < 1971 ? ' Division' : ' Conference');
 // Seasons that have team records, oldest first
 function standingsSeasons() {
   const yrs = new Set();
   DB.teams.forEach(t => Object.keys(t.seasonRecords || {}).forEach(y => yrs.add(Number(y))));
   return [...yrs].sort((a,b) => a - b);
+}
+// A team as it was called in that season (Minneapolis Lakers in 1950), linking to today's franchise
+function teamIn(team, yr, label) {
+  const t = team && DB.teams.find(x => x.Team === team), era = t && t.seasonRecords?.[yr]?.label;
+  return teamLink(team, label || era || undefined);
 }
 function seasonLink(yr, label) {
   return `<span class="season-link" onclick="event.stopPropagation();openSeason(${Number(yr)})">${label || seasonLabel(yr)}</span>`;
@@ -182,7 +199,8 @@ function seasonLink(yr, label) {
 // =====================================================================
 let homeHighlights = [];
 const icon = (id, cls) => `<svg class="ic${cls ? ' ' + cls : ''}" aria-hidden="true"><use href="#i-${id}"/></svg>`;
-function recClass(w) { return w >= 41 ? 'rec-win' : 'rec-loss'; }
+// Winning record: more wins than losses (old seasons weren't always 82 games)
+function recClass(w, l) { return (l === undefined ? w >= 41 : w >= l) ? 'rec-win' : 'rec-loss'; }
 // Trophy for the champion, silver trophy for the Finals loser, each with a text label for screen readers
 function resultMark(isChamp, isRU, withText) {
   if (isChamp) return `<span class="result-mark" title="Champion">${icon('trophy', 'ic-champ')}${withText ? ' Champion' : '<span class="sr">Champion</span>'}</span>`;
@@ -226,7 +244,7 @@ function renderHome() {
       return `<div><div class="conf-title">${conf === 'EAST' ? 'East' : 'West'}</div>
         <table class="standings-table mini-standings"><thead><tr><th>#</th><th>Team</th><th class="num">W-L</th><th class="num">GB</th></tr></thead>
         <tbody>${rows.map((r, i) => `<tr><td class="st-rank">${i+1}</td><td>${teamLink(r.team)}${r.team === champ ? ' ' + icon('trophy', 'ic-champ') : r.team === ru ? ' ' + icon('trophy', 'ic-silver') : ''}</td>
-          <td class="num ${recClass(r.w)}">${r.w}-${r.l}</td><td class="num">${i ? top.w - r.w : '—'}</td></tr>`).join('')}</tbody></table></div>`;
+          <td class="num ${recClass(r.w, r.l)}">${r.w}-${r.l}</td><td class="num">${i ? top.w - r.w : '—'}</td></tr>`).join('')}</tbody></table></div>`;
     };
     cards.push(`<div class="chart-card span-8"><div class="card-head"><div class="chart-title">Final Standings · Top 8</div>
       <button class="card-link" onclick="openSeason(${yr})">Full standings</button></div>
@@ -266,10 +284,10 @@ function archiveCard() {
   return `<div class="chart-card span-6 rb-card" id="archiveCard"><div class="card-head"><div class="chart-title">${icon('calendar')} From the Archives</div>
       <button class="card-link" onclick="rerollHome('archive')">Another season</button></div>
     <div class="arch-head">${seasonLink(yr)} <span class="muted">· ${ago} season${ago === 1 ? '' : 's'} ago</span></div>
-    <div class="rb-row"><span class="rb-rank">${icon('trophy', 'ic-champ')}</span><span class="rb-main">${teamLink(champ)}</span><span class="rb-val">${cr ? `${cr.w}-${cr.l}` : ''}</span>
-      <span class="rb-sub">Champion${ru ? ` · beat ${teamLink(ru)} ${finalsScore(h)}` : ''}</span></div>
+    <div class="rb-row"><span class="rb-rank">${icon('trophy', 'ic-champ')}</span><span class="rb-main">${teamIn(champ, yr)}</span><span class="rb-val">${cr ? `${cr.w}-${cr.l}` : ''}</span>
+      <span class="rb-sub">Champion${ru ? ` · beat ${teamIn(ru, yr)} ${finalsScore(h)}` : ''}</span></div>
     ${award('Finals MVP', h.FMVP)}${award('MVP', h.MVP)}${award('DPOY', h.DPOY)}
-    ${best && best.team !== champ ? `<div class="rb-row"><span class="rb-rank"></span><span class="rb-main">${teamLink(best.team)}</span><span class="rb-val">${best.w}-${best.l}</span><span class="rb-sub">Best record</span></div>` : ''}
+    ${best && best.team !== champ ? `<div class="rb-row"><span class="rb-rank"></span><span class="rb-main">${teamIn(best.team, yr)}</span><span class="rb-val">${best.w}-${best.l}</span><span class="rb-sub">Best record</span></div>` : ''}
   </div>`;
 }
 function spotlightCard() {
@@ -327,7 +345,10 @@ function diffSnapshots(prev, cur) {
   const groups = [], P = n => everyPlayer().find(x => x.Player === n);
   const award = (label, v, yr) => v && v !== '-' ? `${label} ${nameLink(v, { season: yr })}` : '';
   // New seasons in NBA History
-  const seasons = cur.seasons.filter(y => !prev.seasons.includes(y)).sort((a, b) => a - b).map(yr => {
+  // Seasons added before the previous latest one are history being filled in: one line, not one each
+  const prevLatest = prev.seasons.length ? Math.max(...prev.seasons) : 0;
+  const backfill = cur.seasons.filter(y => !prev.seasons.includes(y) && y < prevLatest).sort((a, b) => a - b);
+  const seasons = cur.seasons.filter(y => !prev.seasons.includes(y) && y >= prevLatest).sort((a, b) => a - b).map(yr => {
     const h = DB.history.find(x => Number(x.Season) === yr) || {}, { champ, ru } = finalsTeams(yr);
     const t = DB.teams.find(x => x.Team === champ);
     const later = DB.history.filter(x => Number(x.Season) > yr && finalsTeams(x.Season).champ === champ).length;
@@ -336,6 +357,7 @@ function diffSnapshots(prev, cur) {
       ${[award('Finals MVP', h.FMVP, yr), award('MVP', h.MVP, yr), award('DPOY', h.DPOY, yr)].filter(Boolean).join(' · ')}`;
   });
   if (seasons.length) groups.push({ title: 'New season' + (seasons.length > 1 ? 's' : ''), icon: 'trophy', items: seasons });
+  if (backfill.length) groups.push({ title: 'History added', icon: 'calendar', items: [`${backfill.length} earlier season${backfill.length > 1 ? 's' : ''} added to NBA History (${seasonLabel(backfill[0])}${backfill.length > 1 ? ' to ' + seasonLabel(backfill[backfill.length - 1]) : ''})`] });
   // Retirements
   const retired = Object.keys(cur.players).filter(n => prev.players[n]?.a === 1 && cur.players[n].a === 0).map(n => {
     const p = P(n); return `${nameLink(n)} retired · ${p ? draftCareer(p) : ''}${cur.players[n].L ? ` · legacy #${cur.players[n].L}` : ''}`;
@@ -436,12 +458,10 @@ function renderSeason() {
   const sections = [];
 
   sections.push(`<div class="stats-cards sh-awards">
-    ${tile(icon('trophy','ic-champ') + ' Champion', champ ? teamLink(champ) : '<span class="muted">—</span>',
-      ru ? `beat ${teamLink(ru)} ${finalsScore}${champRow ? ` · ${champRow.w}-${champRow.l} season` : ''}` : '')}
-    ${tile('Finals MVP', award(h?.FMVP), h?.FMVPTeam ? teamLink(h.FMVPTeam) : '')}
-    ${tile('MVP', award(h?.MVP), h?.MVPTeam ? teamLink(h.MVPTeam) : '')}
-    ${tile('DPOY', award(h?.DPOY), h?.DPOYTeam ? teamLink(h.DPOYTeam) : '')}
-    ${best ? tile('Best Record', teamLink(best.team), `${best.w}-${best.l}`) : ''}
+    ${tile(icon('trophy','ic-champ') + ' Champion', champ ? teamIn(champ, yr) : '<span class="muted">—</span>',
+      ru ? `beat ${teamIn(ru, yr)} ${finalsScore}${champRow ? ` · ${champRow.w}-${champRow.l} season` : ''}` : '')}
+    ${['FMVP', 'MVP', 'DPOY'].map(k => tile(k === 'FMVP' ? 'Finals MVP' : k, award(h?.[k]), h?.[k + 'Team'] && h[k] && h[k] !== '-' ? teamIn(h[k + 'Team'], yr) : '')).join('')}
+    ${best ? tile('Best Record', teamIn(best.team, yr), `${best.w}-${best.l}`) : ''}
   </div>`);
 
   const stars = h ? [h.Star1, h.Star2, h.Star3].filter(Boolean) : [];
@@ -525,7 +545,7 @@ function renderRecords() {
   // ----- Team seasons
   if (yrs.length) {
     const all = yrs.flatMap(yr => seasonStandings(yr).map(r => ({ ...r, yr })));
-    const teamRow = r => ({ main: teamLink(r.team), val: `${r.w}-${r.l}`, sub: seasonLink(r.yr) + resultIcon(r.team, r.yr) });
+    const teamRow = r => ({ main: teamIn(r.team, r.yr), val: `${r.w}-${r.l}`, sub: seasonLink(r.yr) + resultIcon(r.team, r.yr) });
     const top = (list, n, dir) => withRanks([...list].sort((a,b) => dir * (b.raw - a.raw)).slice(0, n), r => r.w).map(r => ({ ...teamRow(r), rank: r.rank }));
     const champs = all.filter(r => finals.some(f => f.yr === r.yr && f.champ === r.team));
     section('Team Seasons', `From Team Record, ${teamSpan}`, [
@@ -533,8 +553,8 @@ function renderRecords() {
       recordCard('Worst Records', top(all, 10, -1)),
       recordCard('Most Wins by a Champion', top(champs, 5, 1)),
       recordCard('Fewest Wins by a Champion', top(champs, 5, -1)),
-      recordCard('Best Teams to Miss the Playoffs', top(all.filter(r => !r.playoffs), 5, 1), 'Playoffs = top 8 in conference'),
-      recordCard('Worst Playoff Teams', top(all.filter(r => r.playoffs), 5, -1), 'Playoffs = top 8 in conference'),
+      recordCard('Best Teams to Miss the Playoffs', top(all.filter(r => r.playoffs === false), 5, 1), 'Playoffs = top 8 in conference'),
+      recordCard('Worst Playoff Teams', top(all.filter(r => r.playoffs === true), 5, -1), 'Playoffs = top 8 in conference'),
     ]);
   }
 

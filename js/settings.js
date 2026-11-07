@@ -115,6 +115,39 @@ function runDataCheck() {
   DB.decades.forEach(d => [...d.starter, ...d.subs].forEach(n => note(n, null, `Decade NBA Team ${d.decade}`)));
   [...missing.values()].sort((a, b) => b.where.length - a.where.length || a.name.localeCompare(b.name)).forEach(m =>
     add('info', 'All Players', '', `"${m.name}" isn't in All Players or Current Player, so the name can't link to a player page. Named in ${m.where.slice(0, 3).join('; ')}${m.where.length > 3 ? ` and ${m.where.length - 3} more` : ''}.`));
+  // 10. Team History: every season's wins and losses must balance, and its Finals
+  //     column must agree with NBA History
+  const thName = 'Team History BC';
+  const bySeason = {};
+  (DB.teamHistoryRows || []).forEach(h => { const s = (bySeason[h.yr] = bySeason[h.yr] || { w: 0, l: 0, rows: [] }); s.w += h.w; s.l += h.l; s.rows.push(h); });
+  Object.entries(bySeason).forEach(([yr, s]) => {
+    if (s.w !== s.l) add('error', thName, `rows of ${seasonLabel(yr)}`, `${seasonLabel(yr)}: wins add up to ${s.w} but losses to ${s.l}. A record is probably mistyped.`);
+    const { champ, ru } = finalsTeams(yr), name = h => (teamByCode(h.fr) || { Team: TEAM_NAMES[h.fr] }).Team;
+    const marked = s.rows.filter(h => /champ/i.test(h.finals)), lostF = s.rows.filter(h => /lost finals/i.test(h.finals));
+    if (champ && marked.length && !marked.some(h => name(h) === champ)) add('warn', thName, 'N' + marked[0]._row, `${seasonLabel(yr)}: Finals says ${marked.map(name).join(', ')} won, but NBA History has ${champ}.`);
+    if (ru && lostF.length && !lostF.some(h => name(h) === ru)) add('warn', thName, 'N' + lostF[0]._row, `${seasonLabel(yr)}: Finals says ${lostF.map(name).join(', ')} lost, but NBA History has ${ru}.`);
+  });
+  //     A franchise that disappears for many years probably isn't one team (the 1949-50 Denver
+  //     Nuggets folded; today's Nuggets joined in 1976-77): flag the lone early seasons
+  const byFr = {};
+  (DB.teamHistoryRows || []).forEach(h => (byFr[h.fr] = byFr[h.fr] || []).push(h));
+  Object.entries(byFr).forEach(([fr, list]) => {
+    const yrs = list.map(h => h.yr).sort((a, b) => a - b);
+    for (let i = 1; i < yrs.length; i++) if (yrs[i] - yrs[i - 1] > 10) {
+      const early = list.filter(h => h.yr < yrs[i]);
+      add('warn', thName, 'C' + early[0]._row, `${fr}: ${early.map(h => `${seasonLabel(h.yr)} ${h.label}`).join(', ')} then nothing until ${seasonLabel(yrs[i])}. If that was a different team, give its rows their own code in Franchise and Team.`);
+    }
+  });
+  // 11. Retired #: a player's retired number should also be on his All Players row
+  (DB.retiredList || []).forEach(r => {
+    const t = teamByCode(r.code);
+    if (!t) { add('warn', 'Retired #', 'A' + r._row, `Team code "${r.code}" isn't recognized.`); return; }
+    if (r.type !== 'Player') return;
+    const p = resolvePlayer(r.who);
+    if (!p || isActive(p)) return;
+    const has = retiredNums(p).some(v => { const [n, ...rest] = String(v).trim().split(/\s+/); return String(n) === String(r.num) && teamByCode(rest.join(' '))?.Team === t.Team; });
+    if (!has) add('warn', 'All Players', cellOf(p, '# Retired'), `${p.Player}: Retired # lists ${r.num} ${r.code}, but the player's All Players row doesn't.`);
+  });
   // 8. Gaps the user is still filling in
   const missingLeaders = DB.statLeaders.filter(r => !statRowEntered(r)).map(r => r.Season);
   if (missingLeaders.length) add('info', 'Season Stat Leader', '', `${missingLeaders.length} seasons have no leaders entered yet.`);

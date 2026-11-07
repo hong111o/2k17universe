@@ -135,6 +135,13 @@ function sheetToArr(ws) {
   const ref = ws['!ref'];
   if (!ref) return [];
   const range = XLSX.utils.decode_range(ref);
+  // Excel sometimes reports a sheet as a million rows tall (formatting down to the bottom);
+  // stop at the last row that actually holds a value
+  if (range.e.r - range.s.r > 5000) {
+    let last = range.s.r;
+    for (const k in ws) { if (k[0] === '!') continue; const cell = ws[k]; if (cell && cell.v !== undefined && cell.v !== null && cell.v !== '') { const r = XLSX.utils.decode_cell(k).r; if (r > last) last = r; } }
+    range.e.r = last;
+  }
   const rows = [];
   for (let r = range.s.r; r <= range.e.r; r++) {
     const row = [];
@@ -299,7 +306,7 @@ function readAwardTeams(wb) {
       if (!h || !team) return;
       // The logo belongs to the award column right beside it
       const kind = Object.entries(cols).map(([k, col]) => [k, Math.abs(col - c)]).sort((x, y) => x[1] - y[1])[0];
-      if (kind && kind[1] <= 1) h[kind[0] + 'Team'] = team;
+      if (kind && kind[1] <= 1 && h[kind[0]] && h[kind[0]] !== '-') h[kind[0] + 'Team'] = team;
     });
   } catch (err) { console.warn('Could not read award teams:', err); }
   // A logo picture that isn't on the NBA Logo sheet can't be recognised; a one-team career still tells us
@@ -309,6 +316,61 @@ function readAwardTeams(wb) {
     if (teams.length === 1) h[k + 'Team'] = teams[0];
   }));
   return out;
+}
+// ---------------------------------------------------------------------
+// TEAM HISTORY (1946-47 onward, one row per team per season) and RETIRED NUMBERS
+// Each history row is added to its franchise's seasonRecords, so team pages, standings,
+// records and the wins chart cover every season. A row keeps its own conference,
+// games played, Finals result and playoff note. Defunct teams become small teams of
+// their own (flagged defunct, left out of the Franchises list).
+// ---------------------------------------------------------------------
+const findSheet = (wb, re) => wb.SheetNames.find(n => re.test(n));
+// Today's franchise for a team code; close spellings in Team Record ("Indaina Pacers") still match
+function teamByCode(code) {
+  const full = fullTeamName(code);
+  return DB.teams.find(t => t.Team === full) || DB.teams.find(t => !t.defunct && editDistance(normName(t.Team), normName(full)) <= 2) || null;
+}
+function readTeamHistory(wb) {
+  DB.teamHistoryRows = [];
+  const name = findSheet(wb, /team (history|seasons)/i);
+  if (!name) return;
+  const rows = sheetToArr(wb.Sheets[name]), col = headerFinder(name, rows[0] || []);
+  const c = { yr: col('Season', 0), fr: col('Franchise', 2), team: col('Team', 3), tname: col('Team Name', 4), conf: col('Conference', 5),
+    w: col('W', 7), l: col('L', 8), finals: col('Finals', 13), po: col('Playoffs', 14) };
+  rows.slice(1).forEach((r, i) => {
+    const yr = Number(r[c.yr]), fr = String(r[c.fr] ?? '').trim().toUpperCase(), w = Number(r[c.w]), l = Number(r[c.l]);
+    if (!yr || !fr || isNaN(w) || isNaN(l)) return;
+    const label = String(r[c.tname] ?? '').trim() || fr;
+    DB.teamHistoryRows.push({ _row: i + 2, yr, fr, team: String(r[c.team] ?? '').trim(), label, conf: String(r[c.conf] ?? '').trim().toUpperCase(), w, l,
+      finals: String(r[c.finals] ?? '').trim(), playoffs: String(r[c.po] ?? '').trim() });
+  });
+  const defunct = {};
+  DB.teamHistoryRows.forEach(h => {
+    let t = teamByCode(h.fr);
+    if (!t) {
+      // A defunct team: name it after itself and register its code so Finals rows can find it
+      if (!TEAM_NAMES[h.fr]) TEAM_NAMES[h.fr] = h.label;
+      t = defunct[h.fr] || (defunct[h.fr] = { Team: TEAM_NAMES[h.fr], Conference: h.conf, defunct: true, seasonRecords: {}, Championship: 0 });
+    }
+    if (t.seasonRecords[h.yr]) return;   // Team Record wins when both have a season
+    const g = h.w + h.l, po = h.playoffs.toLowerCase();
+    t.seasonRecords[h.yr] = { w: h.w, l: h.l, rawW: g ? h.w / g * 82 + 1e-6 * h.w : 0, hist: true, label: h.label !== t.Team ? h.label : '',
+      conf: h.conf, finals: h.finals, playoffs: !po ? null : /^(n|no|missed|-)$/.test(po) ? false : true, playoffNote: h.playoffs };
+  });
+  Object.values(defunct).forEach(t => { t.Championship = Object.values(t.seasonRecords).filter(r => /champ/i.test(r.finals)).length; DB.teams.push(t); });
+}
+function readRetiredList(wb) {
+  DB.retiredList = [];
+  const name = findSheet(wb, /^retired/i);
+  if (!name) return;
+  const rows = sheetToArr(wb.Sheets[name]), col = headerFinder(name, rows[0] || []);
+  const c = { team: col('Team', 0), num: col('Number', 2), who: col('Honoree', 3), type: col('Type', 4), status: col('Status', 5), years: col('Years with Franchise', 6) };
+  rows.slice(1).forEach((r, i) => {
+    const who = String(r[c.who] ?? '').trim(), code = String(r[c.team] ?? '').trim().toUpperCase();
+    if (!who || !code) return;
+    DB.retiredList.push({ _row: i + 2, code, num: String(r[c.num] ?? '').trim(), who, type: String(r[c.type] ?? 'Player').trim() || 'Player',
+      status: String(r[c.status] ?? '').trim(), years: String(r[c.years] ?? '').trim() });
+  });
 }
 // Short code for a full team name (Washington Wizards -> WAS), for compact tables
 function teamCode(full) { return Object.keys(TEAM_NAMES).find(k => TEAM_NAMES[k] === full && k.length === 3) || Object.keys(TEAM_NAMES).find(k => TEAM_NAMES[k] === full) || full; }
@@ -451,6 +513,10 @@ function parseWorkbook(wb) {
   DB.logos = readTeamLogos(wb);
   readAwardTeams(wb);
 
+  setProgress('Loading team history...');
+  readTeamHistory(wb);
+  readRetiredList(wb);
+
   setProgress('Loading Stat Leaders...');
   if (wb.Sheets['Season Stat Leader']) {
     const rows = sheetToArr(wb.Sheets['Season Stat Leader']);
@@ -521,28 +587,33 @@ function seasonLabel(yr) {
 function parseAllNbaTeams(rows) {
   const seasons = [];
   const POSITIONS = ['G','G','F','F','C'];
-  // Block every 7 rows: row0=seasons, row1=positions, rows2-4=teams1-3, rows5-6=blank
-  for (let blockStart = 0; blockStart < rows.length; blockStart += 7) {
-    const r0 = rows[blockStart];
+  // Each season is a block: a row with the season year, a row of positions (G G F F C),
+  // then the 1st, 2nd and 3rd teams. Two blocks sit side by side (year in D or L).
+  // Blocks are found by their year heading, so any season (1947 on) and any spacing works.
+  const isYear = v => typeof v === 'number' && v > 1940 && v < 2200;
+  for (let i = 0; i < rows.length; i++) {
+    const r0 = rows[i];
     if (!r0) continue;
-    // Left block: col3 = season year, cols 0-5 = team data
-    // Right block: col11 = season year, cols 8-13 = team data
     [[3, [0,1,2,3,4,5]], [11, [8,9,10,11,12,13]]].forEach(([yearCol, dataCols]) => {
       const yr = r0[yearCol];
-      if (!yr || typeof yr !== 'number' || yr < 2000) return;
+      if (!isYear(yr)) return;
+      // The positions row (G G F F C) is optional: All-NBA teams had no positions before 1955-56
+      const next = rows[i + 1] || [];
+      const hasPos = dataCols.slice(1).some(c => /^[GFC]$/i.test(String(next[c] ?? '').trim()));
+      const first = i + (hasPos ? 2 : 1);
+      if (Number((rows[first] || [])[dataCols[0]]) !== 1) return;   // the 1st Team row must follow
       const teams = [];
       for (let ti = 0; ti < 3; ti++) {
-        const dataRow = rows[blockStart + 2 + ti];
-        if (!dataRow) continue;
+        const dataRow = rows[first + ti];
+        if (!dataRow || Number(dataRow[dataCols[0]]) !== ti + 1) continue;
         const slots = [];
-        // Players are in dataCols[1..5], positions are fixed G,G,F,F,C
         for (let pi = 1; pi <= 5; pi++) {
           const playerName = dataRow[dataCols[pi]];
-          if (playerName) slots.push({ pos: POSITIONS[pi-1], player: String(playerName) });
+          if (playerName) slots.push({ pos: hasPos ? String(next[dataCols[pi]] || POSITIONS[pi-1]).trim().toUpperCase() : '', player: String(playerName) });
         }
         if (slots.length > 0) teams.push({ team: ti + 1, slots });
       }
-      if (teams.length > 0) seasons.push({ season: yr, teams });
+      if (teams.length > 0 && !seasons.some(x => x.season === yr)) seasons.push({ season: yr, teams });
     });
   }
   return seasons.sort((a, b) => b.season - a.season);
