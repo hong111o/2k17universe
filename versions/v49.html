@@ -694,6 +694,43 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
   .cmp-score b{font-size:30px;}
   .cmp-score .cs-name{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 }
+.stat-tabs{margin-bottom:14px;max-width:100%;overflow-x:auto;scrollbar-width:none;}
+.stat-tabs button{flex:none;}
+.stat-table table{min-width:0;width:100%;}
+.stat-table td,.stat-table th{white-space:nowrap;}
+@media (max-width:768px){
+  .toolbar.has-toggle .results-count{flex-basis:100%;}
+  .stat-table td,.stat-table th{padding-left:8px;padding-right:8px;}
+  .stat-table td:nth-child(2){white-space:normal;}
+  .stat-table .team-tag .team-link{font-size:0;}
+  .stat-table .team-tag .team-link .tlogo{font-size:15px;margin-right:0;}
+}
+/* Grid columns must be allowed to shrink, or a wide table pushes the whole page sideways */
+.player-grid > div{min-width:0;}
+@media (max-width:400px){ .stat-table td,.stat-table th{padding-left:6px;padding-right:6px;font-size:13px;} }
+/* League History cards (phones) */
+.hcard{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;box-shadow:var(--shadow);}
+.hc-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
+.hc-season{font-family:var(--font-display);font-weight:800;font-size:20px;}
+.hc-score{font-size:13px;color:var(--ink-3);font-variant-numeric:tabular-nums;}
+.hc-champ{font-weight:700;font-size:15px;margin:4px 0 10px;}
+.hc-champ .muted{font-weight:500;font-size:13px;}
+.hc-awards{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:14px;}
+.hc-award{display:contents;}
+.hc-award span{color:var(--ink-3);font-size:12px;font-weight:600;align-self:center;}
+.hc-award b{font-weight:600;min-width:0;}
+.hc-stars{margin-top:10px;padding-top:8px;border-top:1px solid var(--line);font-size:13px;line-height:1.6;}
+.hc-stars > span:first-child{color:var(--ink-3);font-size:12px;font-weight:600;margin-right:4px;}
+.jersey-years{font-size:10px;color:var(--ink-3);margin-top:1px;}
+.jersey-others{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);font-size:13px;}
+.jo-title{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-3);margin-bottom:6px;}
+.jo-row{margin-bottom:4px;} .jo-row b{display:inline-block;min-width:34px;font-family:var(--font-display);}
+.st-era{font-size:11px;white-space:nowrap;}
+.split-standings.three{grid-template-columns:1fr 1fr 1fr;}
+@media (max-width:768px){.split-standings.three{grid-template-columns:1fr;}}
+.wc-range{margin:4px 0 10px;max-width:100%;overflow-x:auto;scrollbar-width:none;}
+.wc-range button{flex:none;}
+.journey-years{display:block;font-size:12px;color:var(--ink-3);margin-top:2px;}
 </style>
 </head>
 <body>
@@ -876,7 +913,8 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
       <option value="1st Team:1">All-NBA 1st Team</option><option value="ROY">Rookie of the Year</option></select>
     <button class="icon-btn" id="playersModeBtn" onclick="toggleMode('players')">AVERAGES</button>
     <button class="icon-btn" id="playersExpandBtn" onclick="toggleExpand('players')">+ MORE COLS</button>
-    <select class="m-sort" aria-label="Sort by" onchange="mobileSort('players', this.value)"><option value="">Sort: default</option><option value="PTS">Points</option><option value="REB">Rebounds</option><option value="AST">Assists</option><option value="Champions">Titles</option><option value="MVP">MVPs</option><option value="All Stars">All-Stars</option><option value="GP">Games</option></select>
+    <select class="m-sort" aria-label="Sort by" onchange="mobileSort('players', this.value)"><option value="">Sort: default</option><option value="PTS">Points</option><option value="REB">Rebounds</option><option value="AST">Assists</option><option value="STL">Steals</option><option value="BLK">Blocks</option><option value="GP">Games</option><option value="Champions">Titles</option><option value="MVP">MVPs</option><option value="FMVP">Finals MVPs</option><option value="DPOY">DPOY</option><option value="All Stars">All-Stars</option><option value="All NBA Team">All-NBA</option></select>
+    <button class="icon-btn m-sort m-dir" id="playersSortDir" type="button" onclick="flipSortDir('players')" aria-label="Sort direction">↓ High first</button>
     <span class="results-count" id="playerCount"></span>
   </div>
   <div class="table-wrap"><table><thead><tr id="playersHead"></tr></thead><tbody id="playersBody"></tbody></table></div>
@@ -889,10 +927,12 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
   <div class="section-title">Top 20 Players</div>
   <div class="section-sub">All-Time Franchise Rankings</div>
   <div class="toolbar">
-    <div class="search-wrap"><span class="icon"><svg class="ic"><use href="#i-search"/></svg></span><input type="text" id="top20Search" placeholder="Search..." oninput="filterTop20()"></div>
+    <div class="search-wrap"><span class="icon"><svg class="ic"><use href="#i-search"/></svg></span><input type="text" id="top20Search" placeholder="Search players..." oninput="filterTop20()"></div>
+    <select id="top20PosFilter" onchange="filterTop20()"><option value="">All Positions</option><option>PG</option><option>SG</option><option>SF</option><option>PF</option><option>C</option></select>
     <button class="icon-btn" id="top20ModeBtn" onclick="toggleMode('top20')">TOTALS</button>
     <button class="icon-btn" id="top20ExpandBtn" onclick="toggleExpand('top20')">+ MORE COLS</button>
-    <select class="m-sort" aria-label="Sort by" onchange="mobileSort('top20', this.value)"><option value="">Sort: rank</option><option value="PTS">Points</option><option value="REB">Rebounds</option><option value="AST">Assists</option><option value="Champions">Titles</option><option value="MVP">MVPs</option><option value="All Stars">All-Stars</option><option value="GP">Games</option></select>
+    <select class="m-sort" aria-label="Sort by" onchange="mobileSort('top20', this.value)"><option value="">Sort: rank</option><option value="PTS">Points</option><option value="REB">Rebounds</option><option value="AST">Assists</option><option value="STL">Steals</option><option value="BLK">Blocks</option><option value="GP">Games</option><option value="Champions">Titles</option><option value="MVP">MVPs</option><option value="FMVP">Finals MVPs</option><option value="DPOY">DPOY</option><option value="All Stars">All-Stars</option><option value="All NBA Team">All-NBA</option></select>
+    <button class="icon-btn m-sort m-dir" id="top20SortDir" type="button" onclick="flipSortDir('top20')" aria-label="Sort direction">↓ High first</button>
     <span class="results-count" id="top20Count"></span>
   </div>
   <div class="table-wrap"><table><thead><tr id="top20Head"></tr></thead><tbody id="top20Body"></tbody></table></div>
@@ -915,7 +955,8 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
     <div class="search-wrap"><span class="icon"><svg class="ic"><use href="#i-search"/></svg></span><input type="text" id="posSearch" placeholder="Search players..." oninput="filterPos()"></div>
     <button class="icon-btn" id="posModeBtn" onclick="toggleMode('pos')">AVERAGES</button>
     <button class="icon-btn" id="posExpandBtn" onclick="toggleExpand('pos')">+ MORE COLS</button>
-    <select class="m-sort" aria-label="Sort by" onchange="mobileSort('pos', this.value)"><option value="">Sort: rank</option><option value="PTS">Points</option><option value="REB">Rebounds</option><option value="AST">Assists</option><option value="Champions">Titles</option><option value="MVP">MVPs</option><option value="All Stars">All-Stars</option><option value="GP">Games</option></select>
+    <select class="m-sort" aria-label="Sort by" onchange="mobileSort('pos', this.value)"><option value="">Sort: rank</option><option value="PTS">Points</option><option value="REB">Rebounds</option><option value="AST">Assists</option><option value="STL">Steals</option><option value="BLK">Blocks</option><option value="GP">Games</option><option value="Champions">Titles</option><option value="MVP">MVPs</option><option value="FMVP">Finals MVPs</option><option value="DPOY">DPOY</option><option value="All Stars">All-Stars</option><option value="All NBA Team">All-NBA</option></select>
+    <button class="icon-btn m-sort m-dir" id="posSortDir" type="button" onclick="flipSortDir('pos')" aria-label="Sort direction">↓ High first</button>
   </div>
   <div class="table-wrap"><table><thead><tr id="posHead"></tr></thead><tbody id="posBody"></tbody></table></div>
   <div class="pcards" id="posCards"></div>
@@ -929,7 +970,8 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
   <div class="toolbar">
     <div class="search-wrap"><span class="icon"><svg class="ic"><use href="#i-search"/></svg></span><input type="text" id="teamSearch" placeholder="Search teams..." oninput="filterTeams()"></div>
     <select id="teamConfFilter" onchange="filterTeams()"><option value="">All Conferences</option><option value="EAST">East</option><option value="WEST">West</option></select>
-    <select id="teamSortFilter" onchange="filterTeams()"><option value="Glory Score">Glory Score</option><option value="Championship">Championships</option><option value="Playoffs">Playoffs</option></select>
+    <select id="teamSortFilter" onchange="filterTeams()" aria-label="Sort teams by"><option value="Glory Score">Glory Score</option><option value="Championship">Championships</option><option value="Conference Titles">Conference titles</option><option value="Division Titles">Division titles</option><option value="Playoffs">Playoffs</option><option value="_lastWins">Last season's wins</option><option value="Avg. W Last 5Y">Avg. wins, last 5 years</option><option value="Avg. W Last 10Y">Avg. wins, last 10 years</option><option value="Est. Date">Year established</option></select>
+    <button class="icon-btn" id="teamSortDir" type="button" onclick="flipTeamSort()" aria-label="Sort direction">↓ High first</button>
   </div>
   <div class="team-grid" id="teamGrid"></div>
 </div>
@@ -942,7 +984,7 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
     <button class="sub-tab active" onclick="switchHistView('history')">League History</button>
     <button class="sub-tab" onclick="switchHistView('standings')">Season Standings</button>
   </div>
-  <div id="historyView">
+  <div id="historyView" class="has-cards">
     <div class="toolbar">
       <div class="search-wrap"><span class="icon"><svg class="ic"><use href="#i-search"/></svg></span><input type="text" id="histSearch" placeholder="Search season, player, team..." oninput="filterHistory()"></div>
     </div>
@@ -957,6 +999,7 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
       </tr></thead>
       <tbody id="histBody"></tbody>
     </table></div>
+    <div class="pcards hist-cards" id="histCards"></div>
     <div class="pagination" id="histPag"></div>
   </div>
   <div id="standingsView" style="display:none;">
@@ -1000,19 +1043,14 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
 <div id="sec-statleaders" class="section">
   <div class="section-title">Season Stat Leaders</div>
   <div class="section-sub">Yearly Statistical Leaders</div>
+  <div class="seg stat-tabs" id="statCatTabs"></div>
   <div class="toolbar">
     <div class="search-wrap"><span class="icon"><svg class="ic"><use href="#i-search"/></svg></span><input type="text" id="statSearch" placeholder="Search season or player..." oninput="filterStat()"></div>
     <label class="check"><input type="checkbox" id="statShowMissing" onchange="filterStat()"> Show seasons not entered</label>
     <span class="results-count" id="statCount"></span>
   </div>
-  <div class="table-wrap"><table>
-    <thead><tr>
-      <th class="stick-1">Season</th><th>Pts Leader</th><th>Team</th><th class="num">PPG</th>
-      <th>Reb Leader</th><th>Team</th><th class="num">RPG</th>
-      <th>Ast Leader</th><th>Team</th><th class="num">APG</th>
-      <th>Stl Leader</th><th class="num">SPG</th><th>Blk Leader</th><th class="num">BPG</th>
-      <th>Min Leader</th><th class="num">MPG</th>
-    </tr></thead>
+  <div class="table-wrap stat-table"><table>
+    <thead><tr id="statHead"></tr></thead>
     <tbody id="statBody"></tbody>
   </table></div>
   <div class="pagination" id="statPag"></div>
@@ -1025,7 +1063,8 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
   <div class="toolbar">
     <div class="search-wrap"><span class="icon"><svg class="ic"><use href="#i-search"/></svg></span><input type="text" id="curSearch" placeholder="Search players..." oninput="filterCurrent()"></div>
     <select id="curPosFilter" onchange="filterCurrent()"><option value="">All Positions</option><option>PG</option><option>SG</option><option>SF</option><option>PF</option><option>C</option></select>
-    <select class="m-sort" aria-label="Sort by" onchange="mobileSort('cur', this.value)"><option value="">Sort: newest</option><option value="All Stars">All-Stars</option><option value="MVP">MVPs</option><option value="Champions">Titles</option><option value="All NBA Team">All-NBA</option><option value="Exp">Experience</option></select>
+    <select class="m-sort" aria-label="Sort by" onchange="mobileSort('cur', this.value)"><option value="">Sort: newest</option><option value="Champions">Titles</option><option value="MVP">MVPs</option><option value="FMVP">Finals MVPs</option><option value="DPOY">DPOY</option><option value="All Stars">All-Stars</option><option value="All NBA Team">All-NBA</option><option value="Exp">Experience</option></select>
+    <button class="icon-btn m-sort m-dir" id="curSortDir" type="button" onclick="flipSortDir('cur')" aria-label="Sort direction">↓ High first</button>
     <span class="results-count" id="curCount"></span>
   </div>
   <div class="table-wrap"><table><thead><tr id="curHead"></tr></thead><tbody id="curBody"></tbody></table></div>
@@ -1122,6 +1161,9 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
 </div>
 
 <script>
+// 2K17 NBA Stats Database · Data store, loading the workbook (file picker, saved copy) and reading every sheet.
+// Loaded in order by index.html; all files share one global scope.
+
 // =====================================================================
 // DATA STORE
 // =====================================================================
@@ -1247,15 +1289,6 @@ function renderSavedInfo() {
   });
 }
 
-// On startup, reopen the last workbook so it doesn't need dropping again
-getSavedWorkbook().then(saved => {
-  if (saved && saved.buf) {
-    setProgress(`Opening saved ${saved.name}...`);
-    if (!loadWorkbookData(saved.buf, saved.name, saved.savedAt)) renderSavedInfo();
-  } else {
-    renderSavedInfo();
-  }
-});
 
 // =====================================================================
 // EXCEL PARSING
@@ -1265,6 +1298,13 @@ function sheetToArr(ws) {
   const ref = ws['!ref'];
   if (!ref) return [];
   const range = XLSX.utils.decode_range(ref);
+  // Excel sometimes reports a sheet as a million rows tall (formatting down to the bottom);
+  // stop at the last row that actually holds a value
+  if (range.e.r - range.s.r > 5000) {
+    let last = range.s.r;
+    for (const k in ws) { if (k[0] === '!') continue; const cell = ws[k]; if (cell && cell.v !== undefined && cell.v !== null && cell.v !== '') { const r = XLSX.utils.decode_cell(k).r; if (r > last) last = r; } }
+    range.e.r = last;
+  }
   const rows = [];
   for (let r = range.s.r; r <= range.e.r; r++) {
     const row = [];
@@ -1341,9 +1381,9 @@ const LOGO_SLOTS = {
   '4,18': 'Sacramento Kings', '4,21': 'San Antonio Spurs', '4,24': 'Toronto Raptors', '4,27': 'Utah Jazz', '4,30': 'Washington Wizards',
   '6,3': 'Kansas City Knights', '6,6': 'San Diego Surf', '6,9': 'Vancouver Ravens', '6,12': 'Cincinnati Lions',
 };
-let logoUrls = [];
+let logoUrls = [], logoMediaTeam = {};
 function readTeamLogos(wb) {
-  logoUrls.forEach(u => URL.revokeObjectURL(u)); logoUrls = [];
+  logoUrls.forEach(u => URL.revokeObjectURL(u)); logoUrls = []; logoMediaTeam = {};
   const logos = {};
   try {
     const files = wb.files || {}, dec = new TextDecoder();
@@ -1387,6 +1427,7 @@ function readTeamLogos(wb) {
       const c = Number(from[1]), r = Number(from[2]), toC = to ? Number(to[1]) : c, toR = to ? Number(to[2]) : r;
       const team = labelAt(c, r, toC, toR) || LOGO_SLOTS[c + ',' + r];
       const path = media[emb[1]], bytes = path && raw(path);
+      if (team && path && !logoMediaTeam[path]) logoMediaTeam[path] = team;   // other sheets reuse these image files
       if (!team || !bytes || logos[team]) return;
       const ext = (path.split('.').pop() || '').toLowerCase();
       const type = { png: 'image/png', gif: 'image/gif', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', svg: 'image/svg+xml' }[ext] || 'image/png';
@@ -1403,6 +1444,99 @@ function readTeamLogos(wb) {
   } catch (err) { console.warn('Could not read team logos:', err); }
   return logos;
 }
+// NBA History has a small team logo beside each MVP, Finals MVP and DPOY (columns B, E and G).
+// Those pictures reuse the NBA Logo sheet's image files, so each one tells us the winner's team.
+function readAwardTeams(wb) {
+  const out = {};
+  try {
+    const files = wb.files || {}, dec = new TextDecoder();
+    const text = k => { const f = files[k] || files['/' + k], c = f && f.content; return !c ? '' : typeof c === 'string' ? c : dec.decode(c); };
+    const attr = (tag, name) => { const m = tag.match(new RegExp('\\b' + name + '="([^"]*)"')); return m ? m[1] : null; };
+    const resolve = (dir, target) => { if (!target) return ''; if (target.startsWith('/')) return target.slice(1);
+      const out2 = []; (dir + target).split('/').forEach(p => { if (p === '..') out2.pop(); else if (p && p !== '.') out2.push(p); }); return out2.join('/'); };
+    const relsOf = path => { const o = {}, dir = path.replace(/[^/]*$/, ''), base = path.slice(dir.length);
+      (text(dir + '_rels/' + base + '.rels').match(/<Relationship\b[^>]*>/g) || []).forEach(r => { o[attr(r, 'Id')] = resolve(dir, attr(r, 'Target')); }); return o; };
+    const sh = (text('xl/workbook.xml').match(/<sheet\b[^>]*>/g) || []).find(t => (attr(t, 'name') || '').replace(/&amp;/g, '&') === 'NBA History');
+    const sheetPath = sh && relsOf('xl/workbook.xml')[attr(sh, 'r:id')];
+    const drawingPath = sheetPath && Object.values(relsOf(sheetPath)).find(t => /drawings\/[^/]+\.xml$/.test(t));
+    if (!drawingPath || !DB.historyCols) return out;
+    const media = relsOf(drawingPath), cols = DB.historyCols;
+    const byRow = new Map(DB.history.map(h => [h._row, h]));
+    (text(drawingPath).match(/<xdr:(?:twoCellAnchor|oneCellAnchor)\b[\s\S]*?<\/xdr:(?:twoCellAnchor|oneCellAnchor)>/g) || []).forEach(a => {
+      const from = a.match(/<xdr:from>[\s\S]*?<xdr:col>(\d+)<\/xdr:col>[\s\S]*?<xdr:row>(\d+)<\/xdr:row>/), emb = a.match(/r:embed="([^"]+)"/);
+      if (!from || !emb) return;
+      const c = Number(from[1]), h = byRow.get(Number(from[2]) + 1), team = logoMediaTeam[media[emb[1]]];
+      if (!h || !team) return;
+      // The logo belongs to the award column right beside it
+      const kind = Object.entries(cols).map(([k, col]) => [k, Math.abs(col - c)]).sort((x, y) => x[1] - y[1])[0];
+      if (kind && kind[1] <= 1 && h[kind[0]] && h[kind[0]] !== '-') h[kind[0] + 'Team'] = team;
+    });
+  } catch (err) { console.warn('Could not read award teams:', err); }
+  // A logo picture that isn't on the NBA Logo sheet can't be recognised; a one-team career still tells us
+  (DB.history || []).forEach(h => ['MVP', 'FMVP', 'DPOY'].forEach(k => {
+    if (!h[k] || h[k] === '-' || h[k + 'Team']) return;
+    const p = resolvePlayer(h[k], h.Season), teams = p ? [...new Set(playerTeams(p))] : [];
+    if (teams.length === 1) h[k + 'Team'] = teams[0];
+  }));
+  return out;
+}
+// ---------------------------------------------------------------------
+// TEAM HISTORY (1946-47 onward, one row per team per season) and RETIRED NUMBERS
+// Each history row is added to its franchise's seasonRecords, so team pages, standings,
+// records and the wins chart cover every season. A row keeps its own conference,
+// games played, Finals result and playoff note. Defunct teams become small teams of
+// their own (flagged defunct, left out of the Franchises list).
+// ---------------------------------------------------------------------
+const findSheet = (wb, re) => wb.SheetNames.find(n => re.test(n));
+// Today's franchise for a team code; close spellings in Team Record ("Indaina Pacers") still match
+function teamByCode(code) {
+  const full = fullTeamName(code);
+  return DB.teams.find(t => t.Team === full) || DB.teams.find(t => !t.defunct && editDistance(normName(t.Team), normName(full)) <= 2) || null;
+}
+function readTeamHistory(wb) {
+  DB.teamHistoryRows = [];
+  const name = findSheet(wb, /team (history|seasons)/i);
+  if (!name) return;
+  const rows = sheetToArr(wb.Sheets[name]), col = headerFinder(name, rows[0] || []);
+  const c = { yr: col('Season', 0), fr: col('Franchise', 2), team: col('Team', 3), tname: col('Team Name', 4), conf: col('Conference', 5),
+    w: col('W', 7), l: col('L', 8), finals: col('Finals', 13), po: col('Playoffs', 14) };
+  rows.slice(1).forEach((r, i) => {
+    const yr = Number(r[c.yr]), fr = String(r[c.fr] ?? '').trim().toUpperCase(), w = Number(r[c.w]), l = Number(r[c.l]);
+    if (!yr || !fr || isNaN(w) || isNaN(l)) return;
+    const label = String(r[c.tname] ?? '').trim() || fr;
+    DB.teamHistoryRows.push({ _row: i + 2, yr, fr, team: String(r[c.team] ?? '').trim(), label, conf: String(r[c.conf] ?? '').trim().toUpperCase(), w, l,
+      finals: String(r[c.finals] ?? '').trim(), playoffs: String(r[c.po] ?? '').trim() });
+  });
+  const defunct = {};
+  DB.teamHistoryRows.forEach(h => {
+    let t = teamByCode(h.fr);
+    if (!t) {
+      // A defunct team: name it after itself and register its code so Finals rows can find it
+      if (!TEAM_NAMES[h.fr]) TEAM_NAMES[h.fr] = h.label;
+      t = defunct[h.fr] || (defunct[h.fr] = { Team: TEAM_NAMES[h.fr], Conference: h.conf, defunct: true, seasonRecords: {}, Championship: 0 });
+    }
+    if (t.seasonRecords[h.yr]) return;   // Team Record wins when both have a season
+    const g = h.w + h.l, po = h.playoffs.toLowerCase();
+    t.seasonRecords[h.yr] = { w: h.w, l: h.l, rawW: g ? h.w / g * 82 + 1e-6 * h.w : 0, hist: true, label: h.label !== t.Team ? h.label : '',
+      conf: h.conf, finals: h.finals, playoffs: !po ? null : /^(n|no|missed|-)$/.test(po) ? false : true, playoffNote: h.playoffs };
+  });
+  Object.values(defunct).forEach(t => { t.Championship = Object.values(t.seasonRecords).filter(r => /champ/i.test(r.finals)).length; DB.teams.push(t); });
+}
+function readRetiredList(wb) {
+  DB.retiredList = [];
+  const name = findSheet(wb, /^retired/i);
+  if (!name) return;
+  const rows = sheetToArr(wb.Sheets[name]), col = headerFinder(name, rows[0] || []);
+  const c = { team: col('Team', 0), num: col('Number', 2), who: col('Honoree', 3), type: col('Type', 4), status: col('Status', 5), years: col('Years with Franchise', 6) };
+  rows.slice(1).forEach((r, i) => {
+    const who = String(r[c.who] ?? '').trim(), code = String(r[c.team] ?? '').trim().toUpperCase();
+    if (!who || !code) return;
+    DB.retiredList.push({ _row: i + 2, code, num: String(r[c.num] ?? '').trim(), who, type: String(r[c.type] ?? 'Player').trim() || 'Player',
+      status: String(r[c.status] ?? '').trim(), years: String(r[c.years] ?? '').trim() });
+  });
+}
+// Short code for a full team name (Washington Wizards -> WAS), for compact tables
+function teamCode(full) { return Object.keys(TEAM_NAMES).find(k => TEAM_NAMES[k] === full && k.length === 3) || Object.keys(TEAM_NAMES).find(k => TEAM_NAMES[k] === full) || full; }
 // The sheet's logos are up to ~900px; drawing them once at 160px keeps memory low on phones
 async function shrinkLogos(size = 160) {
   if (!DB.logos || typeof createImageBitmap !== 'function') return;
@@ -1462,6 +1596,7 @@ const TEAM_RECORD_COLS = [['Rank', 0], ['Team', 1], ['Conference', 2], ['Champio
   ['Glory Score', 7], ['Last Title', 8], ['Last Finals', 9], ['Last Playoffs', 10], ['Est. Date', 11], ['Avg. W Last 5Y', 12], ['Avg. W Last 10Y', 13]];
 function parseWorkbook(wb) {
   layoutWarnings = [];
+  DB.historyCols = null;
   setProgress('Loading All Players...');
   const apSheet = wb.Sheets['All Players'] ? 'All Players' : wb.SheetNames[0];
   DB.allPlayers = rowsToObjects(sheetToArr(wb.Sheets[apSheet]));
@@ -1498,6 +1633,7 @@ function parseWorkbook(wb) {
         Season: r[cSeason], MVP: r[cMVP], FMVP: r[cFMVP], Finals: r[cFinals], DPOY: r[cDPOY],
         Star1: r[starCols[0]], Star2: r[starCols[1]], Star3: r[starCols[2]]
       }));
+    DB.historyCols = { MVP: cMVP, FMVP: cFMVP, DPOY: cDPOY };
   }
 
   setProgress('Loading Teams...');
@@ -1538,6 +1674,11 @@ function parseWorkbook(wb) {
 
   setProgress('Loading team logos...');
   DB.logos = readTeamLogos(wb);
+  readAwardTeams(wb);
+
+  setProgress('Loading team history...');
+  readTeamHistory(wb);
+  readRetiredList(wb);
 
   setProgress('Loading Stat Leaders...');
   if (wb.Sheets['Season Stat Leader']) {
@@ -1609,28 +1750,33 @@ function seasonLabel(yr) {
 function parseAllNbaTeams(rows) {
   const seasons = [];
   const POSITIONS = ['G','G','F','F','C'];
-  // Block every 7 rows: row0=seasons, row1=positions, rows2-4=teams1-3, rows5-6=blank
-  for (let blockStart = 0; blockStart < rows.length; blockStart += 7) {
-    const r0 = rows[blockStart];
+  // Each season is a block: a row with the season year, a row of positions (G G F F C),
+  // then the 1st, 2nd and 3rd teams. Two blocks sit side by side (year in D or L).
+  // Blocks are found by their year heading, so any season (1947 on) and any spacing works.
+  const isYear = v => typeof v === 'number' && v > 1940 && v < 2200;
+  for (let i = 0; i < rows.length; i++) {
+    const r0 = rows[i];
     if (!r0) continue;
-    // Left block: col3 = season year, cols 0-5 = team data
-    // Right block: col11 = season year, cols 8-13 = team data
     [[3, [0,1,2,3,4,5]], [11, [8,9,10,11,12,13]]].forEach(([yearCol, dataCols]) => {
       const yr = r0[yearCol];
-      if (!yr || typeof yr !== 'number' || yr < 2000) return;
+      if (!isYear(yr)) return;
+      // The positions row (G G F F C) is optional: All-NBA teams had no positions before 1955-56
+      const next = rows[i + 1] || [];
+      const hasPos = dataCols.slice(1).some(c => /^[GFC]$/i.test(String(next[c] ?? '').trim()));
+      const first = i + (hasPos ? 2 : 1);
+      if (Number((rows[first] || [])[dataCols[0]]) !== 1) return;   // the 1st Team row must follow
       const teams = [];
       for (let ti = 0; ti < 3; ti++) {
-        const dataRow = rows[blockStart + 2 + ti];
-        if (!dataRow) continue;
+        const dataRow = rows[first + ti];
+        if (!dataRow || Number(dataRow[dataCols[0]]) !== ti + 1) continue;
         const slots = [];
-        // Players are in dataCols[1..5], positions are fixed G,G,F,F,C
         for (let pi = 1; pi <= 5; pi++) {
           const playerName = dataRow[dataCols[pi]];
-          if (playerName) slots.push({ pos: POSITIONS[pi-1], player: String(playerName) });
+          if (playerName) slots.push({ pos: hasPos ? String(next[dataCols[pi]] || POSITIONS[pi-1]).trim().toUpperCase() : '', player: String(playerName) });
         }
         if (slots.length > 0) teams.push({ team: ti + 1, slots });
       }
-      if (teams.length > 0) seasons.push({ season: yr, teams });
+      if (teams.length > 0 && !seasons.some(x => x.season === yr)) seasons.push({ season: yr, teams });
     });
   }
   return seasons.sort((a, b) => b.season - a.season);
@@ -1760,6 +1906,10 @@ function parseAllTimeRecords(rows) {
     }
   });
 }
+</script>
+<script>
+// 2K17 NBA Stats Database · Formatting helpers, player-name matching, sorting, pagination and player table rows.
+// Loaded in order by index.html; all files share one global scope.
 
 // =====================================================================
 // HELPERS
@@ -1879,6 +2029,8 @@ function buildPlayerIndex() {
 }
 // Returns the player record a sheet name refers to, or null if unknown or ambiguous.
 // season (optional) picks between players who share a short name, e.g. "B.James".
+// Earlier names of players (normalised) -> the name used on their player row
+const NAME_ALIASES = { lalcindor: 'Kareem Abdul-Jabbar', lewalcindor: 'Kareem Abdul-Jabbar', chrisjackson: 'Mahmoud Abdul-Rauf', ronartest: 'Metta World Peace' };
 function resolvePlayer(raw, season) {
   if (!raw) return null;
   const key = raw + '|' + (season || '');
@@ -1901,6 +2053,9 @@ function resolvePlayer(raw, season) {
     return best <= maxDist ? out : [];
   };
   let result = null;
+  // Players who changed their name: the earlier name points at the row's current name
+  const alias = NAME_ALIASES[normName(raw).replace(/ /g, '')];
+  if (alias && alias !== raw) return (resolveCache[key] = resolvePlayer(alias, season));
   const n = normName(raw);
   const exact = playerIndex.filter(c => c.name === raw || c.norm === n);
   if (exact.length) {
@@ -1911,7 +2066,11 @@ function resolvePlayer(raw, season) {
       // "H.McDaniels" -> first initial + surname, allowing a small typo in the surname
       const initial = abbr[1].toLowerCase(), rest = normName(abbr[2]);
       const sameInitial = playerIndex.filter(c => c.initial === initial);
-      result = pick(closest(sameInitial, 'rest', rest, rest.length >= 7 ? 2 : 1));
+      let cands = closest(sameInitial, 'rest', rest, rest.length >= 7 ? 2 : 1);
+      // A short name in a season list must belong to someone playing that season:
+      // "C.Hawkins" in 1970 is Connie Hawkins, not a player who started in 2063
+      if (season) { const yr = Number(season); cands = cands.filter(c => !c.span || (yr >= c.span[0] && yr <= c.span[1])); }
+      result = pick(cands);
     } else if (n.length >= 6) {
       // Misspelt full name, e.g. "Michael Jordon"
       result = pick(closest(playerIndex, 'norm', n, n.length >= 10 ? 2 : 1));
@@ -2090,6 +2249,10 @@ function onSort(key, col) {
   toggleSortState(key, col);
   TABLE_RENDERERS[key]?.();
 }
+</script>
+<script>
+// 2K17 NBA Stats Database · Section navigation, sub-tabs, Home leaders, All Players, Top 20 and By Position.
+// Loaded in order by index.html; all files share one global scope.
 
 // =====================================================================
 // SECTION NAVIGATION
@@ -2139,7 +2302,7 @@ function setupToolbarToggles() {
     btn.className = 'icon-btn tb-toggle'; btn.type = 'button';
     btn.setAttribute('aria-expanded', 'false');
     const count = () => controls.filter(c => (c.tagName === 'SELECT' && !c.classList.contains('m-sort') && c.selectedIndex > 0) || (c.matches('label.check') && c.querySelector('input').checked)).length;
-    const label = () => { const n = count(); btn.innerHTML = `Filters${n ? ` <span class="tb-badge">${n}</span>` : ''}`; };
+    const label = () => { const n = count(); btn.innerHTML = `${tb.querySelector('select.m-sort, #teamSortFilter') ? 'Filter &amp; Sort' : 'Filters'}${n ? ` <span class="tb-badge">${n}</span>` : ''}`; };
     btn.onclick = () => { const open = tb.classList.toggle('open'); btn.setAttribute('aria-expanded', String(open)); };
     tb.addEventListener('change', label);
     label();
@@ -2244,21 +2407,44 @@ function buildRecordTabs(prefix, categories, labels, colors) {
 // ALL PLAYERS
 // =====================================================================
 let playersState = { filtered: [], page: 1, perPage: 30 };
-// Fill the All Players filter menus from the workbook (teams, decades, draft years)
-function populatePlayerFilters() {
-  const fill = (id, opts) => { const el = document.getElementById(id); const keep = el.value; el.innerHTML = el.options[0].outerHTML + opts.map(([v, l]) => `<option value="${v}">${l}</option>`).join(''); el.value = opts.some(([v]) => String(v) === keep) ? keep : ''; };
-  const teams = [...new Set(DB.allPlayers.flatMap(playerTeams))].filter(t => DB.teams.some(x => x.Team === t)).sort();
-  fill('playerTeamFilter', teams.map(t => [t, t]));
-  const decades = new Set();
-  DB.allPlayers.forEach(p => { const sp = careerSpan(p.Season); if (!sp) return; for (let d = Math.floor((sp[0] - 1) / 10) * 10; d <= Math.min(sp[1], 3000) - 1; d += 10) decades.add(d); });
-  fill('playerDecadeFilter', [...decades].sort((a, b) => b - a).map(d => [d, `${d}s`]));
-  const drafts = new Set(); let undrafted = false;
-  DB.allPlayers.forEach(p => { const d = draftInfo(p); if (!d) return; if (d.kind === 'undrafted') undrafted = true; else if (d.year) drafts.add(d.year); });
-  fill('playerDraftFilter', [...[...drafts].sort((a, b) => b - a).map(y => [y, `${y} draft`]), ...(undrafted ? [['undrafted', 'Undrafted']] : [])]);
+// The same four filters (team, decade, draft, honors) on every player list. All Players has them in
+// its HTML; Top 20, By Position and Active Players get copies here, with ids prefixed by the list.
+const FILTER_LISTS = { player: 'filterPlayers', top20: 'filterTop20', pos: 'filterPos', cur: 'filterCurrent', legacy: 'renderLegacy' };
+function addFilterMenus() {
+  const proto = ['Team', 'Decade', 'Draft', 'Honor'].map(k => document.getElementById('player' + k + 'Filter'));
+  Object.entries(FILTER_LISTS).forEach(([prefix, fn]) => {
+    if (prefix === 'player' || document.getElementById(prefix + 'TeamFilter')) return;
+    const tb = document.querySelector(`#sec-${{ top20: 'top20', pos: 'bypos', cur: 'current', legacy: 'legacy' }[prefix]} .toolbar`);
+    const anchor = tb.querySelector('.search-wrap ~ select:not(.m-sort)') || tb.querySelector('.search-wrap');
+    let after = anchor;
+    proto.forEach(src => {
+      const el = src.cloneNode(true);
+      el.id = src.id.replace(/^player/, prefix); el.setAttribute('onchange', fn + '()'); el.value = '';
+      after.after(el); after = el;
+    });
+  });
 }
-function playerMatchesFilters(p) {
-  const team = document.getElementById('playerTeamFilter')?.value, dec = document.getElementById('playerDecadeFilter')?.value;
-  const draft = document.getElementById('playerDraftFilter')?.value, honor = document.getElementById('playerHonorFilter')?.value;
+function populatePlayerFilters() {
+  addFilterMenus();
+  const fill = (id, opts) => { const el = document.getElementById(id); const keep = el.value; el.innerHTML = el.options[0].outerHTML + opts.map(([v, l]) => `<option value="${v}">${l}</option>`).join(''); el.value = opts.some(([v]) => String(v) === keep) ? keep : ''; };
+  const everyone = everyPlayer();
+  const teamsAll = [...new Set(everyone.flatMap(playerTeams))].filter(t => DB.teams.some(x => x.Team === t)).sort();
+  const fillAll = (k, opts) => Object.keys(FILTER_LISTS).forEach(pf => fill(pf + k + 'Filter', opts));
+  fillAll('Team', teamsAll.map(t => [t, t]));
+  const decades = new Set();
+  everyone.forEach(p => { const sp = careerSpan(p.Season); if (!sp) return; for (let d = Math.floor((sp[0] - 1) / 10) * 10; d <= Math.min(sp[1], DB.latestSeason || 3000) - 1; d += 10) decades.add(d); });
+  fillAll('Decade', [...decades].sort((a, b) => b - a).map(d => [d, `${d}s`]));
+  const drafts = new Set(); let undrafted = false;
+  everyone.forEach(p => { const d = draftInfo(p); if (!d) return; if (d.kind === 'undrafted') undrafted = true; else if (d.year) drafts.add(d.year); });
+  fillAll('Draft', [...[...drafts].sort((a, b) => b - a).map(y => [y, `${y} draft`]), ...(undrafted ? [['undrafted', 'Undrafted']] : [])]);
+}
+// prefix picks the list's menus ('player', 'top20', 'pos', 'cur'). Rows from the Top 20 and
+// position sheets are matched to the player's full row so teams, draft and honors are known.
+function playerMatchesFilters(row, prefix = 'player') {
+  const v = k => document.getElementById(prefix + k + 'Filter')?.value;
+  const team = v('Team'), dec = v('Decade'), draft = v('Draft'), honor = v('Honor');
+  if (!team && !dec && !draft && !honor) return true;
+  const p = (prefix === 'top20' || prefix === 'pos') ? (resolvePlayer(row.Player) || row) : row;
   if (team && !playerTeams(p).includes(team)) return false;
   if (dec) { const sp = careerSpan(p.Season), d = Number(dec); if (!sp || sp[0] - 1 > d + 9 || sp[1] - 1 < d) return false; }
   if (draft) { const d = draftInfo(p); if (!d || (draft === 'undrafted' ? d.kind !== 'undrafted' : d.year !== Number(draft))) return false; }
@@ -2304,7 +2490,8 @@ function goPlayersPage(p) { playersState.page = p; renderPlayers(); }
 let top20State = { filtered: [], page: 1, perPage: 20 };
 function filterTop20() {
   const q = document.getElementById('top20Search').value.toLowerCase();
-  top20State.filtered = DB.top20.filter(p => !q || String(p.Player||'').toLowerCase().includes(q));
+  const pos = document.getElementById('top20PosFilter')?.value;
+  top20State.filtered = DB.top20.filter(p => (!q || String(p.Player||'').toLowerCase().includes(q)) && (!pos || (resolvePlayer(p.Player) || p).Position === pos) && playerMatchesFilters(p, 'top20'));
   top20State.page = 1;
   document.getElementById('top20Count').textContent = top20State.filtered.length + ' players';
   renderTop20();
@@ -2346,7 +2533,7 @@ function switchPos(pos) {
 function filterPos() {
   const q = document.getElementById('posSearch').value.toLowerCase();
   posState.filtered = (DB.positions[posState.cur]||[]).filter(p =>
-    !q || String(p.Player||'').toLowerCase().includes(q));
+    (!q || String(p.Player||'').toLowerCase().includes(q)) && playerMatchesFilters(p, 'pos'));
   posState.page = 1;
   renderPos();
 }
@@ -2366,17 +2553,32 @@ function renderPos() {
   renderPag('posPag', filtered.length, perPage, page, 'goPosPage');
 }
 function goPosPage(p) { posState.page = p; renderPos(); }
+</script>
+<script>
+// 2K17 NBA Stats Database · Franchises list, team page, folding cards, dynasties and the wins chart.
+// Loaded in order by index.html; all files share one global scope.
 
 // =====================================================================
 // TEAMS
 // =====================================================================
+// Franchises can be sorted high-to-low or low-to-high on any of the menu's measures
+let teamSortDir = -1;
+function teamSortVal(t, sc) {
+  if (sc === '_lastWins') { const r = DB.latestSeason && t.seasonRecords?.[DB.latestSeason]; return r ? r.rawW : -Infinity; }
+  const v = getNum(t[sc]); return v === -Infinity ? (teamSortDir < 0 ? -Infinity : Infinity) : v;
+}
+function flipTeamSort() {
+  teamSortDir = -teamSortDir;
+  document.getElementById('teamSortDir').textContent = teamSortDir < 0 ? '↓ High first' : '↑ Low first';
+  filterTeams();
+}
 function filterTeams() {
   const q = document.getElementById('teamSearch').value.toLowerCase();
   const conf = document.getElementById('teamConfFilter').value;
   const sc = document.getElementById('teamSortFilter').value || 'Glory Score';
-  const arr = DB.teams.filter(t => t.Team &&
+  const arr = DB.teams.filter(t => t.Team && !t.defunct &&
     (!q || String(t.Team).toLowerCase().includes(q)) &&
-    (!conf || t.Conference === conf)).sort((a, b) => getNum(b[sc]) - getNum(a[sc]));
+    (!conf || t.Conference === conf)).sort((a, b) => (teamSortVal(a, sc) - teamSortVal(b, sc)) * teamSortDir || a.Team.localeCompare(b.Team));
   const latest = DB.latestSeason;
   const st = latest ? seasonStandings(latest) : [];
   const fmt1dp = v => (v !== null && v !== undefined && v !== '—' && !isNaN(parseFloat(v))) ? parseFloat(v).toFixed(1) : '—';
@@ -2394,7 +2596,7 @@ function filterTeams() {
         <div class="team-stat"><div class="tv">${t.Championship||0}</div><div class="tl">Titles</div></div>
         <div class="team-stat"><div class="tv">${t['Conference Titles']||0}</div><div class="tl">Conf</div></div>
         <div class="team-stat"><div class="tv">${t.Playoffs||0}</div><div class="tl">Playoffs</div></div>
-        <div class="team-stat"><div class="tv ${r ? recClass(r.w) : ''}">${r ? r.w+'-'+r.l : t['Last Title']||'—'}</div><div class="tl">${r ? seasonLabel(latest) : 'Last Title'}</div></div>
+        <div class="team-stat"><div class="tv ${r ? recClass(r.w, r.l) : ''}">${r ? r.w+'-'+r.l : t['Last Title']||'—'}</div><div class="tl">${r ? seasonLabel(latest) : 'Last Title'}</div></div>
       </div>
       <div class="team-avgs">Avg. wins <span class="nowrap">5 yrs ${avgSpan(t['Avg. W Last 5Y'])}</span> · <span class="nowrap">10 yrs ${avgSpan(t['Avg. W Last 10Y'])}</span></div>
     </div>`;
@@ -2431,7 +2633,20 @@ function teamBack() {
   if (history.length > 1) history.back();
   else showSection('teams');
 }
+// Retired numbers for a team: the Retired # tab (real life, with years and coaches/others)
+// joined with the "# Retired" columns of All Players; a number shows once per person
 function retiredForTeam(teamName) {
+  const out = [], seen = new Set(), key = (num, who) => String(num).replace(/\D/g, '') + '|' + normName(who);
+  (DB.retiredList || []).forEach(r => {
+    const t = teamByCode(r.code);
+    if (!t || t.Team !== teamName) return;
+    const p = r.type === 'Player' ? resolvePlayer(r.who) : null;
+    seen.add(key(r.num, p ? p.Player : r.who));
+    out.push({ num: r.num, player: p ? p.Player : r.who, linked: !!p, type: r.type, years: r.years });
+  });
+  return out.concat(retiredFromPlayers(teamName).filter(r => !seen.has(key(r.num, r.player))).map(r => ({ ...r, linked: true, type: 'Player' })));
+}
+function retiredFromPlayers(teamName) {
   const out = [];
   DB.allPlayers.forEach(p => {
     ['# Retired', '# Retired2', '# Retired3'].forEach(k => {
@@ -2452,7 +2667,9 @@ function renderTeamPage() {
   const seasons = Object.keys(t.seasonRecords || {}).map(Number).sort((a, b) => b - a);
   const seasonInfo = seasons.map(yr => {
     const r = seasonStandings(yr).find(x => x.team === teamName);
-    return { yr, w: r.w, l: r.l, confRk: r.confRk, leagueRk: r.leagueRk, isChamp: won.includes(yr), isRU: lost.includes(yr), madePlayoffs: r.playoffs };
+    // cw = wins scaled to 82 games, so older shorter seasons sit right on the wins chart
+    return { yr, w: r.w, l: r.l, pct: r.w / Math.max(r.w + r.l, 1), cw: r.w / Math.max(r.w + r.l, 1) * 82, conf: r.conf, label: r.label,
+      confRk: r.confRk, leagueRk: r.leagueRk, isChamp: won.includes(yr), isRU: lost.includes(yr), madePlayoffs: r.playoffs };
   });
   const totW = seasonInfo.reduce((a, s) => a + s.w, 0), totL = seasonInfo.reduce((a, s) => a + s.l, 0);
   const firstHist = finals.length ? Math.min(...finals.map(f => f.yr)) : null;
@@ -2462,7 +2679,7 @@ function renderTeamPage() {
   const bio = [
     ['Conference', t.Conference === 'EAST' ? 'East' : t.Conference === 'WEST' ? 'West' : (t.Conference || '—')],
     ['Established', t['Est. Date'] || '—'],
-    ['Glory rank', t.Rank ? `#${t.Rank} of ${DB.teams.length}` : '—'],
+    ['Glory rank', t.Rank ? `#${t.Rank} of ${DB.teams.filter(x => !x.defunct).length}` : '—'],
     ['Glory score', t['Glory Score'] || 0],
     ...(seasonInfo.length ? [[`Record (${seasonInfo.length} seasons)`, `${totW.toLocaleString()}-${totL.toLocaleString()} (${(totW / Math.max(totW + totL, 1)).toFixed(3).replace(/^0/, '')})`]] : []),
     ...(won.length + lost.length ? [['Finals record', `${won.length}-${lost.length}`]] : []),
@@ -2504,14 +2721,15 @@ function renderTeamPage() {
   main.push(`<div class="chart-card">${legendsHtml(t.Team)}</div>`);
   if (seasonInfo.length >= 2) main.push(`<div class="chart-card"><div class="chart-title">${icon('line')} Wins per Season</div>
     <div class="wc-key"><span><i class="wc-dot champ"></i>Champion</span><span><i class="wc-dot silver"></i>Lost Finals</span><span><i class="wc-rule"></i>.500 (41 wins)</span></div>
+    <div class="seg wc-range" id="winRange"></div>
     <div class="win-chart" id="winChart"></div></div>`);
   if (seasonInfo.length) main.push(`<div class="chart-card"><div class="chart-title">${icon('calendar')} Season by Season</div>
     <div class="season-scroll"><table class="standings-table">
       <thead><tr><th>Season</th><th class="num">Record</th><th class="num">Conf</th><th class="num">League</th><th class="num">Win%</th><th>Result</th></tr></thead>
       <tbody>${seasonInfo.map(si => `<tr class="${si.isChamp ? 'row-champ' : si.isRU ? 'row-ru' : si.madePlayoffs ? 'row-playoff' : ''}">
-        <td>${seasonLink(si.yr)}</td><td class="num ${recClass(si.w)}">${si.w}-${si.l}</td>
+        <td>${seasonLink(si.yr)}${si.label ? `<div class="muted st-era">${si.label}</div>` : ''}</td><td class="num ${recClass(si.w, si.l)}">${si.w}-${si.l}</td>
         <td class="num">${si.confRk > 0 ? '#' + si.confRk : '—'}</td><td class="num">${si.leagueRk > 0 ? '#' + si.leagueRk : '—'}</td>
-        <td class="num">${(si.w / 82).toFixed(3).replace(/^0/, '')}</td>
+        <td class="num">${si.pct.toFixed(3).replace(/^0/, '')}</td>
         <td>${resultMark(si.isChamp, si.isRU, true) || (si.madePlayoffs ? '<span class="muted">Playoffs</span>' : '')}</td></tr>`).join('')}</tbody>
     </table></div></div>`);
 
@@ -2522,16 +2740,20 @@ function renderTeamPage() {
       <span class="rb-sub">${runLabel(r)}</span></div>`).join('')}
     <button class="card-link" onclick="showSection('records');setTimeout(()=>document.getElementById('rb-dynasties')?.scrollIntoView(),50)">All dynasties</button></div>`);
   const seasonRow = si => `<div class="rb-row"><span class="rb-rank"></span><span class="rb-main">${seasonLink(si.yr)}</span><span class="rb-val">${si.w}-${si.l}</span>
-    <span class="rb-sub">${si.isChamp ? 'Won the title' : si.isRU ? 'Lost in the Finals' : si.madePlayoffs ? `#${si.confRk} in the ${t.Conference === 'EAST' ? 'East' : 'West'}` : `Missed the playoffs (#${si.confRk})`}</span></div>`;
+    <span class="rb-sub">${si.isChamp ? 'Won the title' : si.isRU ? 'Lost in the Finals' : si.madePlayoffs === false ? `Missed the playoffs (#${si.confRk})` : `#${si.confRk} in the ${confName(si.conf)}`}${si.label ? ` · ${si.label}` : ''}</span></div>`;
   if (seasonInfo.length) {
     side.push(`<div class="chart-card rb-card bw-card"><div class="card-head"><div class="chart-title">${icon('calendar')} Best &amp; Worst Seasons</div>
       <div class="seg"><button class="active" onclick="bwSwitch(this, 'best')">Best</button><button onclick="bwSwitch(this, 'worst')">Worst</button></div></div>
-      <div class="bw-list" data-list="best">${[...seasonInfo].sort((a, b) => b.w - a.w || b.yr - a.yr).slice(0, 5).map(seasonRow).join('')}</div>
-      <div class="bw-list" data-list="worst" hidden>${[...seasonInfo].sort((a, b) => a.w - b.w || b.yr - a.yr).slice(0, 5).map(seasonRow).join('')}</div></div>`);
+      <div class="bw-list" data-list="best">${[...seasonInfo].sort((a, b) => b.pct - a.pct || b.w - a.w || b.yr - a.yr).slice(0, 5).map(seasonRow).join('')}</div>
+      <div class="bw-list" data-list="worst" hidden>${[...seasonInfo].sort((a, b) => a.pct - b.pct || a.w - b.w || b.yr - a.yr).slice(0, 5).map(seasonRow).join('')}</div></div>`);
   }
   const retired = retiredForTeam(teamName);
-  if (retired.length) side.push(`<div class="chart-card"><div class="chart-title">${icon('jersey')} Retired Numbers</div>
-    <div class="chip-row">${retired.map(r => `<div class="jersey"><div class="jersey-num">${r.num}</div><div class="jersey-name">${nameLink(r.player)}</div></div>`).join('')}</div></div>`);
+  const jerseys = retired.filter(r => r.type === 'Player'), others = retired.filter(r => r.type !== 'Player');
+  const byNum = (a, b) => (parseInt(a.num) || 999) - (parseInt(b.num) || 999);
+  if (retired.length) side.push(`<div class="chart-card"><div class="chart-title">${icon('jersey')} Retired Numbers <span class="muted">${retired.length}</span></div>
+    <div class="chip-row">${jerseys.sort(byNum).map(r => `<div class="jersey" ${r.years ? `title="${r.years}"` : ''}><div class="jersey-num">${r.num}</div>
+      <div class="jersey-name">${r.linked ? nameLink(r.player) : `<span class="name-plain">${r.player}</span>`}</div>${r.years ? `<div class="jersey-years">${r.years}</div>` : ''}</div>`).join('')}</div>
+    ${others.length ? `<div class="jersey-others"><div class="jo-title">Also honored</div>${others.map(r => `<div class="jo-row"><b>${r.num && r.num !== '—' ? r.num : '—'}</b> ${r.player} <span class="muted">${r.type}${r.years ? ' · ' + r.years : ''}</span></div>`).join('')}</div>` : ''}</div>`);
   const activeHere = DB.currentPlayers.filter(p => { const ts = playerTeams(p); return ts[ts.length - 1] === teamName; })
     .sort((a, b) => legacy(b).total - legacy(a).total);
   // Players whose first listed team is this one
@@ -2654,10 +2876,30 @@ function teamsOfDecades() {
 // Finals losses; hover or arrow keys show that season's details.
 // =====================================================================
 let winChartData = null;
+// A long history is shown 20 seasons at a time (newest first by default), or all at once
+function winChartWindows(all) {
+  if (!all.length) return [];
+  // Blocks line up on decades (1960-79, 1980-99, 2000-19...), newest first
+  const first = all[0].yr, last = all[all.length - 1].yr, out = [];
+  for (let from = Math.floor(last / 20) * 20; from + 19 >= first; from -= 20) { const to = from + 19; if (all.some(s => s.yr >= from && s.yr <= to)) out.push({ from, to }); }
+  return out;
+}
+function setWinRange(i) { winChartData.range = i; renderWinChart(); }
 function renderWinChart() {
   const el = document.getElementById('winChart');
   if (!el || !winChartData) return;
-  const data = winChartData.seasons, conf = winChartData.team.Conference;
+  const all = winChartData.seasons, conf = winChartData.team.Conference;
+  const wins = winChartWindows(all), span = all.length ? all[all.length - 1].yr - all[0].yr : 0;
+  const rangeEl = document.getElementById('winRange');
+  if (winChartData.range === undefined) winChartData.range = span > 30 ? 0 : -1;   // -1 = all seasons
+  if (rangeEl) {
+    rangeEl.hidden = span <= 30;
+    rangeEl.innerHTML = wins.map((w, i) => `<button class="${winChartData.range === i ? 'active' : ''}" onclick="setWinRange(${i})">${w.from}–${String(w.to).slice(-2)}</button>`).reverse().join('')
+      + `<button class="${winChartData.range === -1 ? 'active' : ''}" onclick="setWinRange(-1)">All</button>`;
+  }
+  const win = wins[winChartData.range];
+  const data = win ? all.filter(s => s.yr >= win.from && s.yr <= win.to) : all;
+  if (!data.length) { el.innerHTML = ''; return; }
   const W = Math.max(el.clientWidth, 280), H = 210;
   const m = { l: 30, r: 48, t: 12, b: 24 };
   const pw = W - m.l - m.r, ph = H - m.t - m.b;
@@ -2670,22 +2912,23 @@ function renderWinChart() {
   let svg = [0, 20, 41, 60, 80].map(v =>
     `<line x1="${m.l}" x2="${m.l+pw}" y1="${y(v)}" y2="${y(v)}" class="${v === 41 ? 'wc-ref' : 'wc-grid'}"/>` +
     `<text x="${m.l-6}" y="${y(v)+4}" class="wc-tick" text-anchor="end">${v}</text>`).join('');
-  const step = (y1 - y0) > 30 ? 10 : 5;
+  // As many year labels as fit (about one per 46px)
+  const fit = Math.max(2, Math.floor(pw / 46)), step = [1, 2, 5, 10, 20, 25, 50].find(s => (y1 - y0) / s <= fit) || 50;
   for (let yr = Math.ceil(y0/step)*step; yr <= y1; yr += step)
     svg += `<text x="${x(yr)}" y="${H-6}" class="wc-tick" text-anchor="middle">${yr}</text>`;
 
   // Line, broken where the team has no record for a season
   let d = '';
-  data.forEach((s, i) => { d += (i && s.yr === data[i-1].yr + 1 ? 'L' : 'M') + x(s.yr).toFixed(1) + ' ' + y(s.w).toFixed(1); });
+  data.forEach((s, i) => { d += (i && s.yr === data[i-1].yr + 1 ? 'L' : 'M') + x(s.yr).toFixed(1) + ' ' + y(s.cw ?? s.w).toFixed(1); });
   svg += `<path d="${d}" class="wc-line"/>`;
   data.forEach(s => {
-    if (s.isChamp) svg += `<circle cx="${x(s.yr)}" cy="${y(s.w)}" r="5" class="wc-mark" fill="var(--champ)"/>`;
-    else if (s.isRU) svg += `<circle cx="${x(s.yr)}" cy="${y(s.w)}" r="4.5" class="wc-mark" fill="var(--silver)"/>`;
+    if (s.isChamp) svg += `<circle cx="${x(s.yr)}" cy="${y(s.cw ?? s.w)}" r="5" class="wc-mark" fill="var(--champ)"/>`;
+    else if (s.isRU) svg += `<circle cx="${x(s.yr)}" cy="${y(s.cw ?? s.w)}" r="4.5" class="wc-mark" fill="var(--silver)"/>`;
   });
   // Direct label on the latest season only
   const last = data[data.length-1];
-  if (!last.isChamp && !last.isRU) svg += `<circle cx="${x(last.yr)}" cy="${y(last.w)}" r="4" class="wc-mark" fill="var(--link)"/>`;
-  svg += `<text x="${x(last.yr)+8}" y="${y(last.w)+4}" class="wc-end">${last.w}-${last.l}</text>`;
+  if (!last.isChamp && !last.isRU) svg += `<circle cx="${x(last.yr)}" cy="${y(last.cw ?? last.w)}" r="4" class="wc-mark" fill="var(--link)"/>`;
+  svg += `<text x="${x(last.yr)+8}" y="${y(last.cw ?? last.w)+4}" class="wc-end">${last.w}-${last.l}</text>`;
   // Hover layer
   svg += `<line class="wc-cross" y1="${m.t}" y2="${m.t+ph}" visibility="hidden"/><circle class="wc-focus wc-mark" r="4.5" fill="var(--link)" visibility="hidden"/>`;
 
@@ -2698,12 +2941,12 @@ function renderWinChart() {
   let cur = -1;
   const show = i => {
     cur = Math.max(0, Math.min(data.length - 1, i));
-    const s = data[cur], cx = x(s.yr), cy = y(s.w);
+    const s = data[cur], cx = x(s.yr), cy = y(s.cw ?? s.w);
     cross.setAttribute('x1', cx); cross.setAttribute('x2', cx); cross.setAttribute('visibility', 'visible');
     focus.setAttribute('cx', cx); focus.setAttribute('cy', cy); focus.setAttribute('visibility', 'visible');
-    const result = resultMark(s.isChamp, s.isRU, true) || (s.madePlayoffs ? 'Made playoffs' : 'Missed playoffs');
-    tip.innerHTML = `<div class="wc-tip-title">${seasonLabel(s.yr)}</div>
-      <div><strong>${s.w}-${s.l}</strong> · #${s.confRk} ${conf === 'EAST' ? 'East' : 'West'} · #${s.leagueRk} league</div>
+    const result = resultMark(s.isChamp, s.isRU, true) || (s.madePlayoffs === true ? 'Made playoffs' : s.madePlayoffs === false ? 'Missed playoffs' : '');
+    tip.innerHTML = `<div class="wc-tip-title">${seasonLabel(s.yr)}${s.label ? ` · ${s.label}` : ''}</div>
+      <div><strong>${s.w}-${s.l}</strong> · #${s.confRk} ${confName(s.conf || conf)} · #${s.leagueRk} league</div>
       <div class="wc-tip-sub">${result}</div>`;
     tip.hidden = false;
     // Keep the tooltip inside the chart: flip to the left of the point near the right edge
@@ -2722,6 +2965,10 @@ function renderWinChart() {
   });
 }
 window.addEventListener('resize', () => { if (document.getElementById('winChart')) renderWinChart(); });
+</script>
+<script>
+// 2K17 NBA Stats Database · League History, standings, Home, What's New, Season Hub, Record Book, Stat Leaders, Active Players, All-NBA and Decade Teams.
+// Loaded in order by index.html; all files share one global scope.
 
 // =====================================================================
 // HISTORY
@@ -2757,20 +3004,22 @@ function initStandings() {
 function buildStandingsTable(teamsArr, season, champFull, ruFull, topN, showConf) {
   topN = topN || 8;
   showConf = showConf !== undefined ? showConf : true;
-  const top1W = teamsArr.length > 0 ? teamsArr[0].seasonRecords[season].w : 0;
+  const top = teamsArr.length > 0 ? teamsArr[0].seasonRecords[season] : null;
+  const hist = top && top.hist;
   return teamsArr.map((t, i) => {
     const rec = t.seasonRecords[season];
     const isChamp = champFull && t.Team === champFull;
     const isRU = ruFull && t.Team === ruFull;
-    const madePlayoffs = (i + 1) <= topN;
-    const pct = (rec.w / 82).toFixed(3).replace(/^0/, '');
-    const gb = i === 0 ? '—' : (top1W - rec.w).toFixed(1).replace('.0', '');
-    const rowCls = [isChamp ? 'row-champ' : isRU ? 'row-ru' : madePlayoffs ? 'row-playoff' : '', i + 1 === topN ? 'cut' : ''].join(' ');
+    // Older seasons: shade only teams the sheet marks as playoff teams, and no cut line
+    const madePlayoffs = hist ? rec.playoffs === true : (i + 1) <= topN;
+    const pct = (rec.w / Math.max(rec.w + rec.l, 1)).toFixed(3).replace(/^0/, '');
+    const gb = i === 0 ? '—' : (((top.w - rec.w) + (rec.l - top.l)) / 2).toFixed(1).replace('.0', '');
+    const rowCls = [isChamp ? 'row-champ' : isRU ? 'row-ru' : madePlayoffs ? 'row-playoff' : '', !hist && i + 1 === topN ? 'cut' : ''].join(' ');
     return `<tr class="${rowCls}">
       <td class="st-rank">${i + 1}</td>
-      <td>${teamLink(t.Team)}</td>
-      ${showConf ? `<td><span class="conf-badge">${t.Conference}</span></td>` : ''}
-      <td class="num ${recClass(rec.w)}">${rec.w}-${rec.l}</td>
+      <td>${teamLink(t.Team, rec.label || t.Team)}</td>
+      ${showConf ? `<td><span class="conf-badge">${rec.conf || t.Conference}</span></td>` : ''}
+      <td class="num ${recClass(rec.w, rec.l)}">${rec.w}-${rec.l}</td>
       <td class="num">${pct}</td>
       <td class="num">${gb}</td>
       <td>${resultMark(isChamp, isRU, false)}</td>
@@ -2784,15 +3033,17 @@ function standingsHead(showConf) {
 // East and West tables side by side (stacked on phones); '' if the season has no team records
 function splitStandingsHtml(season) {
   const { champ, ru } = finalsTeams(season);
-  const conf = c => DB.teams.filter(t => t.Conference === c && t.seasonRecords?.[season])
-    .sort((a,b) => b.seasonRecords[season].rawW - a.seasonRecords[season].rawW);
-  const east = conf('EAST'), west = conf('WEST');
-  if (!east.length && !west.length) return '';
-  const block = (label, teams) => `<div>
-      <div class="conf-title">${label}</div>
+  const confOf = t => t.seasonRecords[season].conf || t.Conference;
+  const playing = DB.teams.filter(t => t.seasonRecords?.[season]);
+  const confs = ['EAST', 'WEST', 'CENTRAL'].filter(c => playing.some(t => confOf(t) === c));
+  if (!confs.length) return '';
+  const hist = playing.some(t => t.seasonRecords[season].hist);
+  const block = c => { const teams = playing.filter(t => confOf(t) === c).sort((a,b) => b.seasonRecords[season].rawW - a.seasonRecords[season].rawW);
+    return `<div>
+      <div class="conf-title">${confTitle(c, season)}</div>
       <div style="overflow-x:auto"><table class="standings-table">${standingsHead(false)}<tbody>${buildStandingsTable(teams,season,champ,ru,8,false)}</tbody></table></div>
-    </div>`;
-  return `<div class="split-standings">${block('Eastern Conference',east)}${block('Western Conference',west)}</div>`;
+    </div>`; };
+  return `<div class="split-standings${confs.length > 2 ? ' three' : ''}">${confs.map(block).join('')}</div>`;
 }
 function renderStandings() {
   const season = document.getElementById('standingsSeason').value;
@@ -2802,11 +3053,12 @@ function renderStandings() {
   const { champ: champFull, ru: ruFull } = finalsTeams(season);
   const allTeams = DB.teams.filter(t => t.seasonRecords?.[season]);
   const byRaw = t => t.seasonRecords[season].rawW;
+  const confOf = t => t.seasonRecords[season].conf || t.Conference;
 
   if (conf === 'SPLIT') {
     document.getElementById('standingsContent').innerHTML = splitStandingsHtml(season);
   } else {
-    let teams = conf ? allTeams.filter(t=>t.Conference===conf) : allTeams;
+    let teams = conf ? allTeams.filter(t => confOf(t) === conf) : allTeams;
     teams = [...teams].sort((a,b)=>byRaw(b)-byRaw(a));
     const topN = conf ? 8 : 16;
     const showC = !conf; // show Conf column only in Full League view
@@ -2836,9 +3088,10 @@ function renderHistory() {
   const slice = sorted.slice((page-1)*perPage, page*perPage);
   document.getElementById('histBody').innerHTML = slice.map(h => {
     const champAbbr = extractChampTeam(h.Finals||'');
-    const histName = name => (!name || name === '-')
+    // Winner's name, with the team logo from the NBA History sheet in front of it
+    const histName = (name, team) => (!name || name === '-')
       ? '<td class="muted">—</td>'
-      : `<td>${nameLink(name, {season: h.Season})}</td>`;
+      : `<td class="nowrap">${team ? teamLogo(team) : ''}${nameLink(name, {season: h.Season})}</td>`;
     // "Name (97)" -> linked name plus its rating
     const starCell = name => {
       if (!name) return '<td class="muted">—</td>';
@@ -2848,13 +3101,26 @@ function renderHistory() {
     };
     return `<tr>
       <td class="stick-1">${seasonLink(h.Season, seasonLabel(h.Season))}</td>
-      <td><span class="hist-champion">${champAbbr ? icon('trophy','ic-champ') + ' ' + teamLink(champAbbr, fullTeamName(champAbbr)) : '—'}</span></td>
+      <td><span class="hist-champion">${champAbbr ? icon('trophy','ic-champ') + ' ' + teamIn(fullTeamName(champAbbr), h.Season) : '—'}</span></td>
       <td class="muted">${h.Finals||'—'}</td>
-      ${histName(h.FMVP)}
-      ${histName(h.MVP)}
-      ${histName(h.DPOY)}
+      ${histName(h.FMVP, h.FMVPTeam)}
+      ${histName(h.MVP, h.MVPTeam)}
+      ${histName(h.DPOY, h.DPOYTeam)}
       ${starCell(h.Star1)}${starCell(h.Star2)}${starCell(h.Star3)}
     </tr>`;
+  }).join('');
+  // Phones: one card per season instead of the nine-column table
+  const nm = (name, h) => String(name).replace(/\s*\(\d+\)\s*$/, '').trim();
+  document.getElementById('histCards').innerHTML = slice.map(h => {
+    const champAbbr = extractChampTeam(h.Finals || ''), { ru } = finalsTeams(h.Season);
+    const award = (label, name, team) => name && name !== '-' ? `<div class="hc-award"><span>${label}</span><b>${team ? teamLogo(team) : ''}${nameLink(name, { season: h.Season })}</b></div>` : '';
+    const stars = [h.Star1, h.Star2, h.Star3].filter(Boolean).map(s => { const r = String(s).match(/\((\d+)\)$/)?.[1]; return `${nameLink(nm(s), { season: h.Season })}${r ? ` <span class="muted">${r}</span>` : ''}`; });
+    return `<div class="hcard">
+      <div class="hc-top"><span class="hc-season">${seasonLink(h.Season)}</span><span class="hc-score">${h.Finals || ''}</span></div>
+      <div class="hc-champ">${champAbbr ? `${icon('trophy', 'ic-champ')} ${teamIn(fullTeamName(champAbbr), h.Season)}${ru ? ` <span class="muted nowrap">over ${teamLink(ru, teamCode(ru))}</span>` : ''}` : '<span class="muted">Champion not recorded</span>'}</div>
+      <div class="hc-awards">${award('Finals MVP', h.FMVP, h.FMVPTeam)}${award('MVP', h.MVP, h.MVPTeam)}${award('DPOY', h.DPOY, h.DPOYTeam)}</div>
+      ${stars.length ? `<div class="hc-stars"><span>Champion stars</span> ${stars.join(' · ')}</div>` : ''}
+    </div>`;
   }).join('');
   renderPag('histPag', filtered.length, perPage, page, 'goHistPage');
 }
@@ -2866,20 +3132,32 @@ function goHistPage(p) { histState.page = p; renderHistory(); }
 let standingsCache = {};
 // Every team's record and ranks for one season; [] if Team Record has no column for it.
 // Playoffs = top 8 in conference (the 2K17 format; the sheet doesn't store it).
+// Older seasons (Team History) carry their own conference and playoff note; playoffs there are
+// only known when the sheet says so (null otherwise), since formats changed many times.
 function seasonStandings(yr) {
   if (standingsCache[yr]) return standingsCache[yr];
   const teams = DB.teams.filter(t => t.seasonRecords?.[yr]);
-  const rows = teams.map(t => ({ team: t.Team, conf: t.Conference, w: t.seasonRecords[yr].w, l: t.seasonRecords[yr].l, raw: t.seasonRecords[yr].rawW }));
+  const rows = teams.map(t => { const rec = t.seasonRecords[yr];
+    return { team: t.Team, label: rec.label || '', conf: rec.conf || t.Conference, w: rec.w, l: rec.l, raw: rec.rawW, hist: !!rec.hist, histPlayoffs: rec.playoffs }; });
   [...rows].sort((a,b) => b.raw - a.raw).forEach((r, i) => r.leagueRk = i + 1);
-  ['EAST','WEST'].forEach(c => rows.filter(r => r.conf === c).sort((a,b) => b.raw - a.raw).forEach((r, i) => r.confRk = i + 1));
-  rows.forEach(r => r.playoffs = r.confRk <= 8);
+  [...new Set(rows.map(r => r.conf))].forEach(c => rows.filter(r => r.conf === c).sort((a,b) => b.raw - a.raw).forEach((r, i) => r.confRk = i + 1));
+  rows.forEach(r => r.playoffs = r.hist ? r.histPlayoffs : r.confRk <= 8);
   return (standingsCache[yr] = rows);
 }
+const CONF_NAMES = { EAST: 'East', WEST: 'West', CENTRAL: 'Central' };
+const confName = c => CONF_NAMES[c] || c;
+// Before 1970-71 the NBA had divisions where it now has conferences
+const confTitle = (c, season) => ({ EAST: 'Eastern', WEST: 'Western', CENTRAL: 'Central' }[c] || c) + (Number(season) < 1971 ? ' Division' : ' Conference');
 // Seasons that have team records, oldest first
 function standingsSeasons() {
   const yrs = new Set();
   DB.teams.forEach(t => Object.keys(t.seasonRecords || {}).forEach(y => yrs.add(Number(y))));
   return [...yrs].sort((a,b) => a - b);
+}
+// A team as it was called in that season (Minneapolis Lakers in 1950), linking to today's franchise
+function teamIn(team, yr, label) {
+  const t = team && DB.teams.find(x => x.Team === team), era = t && t.seasonRecords?.[yr]?.label;
+  return teamLink(team, label || era || undefined);
 }
 function seasonLink(yr, label) {
   return `<span class="season-link" onclick="event.stopPropagation();openSeason(${Number(yr)})">${label || seasonLabel(yr)}</span>`;
@@ -2890,7 +3168,8 @@ function seasonLink(yr, label) {
 // =====================================================================
 let homeHighlights = [];
 const icon = (id, cls) => `<svg class="ic${cls ? ' ' + cls : ''}" aria-hidden="true"><use href="#i-${id}"/></svg>`;
-function recClass(w) { return w >= 41 ? 'rec-win' : 'rec-loss'; }
+// Winning record: more wins than losses (old seasons weren't always 82 games)
+function recClass(w, l) { return (l === undefined ? w >= 41 : w >= l) ? 'rec-win' : 'rec-loss'; }
 // Trophy for the champion, silver trophy for the Finals loser, each with a text label for screen readers
 function resultMark(isChamp, isRU, withText) {
   if (isChamp) return `<span class="result-mark" title="Champion">${icon('trophy', 'ic-champ')}${withText ? ' Champion' : '<span class="sr">Champion</span>'}</span>`;
@@ -2919,9 +3198,9 @@ function renderHome() {
       <div class="hero-sub">${ru ? `Beat ${teamLink(ru)} ${score} in the Finals` : ''}${champRow ? ` · ${champRow.w}-${champRow.l} regular season` : ''} · ${seasonLink(yr, 'Season recap')}</div>
     </div>
     <div class="hero-awards">
-      <div class="hero-award"><div class="ha-label">Finals MVP</div><div class="ha-name">${award(h.FMVP)}</div></div>
-      <div class="hero-award"><div class="ha-label">MVP</div><div class="ha-name">${award(h.MVP)}</div></div>
-      <div class="hero-award"><div class="ha-label">DPOY</div><div class="ha-name">${award(h.DPOY)}</div></div>
+      <div class="hero-award"><div class="ha-label">Finals MVP</div><div class="ha-name">${h.FMVPTeam ? teamLogo(h.FMVPTeam) : ''}${award(h.FMVP)}</div></div>
+      <div class="hero-award"><div class="ha-label">MVP</div><div class="ha-name">${h.MVPTeam ? teamLogo(h.MVPTeam) : ''}${award(h.MVP)}</div></div>
+      <div class="hero-award"><div class="ha-label">DPOY</div><div class="ha-name">${h.DPOYTeam ? teamLogo(h.DPOYTeam) : ''}${award(h.DPOY)}</div></div>
       ${best ? `<div class="hero-award"><div class="ha-label">Best Record</div><div class="ha-name">${teamLink(best.team)} <span class="nowrap">${best.w}-${best.l}</span></div></div>` : ''}
     </div>
   </section>`);
@@ -2934,7 +3213,7 @@ function renderHome() {
       return `<div><div class="conf-title">${conf === 'EAST' ? 'East' : 'West'}</div>
         <table class="standings-table mini-standings"><thead><tr><th>#</th><th>Team</th><th class="num">W-L</th><th class="num">GB</th></tr></thead>
         <tbody>${rows.map((r, i) => `<tr><td class="st-rank">${i+1}</td><td>${teamLink(r.team)}${r.team === champ ? ' ' + icon('trophy', 'ic-champ') : r.team === ru ? ' ' + icon('trophy', 'ic-silver') : ''}</td>
-          <td class="num ${recClass(r.w)}">${r.w}-${r.l}</td><td class="num">${i ? top.w - r.w : '—'}</td></tr>`).join('')}</tbody></table></div>`;
+          <td class="num ${recClass(r.w, r.l)}">${r.w}-${r.l}</td><td class="num">${i ? top.w - r.w : '—'}</td></tr>`).join('')}</tbody></table></div>`;
     };
     cards.push(`<div class="chart-card span-8"><div class="card-head"><div class="chart-title">Final Standings · Top 8</div>
       <button class="card-link" onclick="openSeason(${yr})">Full standings</button></div>
@@ -2974,10 +3253,10 @@ function archiveCard() {
   return `<div class="chart-card span-6 rb-card" id="archiveCard"><div class="card-head"><div class="chart-title">${icon('calendar')} From the Archives</div>
       <button class="card-link" onclick="rerollHome('archive')">Another season</button></div>
     <div class="arch-head">${seasonLink(yr)} <span class="muted">· ${ago} season${ago === 1 ? '' : 's'} ago</span></div>
-    <div class="rb-row"><span class="rb-rank">${icon('trophy', 'ic-champ')}</span><span class="rb-main">${teamLink(champ)}</span><span class="rb-val">${cr ? `${cr.w}-${cr.l}` : ''}</span>
-      <span class="rb-sub">Champion${ru ? ` · beat ${teamLink(ru)} ${finalsScore(h)}` : ''}</span></div>
+    <div class="rb-row"><span class="rb-rank">${icon('trophy', 'ic-champ')}</span><span class="rb-main">${teamIn(champ, yr)}</span><span class="rb-val">${cr ? `${cr.w}-${cr.l}` : ''}</span>
+      <span class="rb-sub">Champion${ru ? ` · beat ${teamIn(ru, yr)} ${finalsScore(h)}` : ''}</span></div>
     ${award('Finals MVP', h.FMVP)}${award('MVP', h.MVP)}${award('DPOY', h.DPOY)}
-    ${best && best.team !== champ ? `<div class="rb-row"><span class="rb-rank"></span><span class="rb-main">${teamLink(best.team)}</span><span class="rb-val">${best.w}-${best.l}</span><span class="rb-sub">Best record</span></div>` : ''}
+    ${best && best.team !== champ ? `<div class="rb-row"><span class="rb-rank"></span><span class="rb-main">${teamIn(best.team, yr)}</span><span class="rb-val">${best.w}-${best.l}</span><span class="rb-sub">Best record</span></div>` : ''}
   </div>`;
 }
 function spotlightCard() {
@@ -3035,7 +3314,10 @@ function diffSnapshots(prev, cur) {
   const groups = [], P = n => everyPlayer().find(x => x.Player === n);
   const award = (label, v, yr) => v && v !== '-' ? `${label} ${nameLink(v, { season: yr })}` : '';
   // New seasons in NBA History
-  const seasons = cur.seasons.filter(y => !prev.seasons.includes(y)).sort((a, b) => a - b).map(yr => {
+  // Seasons added before the previous latest one are history being filled in: one line, not one each
+  const prevLatest = prev.seasons.length ? Math.max(...prev.seasons) : 0;
+  const backfill = cur.seasons.filter(y => !prev.seasons.includes(y) && y < prevLatest).sort((a, b) => a - b);
+  const seasons = cur.seasons.filter(y => !prev.seasons.includes(y) && y >= prevLatest).sort((a, b) => a - b).map(yr => {
     const h = DB.history.find(x => Number(x.Season) === yr) || {}, { champ, ru } = finalsTeams(yr);
     const t = DB.teams.find(x => x.Team === champ);
     const later = DB.history.filter(x => Number(x.Season) > yr && finalsTeams(x.Season).champ === champ).length;
@@ -3044,6 +3326,7 @@ function diffSnapshots(prev, cur) {
       ${[award('Finals MVP', h.FMVP, yr), award('MVP', h.MVP, yr), award('DPOY', h.DPOY, yr)].filter(Boolean).join(' · ')}`;
   });
   if (seasons.length) groups.push({ title: 'New season' + (seasons.length > 1 ? 's' : ''), icon: 'trophy', items: seasons });
+  if (backfill.length) groups.push({ title: 'History added', icon: 'calendar', items: [`${backfill.length} earlier season${backfill.length > 1 ? 's' : ''} added to NBA History (${seasonLabel(backfill[0])}${backfill.length > 1 ? ' to ' + seasonLabel(backfill[backfill.length - 1]) : ''})`] });
   // Retirements
   const retired = Object.keys(cur.players).filter(n => prev.players[n]?.a === 1 && cur.players[n].a === 0).map(n => {
     const p = P(n); return `${nameLink(n)} retired · ${p ? draftCareer(p) : ''}${cur.players[n].L ? ` · legacy #${cur.players[n].L}` : ''}`;
@@ -3144,12 +3427,10 @@ function renderSeason() {
   const sections = [];
 
   sections.push(`<div class="stats-cards sh-awards">
-    ${tile(icon('trophy','ic-champ') + ' Champion', champ ? teamLink(champ) : '<span class="muted">—</span>',
-      ru ? `beat ${teamLink(ru)} ${finalsScore}${champRow ? ` · ${champRow.w}-${champRow.l} season` : ''}` : '')}
-    ${tile('Finals MVP', award(h?.FMVP))}
-    ${tile('MVP', award(h?.MVP))}
-    ${tile('DPOY', award(h?.DPOY))}
-    ${best ? tile('Best Record', teamLink(best.team), `${best.w}-${best.l}`) : ''}
+    ${tile(icon('trophy','ic-champ') + ' Champion', champ ? teamIn(champ, yr) : '<span class="muted">—</span>',
+      ru ? `beat ${teamIn(ru, yr)} ${finalsScore}${champRow ? ` · ${champRow.w}-${champRow.l} season` : ''}` : '')}
+    ${['FMVP', 'MVP', 'DPOY'].map(k => tile(k === 'FMVP' ? 'Finals MVP' : k, award(h?.[k]), h?.[k + 'Team'] && h[k] && h[k] !== '-' ? teamIn(h[k + 'Team'], yr) : '')).join('')}
+    ${best ? tile('Best Record', teamIn(best.team, yr), `${best.w}-${best.l}`) : ''}
   </div>`);
 
   const stars = h ? [h.Star1, h.Star2, h.Star3].filter(Boolean) : [];
@@ -3233,7 +3514,7 @@ function renderRecords() {
   // ----- Team seasons
   if (yrs.length) {
     const all = yrs.flatMap(yr => seasonStandings(yr).map(r => ({ ...r, yr })));
-    const teamRow = r => ({ main: teamLink(r.team), val: `${r.w}-${r.l}`, sub: seasonLink(r.yr) + resultIcon(r.team, r.yr) });
+    const teamRow = r => ({ main: teamIn(r.team, r.yr), val: `${r.w}-${r.l}`, sub: seasonLink(r.yr) + resultIcon(r.team, r.yr) });
     const top = (list, n, dir) => withRanks([...list].sort((a,b) => dir * (b.raw - a.raw)).slice(0, n), r => r.w).map(r => ({ ...teamRow(r), rank: r.rank }));
     const champs = all.filter(r => finals.some(f => f.yr === r.yr && f.champ === r.team));
     section('Team Seasons', `From Team Record, ${teamSpan}`, [
@@ -3241,8 +3522,8 @@ function renderRecords() {
       recordCard('Worst Records', top(all, 10, -1)),
       recordCard('Most Wins by a Champion', top(champs, 5, 1)),
       recordCard('Fewest Wins by a Champion', top(champs, 5, -1)),
-      recordCard('Best Teams to Miss the Playoffs', top(all.filter(r => !r.playoffs), 5, 1), 'Playoffs = top 8 in conference'),
-      recordCard('Worst Playoff Teams', top(all.filter(r => r.playoffs), 5, -1), 'Playoffs = top 8 in conference'),
+      recordCard('Best Teams to Miss the Playoffs', top(all.filter(r => r.playoffs === false), 5, 1), 'Playoffs = top 8 in conference'),
+      recordCard('Worst Playoff Teams', top(all.filter(r => r.playoffs === true), 5, -1), 'Playoffs = top 8 in conference'),
     ]);
   }
 
@@ -3316,6 +3597,18 @@ function renderRecords() {
   // ----- Leader seasons
   const cats = [['Points per Game','PtsLeader','PtsTeam','PPG'],['Rebounds per Game','RebLeader','RebTeam','RPG'],['Assists per Game','AstLeader','AstTeam','APG'],
                 ['Steals per Game','StlLeader','StlTeam','SPG'],['Blocks per Game','BlkLeader','BlkTeam','BPG'],['Minutes per Game','MinLeader','MinTeam','MPG']];
+  // ----- Stat titles: who led the league most often (grows as Season Stat Leader fills in)
+  const titleCats = [['Scoring Titles', 'PtsLeader'], ['Rebounding Titles', 'RebLeader'], ['Assists Titles', 'AstLeader'],
+                     ['Steals Titles', 'StlLeader'], ['Blocks Titles', 'BlkLeader'], ['Minutes Titles', 'MinLeader']];
+  const entered = DB.statLeaders.filter(statRowEntered).length;
+  section('Stat Titles', entered ? `From Season Stat Leader · ${entered} season${entered === 1 ? '' : 's'} entered` : '', titleCats.map(([title, k]) => {
+    const by = new Map();
+    DB.statLeaders.filter(r => r[k]).forEach(r => { const key = playerKey(r[k], r.Season); if (!by.has(key)) by.set(key, []); by.get(key).push(r); });
+    const groups = [...by.entries()].map(([key, rs]) => ({ key, rs: rs.sort((a, b) => b.Season - a.Season) })).sort((a, b) => b.rs.length - a.rs.length || b.rs[0].Season - a.rs[0].Season).slice(0, 8);
+    return recordCard(title, withRanks(groups, g => g.rs.length).map(g => ({ rank: g.rank, main: nameLink(g.key, { season: g.rs[0].Season }), val: String(g.rs.length),
+      sub: g.rs.map(r => seasonLink(r.Season)).join(', ') })), '', 'No seasons entered yet.');
+  }));
+
   section('Leader Seasons', '', cats.map(([title, k, tk, unit]) => {
     const rows = DB.statLeaders.filter(r => r[k] && !isNaN(parseFloat(r[unit]))).map(r => ({ ...r, v: parseFloat(r[unit]) }));
     const top = withRanks(rows.sort((a,b) => b.v - a.v).slice(0, 10), r => r.v);
@@ -3344,39 +3637,42 @@ function renderRecords() {
 // =====================================================================
 // STAT LEADERS
 // =====================================================================
-let statState = { filtered: [], page: 1, perPage: 40 };
+let statState = { filtered: [], page: 1, perPage: 40, cat: 'Pts' };
 const STAT_LEADER_KEYS = ['PtsLeader','RebLeader','AstLeader','StlLeader','BlkLeader','MinLeader'];
 // Seasons are listed in the sheet before their leaders are typed in
 function statRowEntered(s) { return STAT_LEADER_KEYS.some(k => s[k]); }
+// One table per stat (tabs), so each fits a phone: Season, Leader, Team, value and which title it was
+const STAT_CATS = [['Pts', 'Points', 'PPG'], ['Reb', 'Rebounds', 'RPG'], ['Ast', 'Assists', 'APG'], ['Stl', 'Steals', 'SPG'], ['Blk', 'Blocks', 'BPG'], ['Min', 'Minutes', 'MPG']];
+function setStatCat(k) { statState.cat = k; filterStat(); }
 function filterStat() {
+  const cat = statState.cat || 'Pts', [, label, unit] = STAT_CATS.find(c => c[0] === cat);
+  document.getElementById('statCatTabs').innerHTML = STAT_CATS.map(([k, l]) => `<button class="${k === cat ? 'active' : ''}" onclick="setStatCat('${k}')">${l}</button>`).join('');
   const q = document.getElementById('statSearch').value.toLowerCase();
-  const matches = DB.statLeaders.filter(s =>
-    !q || String(s.Season).includes(q) ||
-    STAT_LEADER_KEYS.some(k => String(s[k]||'').toLowerCase().includes(q)));
+  const has = s => !!s[cat + 'Leader'];
+  const matches = DB.statLeaders.filter(s => !q || String(s.Season).includes(q) || seasonLabel(s.Season).includes(q) || String(s[cat + 'Leader'] || '').toLowerCase().includes(q));
   const showMissing = document.getElementById('statShowMissing')?.checked;
-  statState.filtered = showMissing ? matches : matches.filter(statRowEntered);
+  statState.filtered = showMissing ? matches : matches.filter(has);
   statState.page = 1;
-  const entered = matches.filter(statRowEntered).length;
-  const missing = matches.length - entered;
-  document.getElementById('statCount').textContent = `${entered} seasons entered` + (missing ? ` · ${missing} not entered yet` : '');
+  const entered = matches.filter(has).length, missing = matches.length - entered;
+  document.getElementById('statCount').textContent = `${entered} seasons with a ${label.toLowerCase()} leader` + (missing ? ` · ${missing} not entered` : '');
   renderStat();
 }
 function renderStat() {
   const { filtered, page, perPage } = statState;
-  const sorted = [...filtered].sort((a,b) => getNum(b.Season) - getNum(a.Season));
-  const slice = sorted.slice((page-1)*perPage, page*perPage);
-  const seasonCell = s => `<td class="stick-1">${seasonLink(s.Season, seasonLabel(s.Season))}</td>`;
-  document.getElementById('statBody').innerHTML = slice.map(s => !statRowEntered(s)
-    ? `<tr class="row-pending">${seasonCell(s)}<td colspan="15">Not entered yet</td></tr>`
-    : `<tr>
-    ${seasonCell(s)}
-    <td style="font-weight:600">${nameLink(s.PtsLeader, {season: s.Season})}</td><td class="team-tag">${teamLink(s.PtsTeam)}</td><td class="num highlight">${s.PPG||'—'}</td>
-    <td style="font-weight:600">${nameLink(s.RebLeader, {season: s.Season})}</td><td class="team-tag">${teamLink(s.RebTeam)}</td><td class="num">${s.RPG||'—'}</td>
-    <td style="font-weight:600">${nameLink(s.AstLeader, {season: s.Season})}</td><td class="team-tag">${teamLink(s.AstTeam)}</td><td class="num">${s.APG||'—'}</td>
-    <td style="font-weight:600">${nameLink(s.StlLeader, {season: s.Season})}</td><td class="num">${s.SPG||'—'}</td>
-    <td style="font-weight:600">${nameLink(s.BlkLeader, {season: s.Season})}</td><td class="num">${s.BPG||'—'}</td>
-    <td style="font-weight:600">${nameLink(s.MinLeader, {season: s.Season})}</td><td class="num">${s.MPG||'—'}</td>
-  </tr>`).join('');
+  const cat = statState.cat || 'Pts', [, label, unit] = STAT_CATS.find(c => c[0] === cat);
+  // Which title of the player's career each one was (counted oldest first)
+  const nth = new Map(), seen = {};
+  [...DB.statLeaders].filter(s => s[cat + 'Leader']).sort((a, b) => a.Season - b.Season).forEach(s => {
+    const k = playerKey(s[cat + 'Leader'], s.Season); seen[k] = (seen[k] || 0) + 1; nth.set(s, seen[k]); });
+  const fmt = v => { const n = parseFloat(v); return isNaN(n) ? '—' : Number.isInteger(n) ? n.toFixed(1) : String(n); };
+  const sorted = [...filtered].sort((a, b) => getNum(b.Season) - getNum(a.Season));
+  const slice = sorted.slice((page - 1) * perPage, page * perPage);
+  document.getElementById('statHead').innerHTML = `<th class="stick-1">Season</th><th>${label} Leader</th><th>Team</th><th class="num">${unit}</th><th class="num">Title</th>`;
+  document.getElementById('statBody').innerHTML = slice.map(s => !s[cat + 'Leader']
+    ? `<tr class="row-pending"><td class="stick-1">${seasonLink(s.Season)}</td><td colspan="4">Not entered yet</td></tr>`
+    : `<tr><td class="stick-1">${seasonLink(s.Season)}</td><td style="font-weight:600">${nameLink(s[cat + 'Leader'], { season: s.Season })}</td>
+      <td class="team-tag">${teamLink(s[cat + 'Team'])}</td><td class="num highlight">${fmt(s[unit])}</td>
+      <td class="num">${nth.get(s) > 1 ? `<b>${ordinal(nth.get(s))}</b>` : '1st'}</td></tr>`).join('');
   renderPag('statPag', filtered.length, perPage, page, 'goStatPage');
 }
 function goStatPage(p) { statState.page = p; renderStat(); }
@@ -3390,7 +3686,7 @@ function filterCurrent() {
   const pos = document.getElementById('curPosFilter').value;
   curState.filtered = DB.currentPlayers.filter(p =>
     (!q || String(p.Player||'').toLowerCase().includes(q)) &&
-    (!pos || p.Position === pos));
+    (!pos || p.Position === pos) && playerMatchesFilters(p, 'cur'));
   curState.page = 1;
   document.getElementById('curCount').textContent = curState.filtered.length + ' players';
   // Set subtitle with season
@@ -3542,6 +3838,10 @@ function initDecades() {
     </div>`;
   }).join('');
 }
+</script>
+<script>
+// 2K17 NBA Stats Database · Career timeline, player page, Compare (players and teams), Awards and global search.
+// Loaded in order by index.html; all files share one global scope.
 
 // =====================================================================
 // PLAYER MODAL
@@ -3681,6 +3981,8 @@ function renderPlayerPage() {
     ['shield', 'All-Defense 1st', n('1st D Team'), ''], ['shield', 'All-Defense 2nd', n('2nd D Team'), ''],
     ['star', 'Rookie of the Year', /^o$/i.test(String(p.ROTY || '').trim()) ? 1 : 0, ''],
     ['star', String(p['Other Award'] || '').replace(/\s*\(\d+\)\s*$/, '').trim() || 'Other award', otherAwardCount(p), ''],
+    ...[['PtsLeader', 'Scoring title'], ['RebLeader', 'Rebounding title'], ['AstLeader', 'Assists title'], ['StlLeader', 'Steals title'], ['BlkLeader', 'Blocks title']]
+      .map(([k, l]) => { const c = DB.statLeaders.filter(r => r[k] && resolvePlayer(r[k], r.Season) === p).length; return ['chart', c > 1 ? l + 's' : l, c, '']; }),
     ['calendar', 'Finals appearances', n('Finals App'), ''],
   ].filter(t => t[2] > 0);
   // Where the legacy score comes from, with the title roles summed up in one line
@@ -3724,6 +4026,18 @@ function renderPlayerPage() {
 
   // Team journey
   const teams = playerTeams(p), retired = retiredFor(p);
+  // Years with each team: from the Retired # tab when it lists this player there (two spells
+  // with one team are split between the two stops), or the whole career for a one-team career
+  const oneTeam = new Set(teams).size === 1;
+  const stintYears = (t, i) => {
+    const row = (DB.retiredList || []).find(r => r.years && r.type === 'Player' && teamByCode(r.code)?.Team === t && resolvePlayer(r.who) === p);
+    if (row) {
+      const parts2 = row.years.split(/\s*,\s*/), nth = teams.slice(0, i).filter(x => x === t).length, count = teams.filter(x => x === t).length;
+      return count > 1 && parts2.length === count ? parts2[nth] : row.years;
+    }
+    if (oneTeam && span) return `${span[0] - 1}–${span[1] === Infinity ? 'present' : span[1]}`;
+    return '';
+  };
   if (teams.length) parts.push(`<div class="chart-card"><div class="chart-title">${icon('jersey')} Team Journey</div>
     <div class="journey">${teams.map((t, i) => {
       const red = p._titleStints, ret = retired.filter(r => r.team === t);
@@ -3732,6 +4046,7 @@ function renderPlayerPage() {
       const titles = red && !red[i] ? 0 : titlesWithTeam(p, t), label = twice ? 'Title' : `${titles} title${titles > 1 ? 's' : ''}`;
       return `${i ? '<span class="journey-arrow" aria-hidden="true">→</span>' : ''}<div class="journey-stop">
         <span class="journey-n">${i + 1}</span>${teamLink(t, t)}
+        ${stintYears(t, i) ? `<span class="journey-years">${stintYears(t, i)}</span>` : ''}
         <span class="journey-tags">${titles ? `<em class="tag-gold">${icon('trophy')} ${label}</em>` : ''}${ret.map(r => `<em class="tag-ret">#${r.num} retired</em>`).join('')}</span></div>`;
     }).join('')}</div></div>`);
 
@@ -3880,18 +4195,18 @@ function renderAwards() {
     list = everyPlayer().filter(p => /^o$/i.test(String(p.ROTY || '').trim())).map(p => ({ yr: careerSpan(p.Season)?.[0], name: p.Player, key: p.Player }))
       .filter(x => x.yr).sort((a, b) => a.yr - b.yr);
   } else {
-    list = DB.history.filter(h => h[awardTab] && h[awardTab] !== '-').map(h => ({ yr: Number(h.Season), name: h[awardTab], key: playerKey(h[awardTab], h.Season) }))
+    list = DB.history.filter(h => h[awardTab] && h[awardTab] !== '-').map(h => ({ yr: Number(h.Season), name: h[awardTab], key: playerKey(h[awardTab], h.Season), team: h[awardTab + 'Team'] }))
       .filter(x => !isNaN(x.yr)).sort((a, b) => a.yr - b.yr);
   }
   const counts = {}, nth = list.map(x => (counts[x.key] = (counts[x.key] || 0) + 1));
   const label = AWARD_TABS.find(([k]) => k === awardTab)[1];
   const champOf = yr => finalsTeams(yr).champ;
   const rows = list.map((x, i) => ({ ...x, nth: nth[i] })).reverse().map(x => {
-    const p = resolvePlayer(x.name, x.yr), extras = [];
-    if (awardTab === 'MVP') { const h = DB.history.find(z => Number(z.Season) === x.yr); if (h && samePlayer(h.FMVP, x.name, x.yr)) extras.push('also Finals MVP'); if (h && samePlayer(h.DPOY, x.name, x.yr)) extras.push('also DPOY'); }
-    if (awardTab === 'FMVP' && champOf(x.yr)) extras.push(`with ${teamLink(champOf(x.yr))}`);
+    const p = resolvePlayer(x.name, x.yr);
+    const team = x.team || (awardTab === 'FMVP' ? champOf(x.yr) : null);
     return `<tr><td class="stick-1">${seasonLink(x.yr)}</td><td>${nameLink(x.name, { season: x.yr })} ${p ? posBadge(p.Position) : ''}</td>
-      <td class="num">${x.nth > 1 ? `<b>${ordinal(x.nth)}</b>` : '1st'}</td><td class="muted">${extras.join(' · ')}</td></tr>`;
+      ${awardTab === 'ROY' ? '' : `<td class="nowrap">${team ? teamLink(team, teamCode(team)) : '<span class="muted">—</span>'}</td>`}
+      <td class="num">${x.nth > 1 ? `<b>${ordinal(x.nth)}</b>` : '1st'}</td></tr>`;
   }).join('');
   const most = withRanks(Object.entries(counts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).filter(([, c]) => c >= 2).slice(0, 15), ([, c]) => c);
   const span = list.length ? `${seasonLabel(list[0].yr)} to ${seasonLabel(list[list.length - 1].yr)}` : '';
@@ -3899,8 +4214,16 @@ function renderAwards() {
     ? `${list.length} Rookies of the Year from All Players and Current Player · shown in each player's first season, since the year isn't recorded`
     : `${list.length} ${label} winners from NBA History${span ? ', ' + span : ''}`;
   document.getElementById('awardsContent').innerHTML = `<div class="player-grid">
-    <div><div class="table-wrap"><table><thead><tr><th class="stick-1">Season</th><th>${label}</th><th class="num">Career #</th><th>Notes</th></tr></thead><tbody>${rows || '<tr><td colspan="4" class="muted">No winners recorded.</td></tr>'}</tbody></table></div></div>
-    <div>${most.length ? `<div class="chart-card rb-card"><div class="chart-title">${icon('trophy', 'ic-champ')} Most ${label}${awardTab === 'ROY' ? '' : 's'}</div>
+    <div><div class="table-wrap stat-table"><table><thead><tr><th class="stick-1">Season</th><th>${label}</th>${awardTab === 'ROY' ? '' : '<th>Team</th>'}<th class="num" title="Which win of the player's career">Win</th></tr></thead><tbody>${rows || '<tr><td colspan="4" class="muted">No winners recorded.</td></tr>'}</tbody></table></div></div>
+    <div>${(() => {
+      // Which franchises its winners played for (from the logos beside each name in NBA History)
+      if (awardTab === 'ROY') return '';
+      const byTeam = {};
+      list.forEach(x => { const t = x.team || (awardTab === 'FMVP' ? champOf(x.yr) : null); if (t) byTeam[t] = (byTeam[t] || 0) + 1; });
+      const rows2 = withRanks(Object.entries(byTeam).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 10), ([, c]) => c);
+      return rows2.length ? `<div class="chart-card rb-card"><div class="chart-title">${icon('people')} ${label}s by Team</div>
+        ${rows2.map(r => `<div class="rb-row"><span class="rb-rank">${r.rank}</span><span class="rb-main">${teamLink(r[0])}</span><span class="rb-val">${r[1]}</span></div>`).join('')}</div>` : '';
+    })()}${most.length ? `<div class="chart-card rb-card"><div class="chart-title">${icon('trophy', 'ic-champ')} Most ${label}${awardTab === 'ROY' ? '' : 's'}</div>
       ${most.map(m => `<div class="rb-row"><span class="rb-rank">${m.rank}</span><span class="rb-main">${nameLink(m[0])}</span><span class="rb-val">${m[1]}</span></div>`).join('')}</div>` : ''}</div>
   </div>`;
 }
@@ -3916,7 +4239,7 @@ function setCmpKind(kind) {
   if (kind === 'teams') renderTeamCompare();
 }
 function populateTeamCompare() {
-  const teams = [...DB.teams].sort((a, b) => (a.Rank || 99) - (b.Rank || 99)).map(t => t.Team);
+  const teams = DB.teams.filter(t => !t.defunct).sort((a, b) => (a.Rank || 99) - (b.Rank || 99)).map(t => t.Team);
   [1, 2, 3].forEach(n => {
     const el = document.getElementById('cmpTeam' + n), keep = el.value;
     el.innerHTML = (n === 3 ? '<option value="">None</option>' : '<option value="">Pick a team…</option>') + teams.map(t => `<option>${t}</option>`).join('');
@@ -3930,7 +4253,7 @@ function teamCompareStats(team) {
   const recs = Object.values(t.seasonRecords || {});
   const w = recs.reduce((a, r) => a + r.w, 0), l = recs.reduce((a, r) => a + r.l, 0);
   return { t, won, lost, w, l, seasons: recs.length, best: recs.length ? Math.max(...recs.map(r => r.w)) : null, sixty: recs.filter(r => r.w >= 60).length,
-    retired: retiredForTeam(team).length, legend: franchiseLegends(team)[0], oneTeam: franchiseLegends(team).filter(x => x.oneTeam).length };
+    retired: retiredForTeam(team).filter(r => r.type === 'Player').length, legend: franchiseLegends(team)[0], oneTeam: franchiseLegends(team).filter(x => x.oneTeam).length };
 }
 function renderTeamCompare() {
   const picks = [1, 2, 3].map(n => document.getElementById('cmpTeam' + n)?.value).map((v, i) => v ? { v, n: i + 1 } : null).filter(Boolean);
@@ -4036,7 +4359,7 @@ function renderSearch() {
   const players = everyPlayer().map(p => ({ p, sc: score(p.Player) })).filter(x => x.sc < 9)
     .sort((a, b) => a.sc - b.sc || legacy(b.p).total - legacy(a.p).total).slice(0, 8)
     .map(({ p }) => ({ kind: 'Player', label: p.Player, sub: `${POS_NAMES[p.Position] || ''}${p.Season ? ' · ' + p.Season : ''}${isActive(p) ? ' · Active' : ''}`, go: () => openPlayer(p) }));
-  const teams = DB.teams.filter(t => score(t.Team) < 9).slice(0, 5)
+  const teams = DB.teams.filter(t => !t.defunct && score(t.Team) < 9).slice(0, 5)
     .map(t => ({ kind: 'Team', label: t.Team, sub: `${t.Conference} · ${t.Championship || 0} titles`, go: () => { closeSearch(); openTeamModal(t.Team); } }));
   const yrs = allSeasonYears().filter(y => String(y).includes(q.replace(/\D/g, '')) && /\d/.test(q) || seasonLabel(y).replace(/\D/g, '').includes(q.replace(/\D/g, '')) && q.replace(/\D/g, '').length >= 2)
     .slice(0, 5).map(y => ({ kind: 'Season', label: seasonLabel(y), sub: (() => { const f = finalsTeams(y); return f.champ ? 'Champion: ' + f.champ : ''; })(), go: () => { closeSearch(); openSeason(y); } }));
@@ -4058,6 +4381,10 @@ function searchKey(e) {
 document.addEventListener('keydown', e => {
   if (e.key === '/' && dataLoaded && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName || '')) { e.preventDefault(); openSearch(); }
 });
+</script>
+<script>
+// 2K17 NBA Stats Database · Calculations: draft codes, advanced stats, percentiles, legacy score, Draft page and franchise legends.
+// Loaded in order by index.html; all files share one global scope.
 
 // =====================================================================
 // PLAYER ENGINE
@@ -4400,7 +4727,7 @@ function renderLegacy() {
   syncRatioBar();
   const q = normName(document.getElementById('legacySearch').value);
   const f = document.getElementById('legacyFilter').value, pos = document.getElementById('legacyPos').value;
-  const rows = legacyRanking().filter(r => (!q || normName(r.p.Player).includes(q)) && (!pos || r.p.Position === pos) && (!f || (f === 'active') === isActive(r.p)));
+  const rows = legacyRanking().filter(r => (!q || normName(r.p.Player).includes(q)) && (!pos || r.p.Position === pos) && (!f || (f === 'active') === isActive(r.p)) && playerMatchesFilters(r.p, 'legacy'));
   document.getElementById('legacySub').textContent = `All-time ranking from honors and career production · ${everyPlayer().length} players`;
   const fmt = v => Math.round(v).toLocaleString();
   document.getElementById('legacyContent').innerHTML = `
@@ -4437,6 +4764,10 @@ function legendsHtml(team) {
     <div class="leader-list">${list.slice(0, 8).map(row).join('')}</div>
     ${list.length > 8 ? `<details class="more-legends"><summary>All ${list.length} players who played here</summary>${list.slice(8).map((l, i) => row(l, i + 8)).join('')}</details>` : ''}</div>`;
 }
+</script>
+<script>
+// 2K17 NBA Stats Database · Settings, Data Check, phone card lists and the installable app.
+// Loaded in order by index.html; all files share one global scope.
 
 // =====================================================================
 // SETTINGS + DATA CHECK
@@ -4508,14 +4839,19 @@ function runDataCheck() {
     const headers = isActive(p) ? DB.currentPlayers.headers : H, sheet = isActive(p) ? 'Current Player' : 'All Players';
     ['MVP','FMVP','DPOY'].forEach(k => { const have = num(p, k) || 0, hist = histCount[k + '|' + p.Player] || 0;
       if (have !== hist) add('error', sheet, cellOf(p, k, headers), `${p.Player}: ${k} is ${have}, but NBA History lists ${hist}.`); }); });
-  // 6. All-NBA counts vs the All NBA Team sheet, for careers it fully covers
+  // 6. All-NBA counts vs the All NBA Team sheet. The sheet can have gaps (seasons never
+  //    entered), so counts must match only when every season of the career is in the sheet;
+  //    otherwise the sheet can only be wrong if it lists MORE selections than the player has.
   if (DB.allNbaSeasons.length) {
-    const firstAN = Math.min(...DB.allNbaSeasons.map(x => Number(x.season))), cnt = {};
+    const covered = new Set(DB.allNbaSeasons.filter(s => s.teams.some(t => t.slots.length)).map(s => Number(s.season))), cnt = {};
     DB.allNbaSeasons.forEach(s => s.teams.forEach(t => t.slots.forEach(sl => { const p = resolvePlayer(sl.player, s.season); if (p) cnt[t.team + '|' + p.Player] = (cnt[t.team + '|' + p.Player] || 0) + 1; })));
-    everyPlayer().forEach(p => { const span = careerSpan(p.Season); if (!span || span[0] < firstAN) return;
+    const lastSeason = DB.latestSeason || Math.max(...covered);
+    everyPlayer().forEach(p => { const span = careerSpan(p.Season); if (!span) return;
+      let full = true;
+      for (let y = span[0]; y <= Math.min(span[1], lastSeason); y++) if (!covered.has(y)) { full = false; break; }
       const headers = isActive(p) ? DB.currentPlayers.headers : H, sheet = isActive(p) ? 'Current Player' : 'All Players';
       [[1,'1st Team'],[2,'2nd Team'],[3,'3rd Team']].forEach(([n, k]) => { const have = num(p, k) || 0, got = cnt[n + '|' + p.Player] || 0;
-        if (have !== got) add('error', sheet, cellOf(p, k, headers), `${p.Player}: ${k} All-NBA is ${have}, but the All NBA Team sheet lists ${got}.`); }); });
+        if (full ? have !== got : got > have) add('error', sheet, cellOf(p, k, headers), `${p.Player}: ${k} All-NBA is ${have}, but the All NBA Team sheet lists ${got}${full ? '' : ' (more than the player has, even though some of their seasons are missing from that sheet)'}.`); }); });
   }
   // 7. Names that only match a player approximately
   const seen = new Set();
@@ -4529,6 +4865,57 @@ function runDataCheck() {
   DB.history.forEach(h => [['MVP','C'],['FMVP','D'],['DPOY','H'],['Star1','J'],['Star2','K'],['Star3','L']].forEach(([k, c]) => nameCheck('NBA History', c + h._row, h[k], h.Season)));
   [...DB.awardRecords, ...DB.allTimeStats].forEach(cat => cat.entries.forEach(e => nameCheck('NBA All-Time Record', `${cat.name} list`, e.player)));
   DB.decades.forEach(d => [...d.starter, ...d.subs].forEach(n => nameCheck('Decade NBA Team', d.decade, n)));
+  // 9. Players named in other sheets who have no row in All Players or Current Player
+  //    (their names can't link to a player page until they're added)
+  const missing = new Map();
+  const note = (raw, season, where) => {
+    if (!raw || raw === '-') return;
+    const clean = String(raw).replace(/\s*\(\d+\)\s*$/, '').trim();
+    if (!clean || resolvePlayer(clean, season)) return;
+    const k = normName(clean);
+    if (!missing.has(k)) missing.set(k, { name: clean, where: [] });
+    missing.get(k).where.push(where);
+  };
+  DB.allNbaSeasons.forEach(s => s.teams.forEach(t => t.slots.forEach(sl => note(sl.player, s.season, `All NBA Team ${seasonLabel(s.season)} (${['1st','2nd','3rd'][t.team - 1] || t.team} Team)`))));
+  DB.history.forEach(h => [['MVP', 'MVP'], ['FMVP', 'Finals MVP'], ['DPOY', 'DPOY'], ['Star1', 'champion star'], ['Star2', 'champion star'], ['Star3', 'champion star']]
+    .forEach(([k, l]) => note(h[k], h.Season, `NBA History ${seasonLabel(h.Season)} (${l})`)));
+  DB.statLeaders.forEach(r => STAT_LEADER_KEYS.forEach(k => note(r[k], r.Season, `Season Stat Leader ${seasonLabel(r.Season)}`)));
+  DB.decades.forEach(d => [...d.starter, ...d.subs].forEach(n => note(n, null, `Decade NBA Team ${d.decade}`)));
+  [...missing.values()].sort((a, b) => b.where.length - a.where.length || a.name.localeCompare(b.name)).forEach(m =>
+    add('info', 'All Players', '', `"${m.name}" isn't in All Players or Current Player, so the name can't link to a player page. Named in ${m.where.slice(0, 3).join('; ')}${m.where.length > 3 ? ` and ${m.where.length - 3} more` : ''}.`));
+  // 10. Team History: every season's wins and losses must balance, and its Finals
+  //     column must agree with NBA History
+  const thName = 'Team History BC';
+  const bySeason = {};
+  (DB.teamHistoryRows || []).forEach(h => { const s = (bySeason[h.yr] = bySeason[h.yr] || { w: 0, l: 0, rows: [] }); s.w += h.w; s.l += h.l; s.rows.push(h); });
+  Object.entries(bySeason).forEach(([yr, s]) => {
+    if (s.w !== s.l) add('error', thName, `rows of ${seasonLabel(yr)}`, `${seasonLabel(yr)}: wins add up to ${s.w} but losses to ${s.l}. A record is probably mistyped.`);
+    const { champ, ru } = finalsTeams(yr), name = h => (teamByCode(h.fr) || { Team: TEAM_NAMES[h.fr] }).Team;
+    const marked = s.rows.filter(h => /champ/i.test(h.finals)), lostF = s.rows.filter(h => /lost finals/i.test(h.finals));
+    if (champ && marked.length && !marked.some(h => name(h) === champ)) add('warn', thName, 'N' + marked[0]._row, `${seasonLabel(yr)}: Finals says ${marked.map(name).join(', ')} won, but NBA History has ${champ}.`);
+    if (ru && lostF.length && !lostF.some(h => name(h) === ru)) add('warn', thName, 'N' + lostF[0]._row, `${seasonLabel(yr)}: Finals says ${lostF.map(name).join(', ')} lost, but NBA History has ${ru}.`);
+  });
+  //     A franchise that disappears for many years probably isn't one team (the 1949-50 Denver
+  //     Nuggets folded; today's Nuggets joined in 1976-77): flag the lone early seasons
+  const byFr = {};
+  (DB.teamHistoryRows || []).forEach(h => (byFr[h.fr] = byFr[h.fr] || []).push(h));
+  Object.entries(byFr).forEach(([fr, list]) => {
+    const yrs = list.map(h => h.yr).sort((a, b) => a - b);
+    for (let i = 1; i < yrs.length; i++) if (yrs[i] - yrs[i - 1] > 10) {
+      const early = list.filter(h => h.yr < yrs[i]);
+      add('warn', thName, 'C' + early[0]._row, `${fr}: ${early.map(h => `${seasonLabel(h.yr)} ${h.label}`).join(', ')} then nothing until ${seasonLabel(yrs[i])}. If that was a different team, give its rows their own code in Franchise and Team.`);
+    }
+  });
+  // 11. Retired #: a player's retired number should also be on his All Players row
+  (DB.retiredList || []).forEach(r => {
+    const t = teamByCode(r.code);
+    if (!t) { add('warn', 'Retired #', 'A' + r._row, `Team code "${r.code}" isn't recognized.`); return; }
+    if (r.type !== 'Player') return;
+    const p = resolvePlayer(r.who);
+    if (!p || isActive(p)) return;
+    const has = retiredNums(p).some(v => { const [n, ...rest] = String(v).trim().split(/\s+/); return String(n) === String(r.num) && teamByCode(rest.join(' '))?.Team === t.Team; });
+    if (!has) add('warn', 'All Players', cellOf(p, '# Retired'), `${p.Player}: Retired # lists ${r.num} ${r.code}, but the player's All Players row doesn't.`);
+  });
   // 8. Gaps the user is still filling in
   const missingLeaders = DB.statLeaders.filter(r => !statRowEntered(r)).map(r => r.Season);
   if (missingLeaders.length) add('info', 'Season Stat Leader', '', `${missingLeaders.length} seasons have no leaders entered yet.`);
@@ -4620,10 +5007,25 @@ function playerCard(row, rank, mode, active) {
   </div>`;
 }
 // Phone "Sort by" picker: same sort state the table headers use
+// Phone sort menus: the column comes from the menu, the direction from the ↓/↑ button next to it
+const mSortDir = { players: -1, top20: -1, pos: -1, cur: -1 };
+function flipSortDir(key) {
+  mSortDir[key] = -mSortDir[key];
+  const btn = document.getElementById(key + 'SortDir');
+  if (btn) btn.textContent = mSortDir[key] < 0 ? '↓ High first' : '↑ Low first';
+  const sel = btn?.parentElement.querySelector('select.m-sort');
+  mobileSort(key, sel ? sel.value : '');
+}
 function mobileSort(key, col) {
   if (!col) delete sortStates[key];
-  else sortStates[key] = { col, dir: -1 };
-  if (key === 'top20' && !col) sortStates.top20 = { col: 'Rank', dir: 1 };
+  else sortStates[key] = { col, dir: mSortDir[key] };
+  // No column picked: the button reverses the list's own order (sheet order, rank or newest first)
+  if (!col) {
+    if (key === 'top20') sortStates.top20 = { col: 'Rank', dir: -mSortDir[key] };
+    else if (key === 'pos') sortStates.pos = { col: 'Rank', dir: -mSortDir[key] };
+    else if (key === 'cur') { if (mSortDir[key] > 0) sortStates.cur = { col: 'Season', dir: -1 }; }
+    else if (mSortDir[key] > 0) sortStates[key] = { col: '_row', dir: -1 };
+  }
   if (key === 'cur') { curState.page = 1; renderCurrent(); return; }
   ({ players: playersState, top20: top20State, pos: posState })[key].page = 1;
   TABLE_RENDERERS[key]();
@@ -4669,6 +5071,10 @@ document.getElementById('installBtn').addEventListener('click', async () => {
 });
 window.addEventListener('appinstalled', dismissInstallHint);
 setTimeout(showInstallHint, 1500);
+</script>
+<script>
+// 2K17 NBA Stats Database · Draws every page after a workbook loads, then reopens the saved workbook on startup.
+// Loaded in order by index.html; all files share one global scope.
 
 // =====================================================================
 // INIT DASHBOARD
@@ -4697,6 +5103,19 @@ function initDashboard() {
   if (document.getElementById('standingsView').style.display !== 'none') initStandings();
   restoreSection();
 }
+
+// =====================================================================
+// STARTUP: runs last, once every script above has loaded
+// =====================================================================
+// On startup, reopen the last workbook so it doesn't need dropping again
+getSavedWorkbook().then(saved => {
+  if (saved && saved.buf) {
+    setProgress(`Opening saved ${saved.name}...`);
+    if (!loadWorkbookData(saved.buf, saved.name, saved.savedAt)) renderSavedInfo();
+  } else {
+    renderSavedInfo();
+  }
+});
 </script>
 </body>
 </html>

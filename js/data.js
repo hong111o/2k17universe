@@ -527,7 +527,12 @@ function parseWorkbook(wb) {
       .filter(r => r[cS] !== null && r[cS] !== undefined)
       .map(r => {
         const o = { Season: r[cS] };
-        blocks.forEach(([k, unit, c]) => { o[k + 'Team'] = r[c - 2]; o[k + 'Leader'] = r[c - 1]; o[unit] = r[c]; });
+        // "-" means the stat wasn't tracked yet that season (steals and blocks began in 1973-74)
+        const dash = v => /^[-–—]$/.test(String(v ?? '').trim());
+        blocks.forEach(([k, unit, c]) => {
+          if (dash(r[c - 1])) { o[k + 'Team'] = null; o[k + 'Leader'] = null; o[unit] = null; o[k + 'NA'] = true; }
+          else { o[k + 'Team'] = r[c - 2]; o[k + 'Leader'] = r[c - 1]; o[unit] = r[c]; }
+        });
         return o;
       });
   }

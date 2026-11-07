@@ -684,8 +684,9 @@ function filterStat() {
   const showMissing = document.getElementById('statShowMissing')?.checked;
   statState.filtered = showMissing ? matches : matches.filter(has);
   statState.page = 1;
-  const entered = matches.filter(has).length, missing = matches.length - entered;
-  document.getElementById('statCount').textContent = `${entered} seasons with a ${label.toLowerCase()} leader` + (missing ? ` · ${missing} not entered` : '');
+  // Seasons marked "-" (stat not tracked yet) aren't missing data
+  const entered = matches.filter(has).length, untracked = matches.filter(s => s[cat + 'NA']).length, missing = matches.length - entered - untracked;
+  document.getElementById('statCount').textContent = `${entered} seasons with a ${label.toLowerCase()} leader` + (missing ? ` · ${missing} not entered` : '') + (untracked ? ` · not tracked before ${seasonLabel(Math.max(...matches.filter(s => s[cat + 'NA']).map(s => Number(s.Season))) + 1)}` : '');
   renderStat();
 }
 function renderStat() {
@@ -700,7 +701,7 @@ function renderStat() {
   const slice = sorted.slice((page - 1) * perPage, page * perPage);
   document.getElementById('statHead').innerHTML = `<th class="stick-1">Season</th><th>${label} Leader</th><th>Team</th><th class="num">${unit}</th><th class="num">Title</th>`;
   document.getElementById('statBody').innerHTML = slice.map(s => !s[cat + 'Leader']
-    ? `<tr class="row-pending"><td class="stick-1">${seasonLink(s.Season)}</td><td colspan="4">Not entered yet</td></tr>`
+    ? `<tr class="row-pending"><td class="stick-1">${seasonLink(s.Season)}</td><td colspan="4">${s[cat + 'NA'] ? 'Not tracked yet' : 'Not entered yet'}</td></tr>`
     : `<tr><td class="stick-1">${seasonLink(s.Season)}</td><td style="font-weight:600">${nameLink(s[cat + 'Leader'], { season: s.Season })}</td>
       <td class="team-tag">${teamLink(s[cat + 'Team'])}</td><td class="num highlight">${fmt(s[unit])}</td>
       <td class="num">${nth.get(s) > 1 ? `<b>${ordinal(nth.get(s))}</b>` : '1st'}</td></tr>`).join('');
