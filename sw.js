@@ -2,7 +2,7 @@
 // The page itself is fetched from the network first so updates show up on the next open;
 // the cached copy is used only when offline. Libraries and fonts never change, so they
 // come from the cache first.
-const VERSION = 'v53';
+const VERSION = 'v54';
 const CACHE = '2k17-stats-' + VERSION;
 const APP_SHELL = [
   './',
@@ -52,7 +52,10 @@ self.addEventListener('fetch', event => {
   }
 
   if (url.origin === location.origin) {
-    event.respondWith(fetch(req).then(res => {
+    // no-cache: always ask the server whether a file changed, so a release shows on the next
+    // open instead of after the browser's 10-minute cache runs out
+    const fresh = req.mode === 'navigate' ? fetch(req.url, { cache: 'no-cache' }) : fetch(req, { cache: 'no-cache' });
+    event.respondWith(fresh.then(res => {
       if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(cache => cache.put(req, copy)); }
       return res;
     }).catch(() => caches.match(req).then(hit => hit || caches.match('./index.html'))));

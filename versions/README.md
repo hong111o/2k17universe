@@ -10,7 +10,6 @@ they are still in the git history if ever needed.
 |---|---|---|
 | `v20.html` | v20: phone app, custom icon, locked table headers | player pages, compare v2, draft, legacy ranking, search, data check |
 | `v22.html` | v22: player pages, compare v2, draft, simple legacy formula, search, data check | points-system legacy formula |
-| `v43.html` | v43: High/Low fix, shared filters, team sort direction | Stat Leaders split into one table per stat |
 | `v44.html` | v44: Stat Leaders one table per stat | award winners' teams from NBA History logos |
 | `v45.html` | v45: award winners' teams from NBA History logos | Awards table without notes, fits phones |
 | `v46.html` | v46: Awards table fits phones | League History as cards on phones |
@@ -20,6 +19,7 @@ they are still in the git history if ever needed.
 | `v50.html` | v50: "-" = stat not tracked | typo-tolerant names (Geogre), more Team Journey years |
 | `v51.html` | v51: retired-number years fill Team Journey gaps | Retired # matched by years (Connie ≠ Corie Hawkins), years-vs-career check |
 | `v52.html` | v52: Retired # matched by years, years-vs-career check | Rookie of the Year from NBA History in League History, Awards, Home and Season Hub |
+| `v53.html` | v53: Rookie of the Year from NBA History | app checks for new files on every open |
 
 Online: https://hong111o.github.io/2k17universe/versions/v20.html and .../versions/v22.html
 

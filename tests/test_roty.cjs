@@ -18,6 +18,10 @@ const { chromium, devices } = require(process.argv[2] + '/node_modules/playwrigh
       byTeam: !!document.querySelector('#awardsContent .rb-card'), shared: DB.history.filter(h => / \/ /.test(h.ROTY || '')).every(h => !h.ROTYTeam) }));
     r[`${label} awards`] = aw;
     await p.screenshot({ path: `${out}/roty-awards-${label}.png` });
+    // Same player winning MVP and DPOY in a season must have the same team (ROTY logos once landed on DPOY)
+    const clash = await p.evaluate(() => DB.history.filter(h => h.MVP && h.MVP === h.DPOY && h.MVPTeam && h.DPOYTeam && h.MVPTeam !== h.DPOYTeam).map(h => h.Season));
+    r[`${label} MVP/DPOY team clashes`] = clash;
+    if (clash.length) bad.push(label + ' DPOY teams');
     if (hasCol && (!seen.th || !aw.rows || !aw.byTeam || !aw.shared)) bad.push(label);
     r[`${label} overflow`] = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth);
     r[`${label} errors`] = errs; await ctx.close(); }
