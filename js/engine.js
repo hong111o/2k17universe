@@ -13,6 +13,14 @@ const POS_NAMES = { PG: 'Point Guard', SG: 'Shooting Guard', SF: 'Small Forward'
 const careerPlayers = () => DB.allPlayers.filter(p => p.Player);
 const everyPlayer = () => cached('everyPlayer', () => [...DB.allPlayers, ...DB.currentPlayers].filter(p => p.Player));
 const isActive = p => DB.currentPlayers.includes(p);
+// Rookie of the Year: NBA History's ROTY column gives the season; All Players only marks "o"
+const rotyByPlayer = () => cached('rotyByPlayer', () => {
+  const m = {};
+  DB.history.forEach(h => h.ROTY && h.ROTY !== '-' && coNames(h.ROTY).forEach(n => { const p = resolvePlayer(n, h.Season); if (p) (m[p.Player] = m[p.Player] || []).push(Number(h.Season)); }));
+  return m;
+});
+const rotySeasons = p => (p && rotyByPlayer()[p.Player]) || [];
+const isRoty = p => !!p && (/^o$/i.test(String(p.ROTY || '').trim()) || rotySeasons(p).length > 0);
 
 // "03Rnd1Pick1" -> {year: 2003, round: 1, pick: 1}; also handles Territorial, Undrafted,
 // ABA picks and the typos in the sheet ("58Rnd1Pcik1", "67Rick1Pick14", "79RndPick1")
@@ -180,7 +188,7 @@ function legacy(p) {
   return cached('legacy|' + p.Player, () => {
     const w = legacyWeights(), ctx = legacyContext();
     const n = k => { const v = getNum(p[k]); return v === -Infinity ? 0 : Math.round(v); };
-    const roty = /^o$/i.test(String(p.ROTY || '').trim());
+    const roty = isRoty(p);
     const rookieTeam = String(p.RookieTeam ?? p['Rookie Team'] ?? '').trim();
     const teamPicks = [...Array(n('1st Team')).fill(w.allNba1), ...Array(n('2nd Team')).fill(w.allNba2), ...Array(n('3rd Team')).fill(w.allNba3),
       ...Array(n('1st D Team')).fill(w.allDef1), ...Array(n('2nd D Team')).fill(w.allDef2), ...(rookieTeam === '1st' ? [w.rookie1] : rookieTeam === '2nd' ? [w.rookie2] : [])];

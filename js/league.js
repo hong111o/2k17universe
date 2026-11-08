@@ -102,7 +102,7 @@ function filterHistory() {
   const q = document.getElementById('histSearch').value.toLowerCase();
   histState.filtered = DB.history.filter(h =>
     !q || String(h.Season).includes(q) ||
-    ['MVP','FMVP','DPOY','Finals','Star1','Star2','Star3'].some(k => String(h[k]||'').toLowerCase().includes(q)) ||
+    ['MVP','FMVP','DPOY','ROTY','Finals','Star1','Star2','Star3'].some(k => String(h[k]||'').toLowerCase().includes(q)) ||
     fullTeamName(extractChampTeam(h.Finals||'')).toLowerCase().includes(q));
   histState.page = 1;
   renderHistory();
@@ -137,6 +137,7 @@ function renderHistory() {
       ${histName(h.FMVP, h.FMVPTeam)}
       ${histName(h.MVP, h.MVPTeam)}
       ${histName(h.DPOY, h.DPOYTeam)}
+      ${histName(h.ROTY, h.ROTYTeam)}
       ${starCell(h.Star1)}${starCell(h.Star2)}${starCell(h.Star3)}
     </tr>`;
   }).join('');
@@ -149,7 +150,7 @@ function renderHistory() {
     return `<div class="hcard">
       <div class="hc-top"><span class="hc-season">${seasonLink(h.Season)}</span><span class="hc-score">${h.Finals || ''}</span></div>
       <div class="hc-champ">${champAbbr ? `${icon('trophy', 'ic-champ')} ${teamIn(fullTeamName(champAbbr), h.Season)}${ru ? ` <span class="muted nowrap">over ${teamLink(ru, teamCode(ru))}</span>` : ''}` : '<span class="muted">Champion not recorded</span>'}</div>
-      <div class="hc-awards">${award('Finals MVP', h.FMVP, h.FMVPTeam)}${award('MVP', h.MVP, h.MVPTeam)}${award('DPOY', h.DPOY, h.DPOYTeam)}</div>
+      <div class="hc-awards">${award('Finals MVP', h.FMVP, h.FMVPTeam)}${award('MVP', h.MVP, h.MVPTeam)}${award('DPOY', h.DPOY, h.DPOYTeam)}${award('ROTY', h.ROTY, h.ROTYTeam)}</div>
       ${stars.length ? `<div class="hc-stars"><span>Champion stars</span> ${stars.join(' · ')}</div>` : ''}
     </div>`;
   }).join('');
@@ -232,6 +233,7 @@ function renderHome() {
       <div class="hero-award"><div class="ha-label">Finals MVP</div><div class="ha-name">${h.FMVPTeam ? teamLogo(h.FMVPTeam) : ''}${award(h.FMVP)}</div></div>
       <div class="hero-award"><div class="ha-label">MVP</div><div class="ha-name">${h.MVPTeam ? teamLogo(h.MVPTeam) : ''}${award(h.MVP)}</div></div>
       <div class="hero-award"><div class="ha-label">DPOY</div><div class="ha-name">${h.DPOYTeam ? teamLogo(h.DPOYTeam) : ''}${award(h.DPOY)}</div></div>
+      ${h.ROTY && h.ROTY !== '-' ? `<div class="hero-award"><div class="ha-label">ROTY</div><div class="ha-name">${h.ROTYTeam ? teamLogo(h.ROTYTeam) : ''}${award(h.ROTY)}</div></div>` : ''}
       ${best ? `<div class="hero-award"><div class="ha-label">Best Record</div><div class="ha-name">${teamLink(best.team)} <span class="nowrap">${best.w}-${best.l}</span></div></div>` : ''}
     </div>
   </section>`);
@@ -286,7 +288,7 @@ function archiveCard() {
     <div class="arch-head">${seasonLink(yr)} <span class="muted">· ${ago} season${ago === 1 ? '' : 's'} ago</span></div>
     <div class="rb-row"><span class="rb-rank">${icon('trophy', 'ic-champ')}</span><span class="rb-main">${teamIn(champ, yr)}</span><span class="rb-val">${cr ? `${cr.w}-${cr.l}` : ''}</span>
       <span class="rb-sub">Champion${ru ? ` · beat ${teamIn(ru, yr)} ${finalsScore(h)}` : ''}</span></div>
-    ${award('Finals MVP', h.FMVP)}${award('MVP', h.MVP)}${award('DPOY', h.DPOY)}
+    ${award('Finals MVP', h.FMVP)}${award('MVP', h.MVP)}${award('DPOY', h.DPOY)}${award('ROTY', h.ROTY)}
     ${best && best.team !== champ ? `<div class="rb-row"><span class="rb-rank"></span><span class="rb-main">${teamIn(best.team, yr)}</span><span class="rb-val">${best.w}-${best.l}</span><span class="rb-sub">Best record</span></div>` : ''}
   </div>`;
 }
@@ -354,7 +356,7 @@ function diffSnapshots(prev, cur) {
     const later = DB.history.filter(x => Number(x.Season) > yr && finalsTeams(x.Season).champ === champ).length;
     const nth = t && Number(t.Championship) ? Number(t.Championship) - later : 0;
     return `<b>${seasonLink(yr)}:</b> ${champ ? `${teamLink(champ)} win ${nth > 0 ? `their ${ordinal(nth)} title` : 'the title'}${ru ? `, beating ${teamLink(ru)} ${finalsScore(h)}` : ''}.` : ''}
-      ${[award('Finals MVP', h.FMVP, yr), award('MVP', h.MVP, yr), award('DPOY', h.DPOY, yr)].filter(Boolean).join(' · ')}`;
+      ${[award('Finals MVP', h.FMVP, yr), award('MVP', h.MVP, yr), award('DPOY', h.DPOY, yr), award('ROTY', h.ROTY, yr)].filter(Boolean).join(' · ')}`;
   });
   if (seasons.length) groups.push({ title: 'New season' + (seasons.length > 1 ? 's' : ''), icon: 'trophy', items: seasons });
   if (backfill.length) groups.push({ title: 'History added', icon: 'calendar', items: [`${backfill.length} earlier season${backfill.length > 1 ? 's' : ''} added to NBA History (${seasonLabel(backfill[0])}${backfill.length > 1 ? ' to ' + seasonLabel(backfill[backfill.length - 1]) : ''})`] });
@@ -460,7 +462,7 @@ function renderSeason() {
   sections.push(`<div class="stats-cards sh-awards">
     ${tile(icon('trophy','ic-champ') + ' Champion', champ ? teamIn(champ, yr) : '<span class="muted">—</span>',
       ru ? `beat ${teamIn(ru, yr)} ${finalsScore}${champRow ? ` · ${champRow.w}-${champRow.l} season` : ''}` : '')}
-    ${['FMVP', 'MVP', 'DPOY'].map(k => tile(k === 'FMVP' ? 'Finals MVP' : k, award(h?.[k]), h?.[k + 'Team'] && h[k] && h[k] !== '-' ? teamIn(h[k + 'Team'], yr) : '')).join('')}
+    ${['FMVP', 'MVP', 'DPOY', 'ROTY'].filter(k => k !== 'ROTY' || (h?.ROTY && h.ROTY !== '-')).map(k => tile(k === 'FMVP' ? 'Finals MVP' : k, award(h?.[k]), h?.[k + 'Team'] && h[k] && h[k] !== '-' ? teamIn(h[k + 'Team'], yr) : '')).join('')}
     ${best ? tile('Best Record', teamIn(best.team, yr), `${best.w}-${best.l}`) : ''}
   </div>`);
 
@@ -765,7 +767,7 @@ function renderCurrent() {
   const curSlice = curSorted.slice((curState.page-1)*curState.perPage, curState.page*curState.perPage);
   document.getElementById('curBody').innerHTML = curSlice.map(p => {
     const other = p['Other Award'];
-    const roty = p.ROTY === 'O' || p.ROTY === 'o';
+    const roty = isRoty(p);
     const teams = [];
     for (let i=1;i<=6;i++){const k=i===1?'Team':'Team'+i; if(p[k])teams.push(p[k]);}
     return `<tr>

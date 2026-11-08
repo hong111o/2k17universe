@@ -196,7 +196,7 @@ function playerMatchesFilters(row, prefix = 'player') {
   if (dec) { const sp = careerSpan(p.Season), d = Number(dec); if (!sp || sp[0] - 1 > d + 9 || sp[1] - 1 < d) return false; }
   if (draft) { const d = draftInfo(p); if (!d || (draft === 'undrafted' ? d.kind !== 'undrafted' : d.year !== Number(draft))) return false; }
   if (honor) {
-    if (honor === 'ROY') { if (!/^o$/i.test(String(p.ROTY || '').trim())) return false; }
+    if (honor === 'ROY') { if (!isRoty(p)) return false; }
     else { const [k, min] = honor.split(':'); if (!(getNum(p[k]) >= Number(min))) return false; }
   }
   return true;

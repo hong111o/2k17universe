@@ -94,7 +94,8 @@ function runDataCheck() {
     const p = resolvePlayer(clean, season);
     if (p && p.Player !== clean && !seen.has(sheet + clean)) { seen.add(sheet + clean); add('info', sheet, cell, `"${clean}" is spelled differently from "${p.Player}" in the player sheets.`); }
   };
-  DB.history.forEach(h => [['MVP','C'],['FMVP','D'],['DPOY','H'],['Star1','J'],['Star2','K'],['Star3','L']].forEach(([k, c]) => nameCheck('NBA History', c + h._row, h[k], h.Season)));
+  const hc = { ...(DB.historyCols || {}) }; (DB.historyStarCols || []).forEach((c, i) => { hc['Star' + (i + 1)] = c; });
+  DB.history.forEach(h => Object.entries(hc).forEach(([k, c]) => coNames(h[k]).forEach(n => nameCheck('NBA History', XLSX.utils.encode_col(c) + h._row, n, h.Season))));
   [...DB.awardRecords, ...DB.allTimeStats].forEach(cat => cat.entries.forEach(e => nameCheck('NBA All-Time Record', `${cat.name} list`, e.player)));
   DB.decades.forEach(d => [...d.starter, ...d.subs].forEach(n => nameCheck('Decade NBA Team', d.decade, n)));
   // 9. Players named in other sheets who have no row in All Players or Current Player
@@ -109,8 +110,8 @@ function runDataCheck() {
     missing.get(k).where.push(where);
   };
   DB.allNbaSeasons.forEach(s => s.teams.forEach(t => t.slots.forEach(sl => note(sl.player, s.season, `All NBA Team ${seasonLabel(s.season)} (${['1st','2nd','3rd'][t.team - 1] || t.team} Team)`))));
-  DB.history.forEach(h => [['MVP', 'MVP'], ['FMVP', 'Finals MVP'], ['DPOY', 'DPOY'], ['Star1', 'champion star'], ['Star2', 'champion star'], ['Star3', 'champion star']]
-    .forEach(([k, l]) => note(h[k], h.Season, `NBA History ${seasonLabel(h.Season)} (${l})`)));
+  DB.history.forEach(h => [['MVP', 'MVP'], ['FMVP', 'Finals MVP'], ['DPOY', 'DPOY'], ['ROTY', 'ROTY'], ['Star1', 'champion star'], ['Star2', 'champion star'], ['Star3', 'champion star']]
+    .forEach(([k, l]) => coNames(h[k]).forEach(n => note(n, h.Season, `NBA History ${seasonLabel(h.Season)} (${l})`))));
   DB.statLeaders.forEach(r => STAT_LEADER_KEYS.forEach(k => note(r[k], r.Season, `Season Stat Leader ${seasonLabel(r.Season)}`)));
   DB.decades.forEach(d => [...d.starter, ...d.subs].forEach(n => note(n, null, `Decade NBA Team ${d.decade}`)));
   [...missing.values()].sort((a, b) => b.where.length - a.where.length || a.name.localeCompare(b.name)).forEach(m =>
@@ -154,6 +155,23 @@ function runDataCheck() {
     const has = retiredNums(p).some(v => { const [n, ...rest] = String(v).trim().split(/\s+/); return String(n) === String(r.num) && teamByCode(rest.join(' '))?.Team === t.Team; });
     if (!has) add('warn', 'All Players', cellOf(p, '# Retired'), `${p.Player}: Retired # lists ${r.num} ${r.code}, but the player's All Players row doesn't.`);
   });
+  // 12. Rookie of the Year: NBA History's ROTY column and the "o" in All Players should agree,
+  //     and the season should be the player's first
+  if (DB.historyCols && DB.historyCols.ROTY !== undefined) {
+    const col = XLSX.utils.encode_col(DB.historyCols.ROTY), covered = new Set(DB.history.filter(h => h.ROTY && h.ROTY !== '-').map(h => Number(h.Season)));
+    DB.history.forEach(h => coNames(h.ROTY === '-' ? '' : h.ROTY).forEach(n => {
+      const p = resolvePlayer(n, h.Season);
+      if (!p) return;
+      if (!/^o$/i.test(String(p.ROTY || '').trim())) add('warn', 'All Players', cellOf(p, 'ROTY'), `${p.Player}: NBA History lists ${seasonLabel(h.Season)} Rookie of the Year, but the ROTY column isn't marked "o".`);
+      const sp = careerSpan(p.Season);
+      // (a late debut like David Robinson's two years after the draft is fine)
+      if (sp && Math.abs(Number(h.Season) - sp[0]) > 2) add('warn', 'NBA History', col + h._row, `${p.Player} is ${seasonLabel(h.Season)} Rookie of the Year, but the career in All Players starts in ${seasonLabel(sp[0])}.`);
+    }));
+    everyPlayer().filter(p => /^o$/i.test(String(p.ROTY || '').trim()) && !rotySeasons(p).length).forEach(p => {
+      const yr = careerSpan(p.Season)?.[0];
+      if (yr && covered.has(yr)) add('warn', 'All Players', cellOf(p, 'ROTY'), `${p.Player} is marked Rookie of the Year, but NBA History names someone else for ${seasonLabel(yr)}.`);
+    });
+  }
   // 8. Gaps the user is still filling in
   const missingLeaders = DB.statLeaders.filter(r => !statRowEntered(r)).map(r => r.Season);
   if (missingLeaders.length) add('info', 'Season Stat Leader', '', `${missingLeaders.length} seasons have no leaders entered yet.`);

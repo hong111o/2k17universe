@@ -281,7 +281,7 @@ function readTeamLogos(wb) {
   } catch (err) { console.warn('Could not read team logos:', err); }
   return logos;
 }
-// NBA History has a small team logo beside each MVP, Finals MVP and DPOY (columns B, E and G).
+// NBA History has a small team logo beside each MVP, Finals MVP, DPOY and ROTY (columns B, E, G and I).
 // Those pictures reuse the NBA Logo sheet's image files, so each one tells us the winner's team.
 function readAwardTeams(wb) {
   const out = {};
@@ -305,16 +305,19 @@ function readAwardTeams(wb) {
       const c = Number(from[1]), h = byRow.get(Number(from[2]) + 1), team = logoMediaTeam[media[emb[1]]];
       if (!h || !team) return;
       // The logo belongs to the award column right beside it
-      const kind = Object.entries(cols).map(([k, col]) => [k, Math.abs(col - c)]).sort((x, y) => x[1] - y[1])[0];
+      // (a logo between DPOY and ROTY is the one to the left of its name, like MVP's and DPOY's)
+      const kind = Object.entries(cols).map(([k, col]) => [k, Math.abs(col - c), col > c ? 0 : 1]).sort((x, y) => x[1] - y[1] || x[2] - y[2])[0];
       if (kind && kind[1] <= 1 && h[kind[0]] && h[kind[0]] !== '-') h[kind[0] + 'Team'] = team;
     });
   } catch (err) { console.warn('Could not read award teams:', err); }
   // A logo picture that isn't on the NBA Logo sheet can't be recognised; a one-team career still tells us
-  (DB.history || []).forEach(h => ['MVP', 'FMVP', 'DPOY'].forEach(k => {
+  (DB.history || []).forEach(h => ['MVP', 'FMVP', 'DPOY', 'ROTY'].forEach(k => {
     if (!h[k] || h[k] === '-' || h[k + 'Team']) return;
     const p = resolvePlayer(h[k], h.Season), teams = p ? [...new Set(playerTeams(p))] : [];
     if (teams.length === 1) h[k + 'Team'] = teams[0];
   }));
+  // A shared award ("Jason Kidd / Grant Hill") has one logo for two players; show no team
+  (DB.history || []).forEach(h => ['MVP', 'FMVP', 'DPOY', 'ROTY'].forEach(k => { if (coNames(h[k]).length > 1) delete h[k + 'Team']; }));
   return out;
 }
 // ---------------------------------------------------------------------
@@ -455,6 +458,8 @@ function parseWorkbook(wb) {
     // Columns are found by their header, so inserting or moving a column in Excel is safe
     const H = rows[0] || [], col = headerFinder('NBA History', H);
     const cSeason = col('Season', 0), cMVP = col('MVP', 2), cFMVP = col('FMVP', 3), cFinals = col('Finals', 5), cDPOY = col('DPOY', 7);
+    // Rookie of the Year was added later; older workbooks don't have the column
+    const cROTY = H.findIndex(h => /^(roty|roy|rookie of the year)$/i.test(String(h || '').trim()));
     // "Champion Stars (Rating)" sits over three columns; use the ones that hold "Name (99)" values
     const hStars = H.findIndex(h => /champion stars/i.test(String(h || '')));
     let starCols = [9, 10, 11];
@@ -467,10 +472,12 @@ function parseWorkbook(wb) {
       .filter(r => r[cSeason] !== null && r[cSeason] !== undefined)
       .map(r => ({
         _row: rows.indexOf(r) + 1,
-        Season: r[cSeason], MVP: r[cMVP], FMVP: r[cFMVP], Finals: r[cFinals], DPOY: r[cDPOY],
+        Season: r[cSeason], MVP: r[cMVP], FMVP: r[cFMVP], Finals: r[cFinals], DPOY: r[cDPOY], ROTY: cROTY >= 0 ? r[cROTY] : undefined,
         Star1: r[starCols[0]], Star2: r[starCols[1]], Star3: r[starCols[2]]
       }));
     DB.historyCols = { MVP: cMVP, FMVP: cFMVP, DPOY: cDPOY };
+    if (cROTY >= 0) DB.historyCols.ROTY = cROTY;
+    DB.historyStarCols = starCols;
   }
 
   setProgress('Loading Teams...');

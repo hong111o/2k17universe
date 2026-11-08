@@ -179,9 +179,12 @@ function resolvePlayer(raw, season) {
   return (resolveCache[key] = result);
 }
 // Player name as written in the sheet, clickable when it can be matched to a player.
+// Shared awards are written "Jason Kidd / Grant Hill"
+const coNames = v => String(v ?? '').split(/\s+\/\s+/).map(s => s.trim()).filter(Boolean);
 function nameLink(raw, opts) {
   opts = opts || {};
   if (!raw) return '—';
+  if (!opts.label && / \/ /.test(String(raw))) return coNames(raw).map(n => nameLink(n, opts)).join(' / ');
   const p = resolvePlayer(raw, opts.season);
   const label = opts.label || raw;
   const style = opts.style ? ` style="${opts.style}"` : '';

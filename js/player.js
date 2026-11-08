@@ -32,7 +32,9 @@ function careerEvents(name) {
   const me = everyPlayer().find(x => x.Player === name), first = me && careerSpan(me.Season)?.[0];
   if (first) {
     const tip = 'The workbook doesn\'t record the year; shown in the first season';
-    if (/^o$/i.test(String(me.ROTY || '').trim())) add(first, 'Rookie of the Year', 'ev-roy', tip);
+    const ry = rotySeasons(me);
+    if (ry.length) ry.forEach(y => add(y, 'Rookie of the Year', 'ev-roy'));
+    else if (isRoty(me)) add(first, 'Rookie of the Year', 'ev-roy', tip);
     const rt = String(me.RookieTeam ?? me['Rookie Team'] ?? '').trim();
     if (rt === '1st' || rt === '2nd') add(first, `All-Rookie ${rt} Team`, 'ev-rookie', tip);
   }
@@ -137,7 +139,7 @@ function renderPlayerPage() {
     ['shield', 'DPOY', n('DPOY'), ''], ['star', 'All-Star', n('All Stars'), ''],
     ['list', 'All-NBA 1st', n('1st Team'), ''], ['list', 'All-NBA 2nd', n('2nd Team'), ''], ['list', 'All-NBA 3rd', n('3rd Team'), ''],
     ['shield', 'All-Defense 1st', n('1st D Team'), ''], ['shield', 'All-Defense 2nd', n('2nd D Team'), ''],
-    ['star', 'Rookie of the Year', /^o$/i.test(String(p.ROTY || '').trim()) ? 1 : 0, ''],
+    ['star', 'Rookie of the Year', isRoty(p) ? 1 : 0, ''],
     ['star', String(p['Other Award'] || '').replace(/\s*\(\d+\)\s*$/, '').trim() || 'Other award', otherAwardCount(p), ''],
     ...[['PtsLeader', 'Scoring title'], ['RebLeader', 'Rebounding title'], ['AstLeader', 'Assists title'], ['StlLeader', 'Steals title'], ['BlkLeader', 'Blocks title']]
       .map(([k, l]) => { const c = DB.statLeaders.filter(r => r[k] && resolvePlayer(r[k], r.Season) === p).length; return ['chart', c > 1 ? l + 's' : l, c, '']; }),
@@ -367,34 +369,37 @@ function setAwardTab(k) { awardTab = k; renderAwards(); }
 function renderAwards() {
   document.getElementById('awardTabs').innerHTML = AWARD_TABS.map(([k, l]) => `<button class="${k === awardTab ? 'active' : ''}" onclick="setAwardTab('${k}')">${l}</button>`).join('');
   let list;
+  const histKey = awardTab === 'ROY' ? 'ROTY' : awardTab;
+  list = DB.history.filter(h => h[histKey] && h[histKey] !== '-').flatMap(h => coNames(h[histKey]).map((n, i, all) => ({ yr: Number(h.Season), name: n, key: playerKey(n, h.Season), team: all.length > 1 ? null : h[histKey + 'Team'] })))
+    .filter(x => !isNaN(x.yr));
+  let guessed = 0;
   if (awardTab === 'ROY') {
-    // The workbook marks Rookie of the Year without a year: it is placed in the first season
-    list = everyPlayer().filter(p => /^o$/i.test(String(p.ROTY || '').trim())).map(p => ({ yr: careerSpan(p.Season)?.[0], name: p.Player, key: p.Player }))
-      .filter(x => x.yr).sort((a, b) => a.yr - b.yr);
-  } else {
-    list = DB.history.filter(h => h[awardTab] && h[awardTab] !== '-').map(h => ({ yr: Number(h.Season), name: h[awardTab], key: playerKey(h[awardTab], h.Season), team: h[awardTab + 'Team'] }))
-      .filter(x => !isNaN(x.yr)).sort((a, b) => a.yr - b.yr);
+    // Players marked "o" in All Players for a season NBA History has no ROTY for: shown in their first season
+    const have = new Set(list.map(x => x.yr)), named = new Set(list.map(x => x.key));
+    everyPlayer().filter(p => /^o$/i.test(String(p.ROTY || '').trim()) && !named.has(p.Player)).forEach(p => {
+      const yr = careerSpan(p.Season)?.[0];
+      if (yr && !have.has(yr)) { list.push({ yr, name: p.Player, key: p.Player, guess: true }); guessed++; }
+    });
   }
+  list.sort((a, b) => a.yr - b.yr);
   const counts = {}, nth = list.map(x => (counts[x.key] = (counts[x.key] || 0) + 1));
   const label = AWARD_TABS.find(([k]) => k === awardTab)[1];
   const champOf = yr => finalsTeams(yr).champ;
   const rows = list.map((x, i) => ({ ...x, nth: nth[i] })).reverse().map(x => {
     const p = resolvePlayer(x.name, x.yr);
     const team = x.team || (awardTab === 'FMVP' ? champOf(x.yr) : null);
-    return `<tr><td class="stick-1">${seasonLink(x.yr)}</td><td>${nameLink(x.name, { season: x.yr })} ${p ? posBadge(p.Position) : ''}</td>
-      ${awardTab === 'ROY' ? '' : `<td class="nowrap">${team ? teamLink(team, teamCode(team)) : '<span class="muted">—</span>'}</td>`}
+    return `<tr><td class="stick-1">${seasonLink(x.yr)}${x.guess ? '<span class="muted" title="Year not in NBA History; shown in the first season"> *</span>' : ''}</td><td>${nameLink(x.name, { season: x.yr })} ${p ? posBadge(p.Position) : ''}</td>
+      <td class="nowrap">${team ? teamLink(team, teamCode(team)) : '<span class="muted">—</span>'}</td>
       <td class="num">${x.nth > 1 ? `<b>${ordinal(x.nth)}</b>` : '1st'}</td></tr>`;
   }).join('');
   const most = withRanks(Object.entries(counts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).filter(([, c]) => c >= 2).slice(0, 15), ([, c]) => c);
   const span = list.length ? `${seasonLabel(list[0].yr)} to ${seasonLabel(list[list.length - 1].yr)}` : '';
-  document.getElementById('awardsSub').textContent = awardTab === 'ROY'
-    ? `${list.length} Rookies of the Year from All Players and Current Player · shown in each player's first season, since the year isn't recorded`
-    : `${list.length} ${label} winners from NBA History${span ? ', ' + span : ''}`;
+  document.getElementById('awardsSub').textContent = `${list.length} ${awardTab === 'ROY' ? 'Rookies of the Year' : label + ' winners'} from NBA History${span ? ', ' + span : ''}`
+    + (guessed ? ` · * ${guessed} from All Players, shown in the first season` : '');
   document.getElementById('awardsContent').innerHTML = `<div class="player-grid">
-    <div><div class="table-wrap stat-table"><table><thead><tr><th class="stick-1">Season</th><th>${label}</th>${awardTab === 'ROY' ? '' : '<th>Team</th>'}<th class="num" title="Which win of the player's career">Win</th></tr></thead><tbody>${rows || '<tr><td colspan="4" class="muted">No winners recorded.</td></tr>'}</tbody></table></div></div>
+    <div><div class="table-wrap stat-table"><table><thead><tr><th class="stick-1">Season</th><th>${label}</th><th>Team</th><th class="num" title="Which win of the player's career">Win</th></tr></thead><tbody>${rows || '<tr><td colspan="4" class="muted">No winners recorded.</td></tr>'}</tbody></table></div></div>
     <div>${(() => {
       // Which franchises its winners played for (from the logos beside each name in NBA History)
-      if (awardTab === 'ROY') return '';
       const byTeam = {};
       list.forEach(x => { const t = x.team || (awardTab === 'FMVP' ? champOf(x.yr) : null); if (t) byTeam[t] = (byTeam[t] || 0) + 1; });
       const rows2 = withRanks(Object.entries(byTeam).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 10), ([, c]) => c);
