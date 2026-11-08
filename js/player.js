@@ -361,6 +361,16 @@ function compareMetrics() {
   ];
 }
 // =====================================================================
+// Overall draft pick for the Rookie of the Year table: 30 picks a round, so round 2 pick 17 = 47
+function overallPick(p) {
+  const d = p && draftInfo(p);
+  if (!d) return '<span class="muted">—</span>';
+  if (d.kind === 'territorial') return '<span title="Territorial pick">T</span>';
+  if (d.kind === 'undrafted') return '<span class="muted">Undrafted</span>';
+  if (!d.pick) return '<span class="muted">—</span>';
+  const n = (d.round > 1 ? (d.round - 1) * 30 : 0) + d.pick;
+  return d.round > 1 ? `<span title="Round ${d.round}, pick ${d.pick}">${n}</span>` : String(n);
+}
 // AWARDS: every MVP, Finals MVP, DPOY and Rookie of the Year, with counts
 // =====================================================================
 let awardTab = 'MVP';
@@ -390,14 +400,14 @@ function renderAwards() {
     const team = x.team || (awardTab === 'FMVP' ? champOf(x.yr) : null);
     return `<tr><td class="stick-1">${seasonLink(x.yr)}${x.guess ? '<span class="muted" title="Year not in NBA History; shown in the first season"> *</span>' : ''}</td><td>${nameLink(x.name, { season: x.yr })} ${p ? posBadge(p.Position) : ''}</td>
       <td class="nowrap">${team ? teamLink(team, teamCode(team)) : '<span class="muted">—</span>'}</td>
-      <td class="num">${x.nth > 1 ? `<b>${ordinal(x.nth)}</b>` : '1st'}</td></tr>`;
+      <td class="num">${awardTab === 'ROY' ? overallPick(p) : x.nth > 1 ? `<b>${ordinal(x.nth)}</b>` : '1st'}</td></tr>`;
   }).join('');
   const most = withRanks(Object.entries(counts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).filter(([, c]) => c >= 2).slice(0, 15), ([, c]) => c);
   const span = list.length ? `${seasonLabel(list[0].yr)} to ${seasonLabel(list[list.length - 1].yr)}` : '';
   document.getElementById('awardsSub').textContent = `${list.length} ${awardTab === 'ROY' ? 'Rookies of the Year' : label + ' winners'} from NBA History${span ? ', ' + span : ''}`
     + (guessed ? ` · * ${guessed} from All Players, shown in the first season` : '');
   document.getElementById('awardsContent').innerHTML = `<div class="player-grid">
-    <div><div class="table-wrap stat-table"><table><thead><tr><th class="stick-1">Season</th><th>${label}</th><th>Team</th><th class="num" title="Which win of the player's career">Win</th></tr></thead><tbody>${rows || '<tr><td colspan="4" class="muted">No winners recorded.</td></tr>'}</tbody></table></div></div>
+    <div><div class="table-wrap stat-table"><table><thead><tr><th class="stick-1">Season</th><th>${label}</th><th>Team</th>${awardTab === 'ROY' ? '<th class="num" title="Overall draft pick: round 2 pick 17 = 47">Pick</th>' : `<th class="num" title="Which win of the player's career">Win</th>`}</tr></thead><tbody>${rows || '<tr><td colspan="4" class="muted">No winners recorded.</td></tr>'}</tbody></table></div></div>
     <div>${(() => {
       // Which franchises its winners played for (from the logos beside each name in NBA History)
       const byTeam = {};
