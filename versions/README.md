@@ -10,7 +10,6 @@ they are still in the git history if ever needed.
 |---|---|---|
 | `v20.html` | v20: phone app, custom icon, locked table headers | player pages, compare v2, draft, legacy ranking, search, data check |
 | `v22.html` | v22: player pages, compare v2, draft, simple legacy formula, search, data check | points-system legacy formula |
-| `v41.html` | v41: All-NBA check skips seasons not in the sheet | sort direction on phones, filters on every player list |
 | `v42.html` | v42: sort direction on phones, filters on player lists | High/Low fix, same filters and sort options on every player list, team sort direction |
 | `v43.html` | v43: High/Low fix, shared filters, team sort direction | Stat Leaders split into one table per stat |
 | `v44.html` | v44: Stat Leaders one table per stat | award winners' teams from NBA History logos |
@@ -20,6 +19,7 @@ they are still in the git history if ever needed.
 | `v48.html` | v48: Team History + Retired # tabs, All-NBA to 1947 | wins chart in 20-season blocks, years on Team Journey |
 | `v49.html` | v49: wins chart blocks, Team Journey years | "-" in Season Stat Leader = not tracked |
 | `v50.html` | v50: "-" = stat not tracked | typo-tolerant names (Geogre), more Team Journey years |
+| `v51.html` | v51: retired-number years fill Team Journey gaps | Retired # matched by years (Connie ≠ Corie Hawkins), years-vs-career check |
 
 Online: https://hong111o.github.io/2k17universe/versions/v20.html and .../versions/v22.html
 

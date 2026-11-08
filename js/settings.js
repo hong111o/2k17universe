@@ -143,8 +143,14 @@ function runDataCheck() {
     const t = teamByCode(r.code);
     if (!t) { add('warn', 'Retired #', 'A' + r._row, `Team code "${r.code}" isn't recognized.`); return; }
     if (r.type !== 'Player') return;
-    const p = resolvePlayer(r.who);
-    if (!p || isActive(p)) return;
+    const p = resolveRetired(r);
+    if (!p) return;
+    const sp = careerSpan(p.Season), yrs = (String(r.years || '').match(/\d{4}/g) || []).map(Number);
+    if (sp && yrs.length) {
+      const from = Math.min(...yrs) + 1, to = Math.max(...yrs);
+      if (from < sp[0] || (sp[1] !== Infinity && to > sp[1])) add('warn', 'Retired #', 'G' + r._row, `${p.Player}: Years with Franchise ${r.years} go outside the career in All Players (${p.Season}).`);
+    }
+    if (isActive(p)) return;
     const has = retiredNums(p).some(v => { const [n, ...rest] = String(v).trim().split(/\s+/); return String(n) === String(r.num) && teamByCode(rest.join(' '))?.Team === t.Team; });
     if (!has) add('warn', 'All Players', cellOf(p, '# Retired'), `${p.Player}: Retired # lists ${r.num} ${r.code}, but the player's All Players row doesn't.`);
   });

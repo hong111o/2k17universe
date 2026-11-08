@@ -188,7 +188,7 @@ function renderPlayerPage() {
   // with one team are split between the two stops), or the whole career for a one-team career
   const oneTeam = new Set(teams).size === 1;
   const stintYears = (t, i) => {
-    const row = (DB.retiredList || []).find(r => r.years && r.type === 'Player' && teamByCode(r.code)?.Team === t && resolvePlayer(r.who) === p);
+    const row = (DB.retiredList || []).find(r => r.years && r.type === 'Player' && teamByCode(r.code)?.Team === t && resolveRetired(r) === p);
     if (row) {
       const parts2 = row.years.split(/\s*,\s*/), nth = teams.slice(0, i).filter(x => x === t).length, count = teams.filter(x => x === t).length;
       return count > 1 && parts2.length === count ? parts2[nth] : row.years;

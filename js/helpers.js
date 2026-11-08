@@ -122,6 +122,11 @@ function buildPlayerIndex() {
 // season (optional) picks between players who share a short name, e.g. "B.James".
 // Earlier names of players (normalised) -> the name used on their player row
 const NAME_ALIASES = { lalcindor: 'Kareem Abdul-Jabbar', lewalcindor: 'Kareem Abdul-Jabbar', chrisjackson: 'Mahmoud Abdul-Rauf', ronartest: 'Metta World Peace' };
+// A Retired # row's honoree, checked against the years they spent with the team
+function resolveRetired(r) {
+  const y = String(r.years || '').match(/\d{4}/);
+  return resolvePlayer(r.who, y ? Number(y[0]) + 1 : undefined);
+}
 function resolvePlayer(raw, season) {
   if (!raw) return null;
   const key = raw + '|' + (season || '');
@@ -164,7 +169,11 @@ function resolvePlayer(raw, season) {
       result = pick(cands);
     } else if (n.length >= 6) {
       // Misspelt full name, e.g. "Michael Jordon"
-      result = pick(closest(playerIndex, 'norm', n, n.length >= 10 ? 2 : 1));
+      // With a season, the misspelt name must belong to someone playing then:
+      // "Connie Hawkins" (1969–1973) is not "Corie Hawkins" (2067–)
+      let cands = closest(playerIndex, 'norm', n, n.length >= 10 ? 2 : 1);
+      if (season) { const yr = Number(season); cands = cands.filter(c => !c.span || (yr >= c.span[0] && yr <= c.span[1])); }
+      result = pick(cands);
     }
   }
   return (resolveCache[key] = result);

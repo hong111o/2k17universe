@@ -83,7 +83,7 @@ function retiredForTeam(teamName) {
   (DB.retiredList || []).forEach(r => {
     const t = teamByCode(r.code);
     if (!t || t.Team !== teamName) return;
-    const p = r.type === 'Player' ? resolvePlayer(r.who) : null;
+    const p = r.type === 'Player' ? resolveRetired(r) : null;
     seen.add(key(r.num, p ? p.Player : r.who));
     out.push({ num: r.num, player: p ? p.Player : r.who, linked: !!p, type: r.type, years: r.years });
   });
