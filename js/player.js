@@ -226,16 +226,32 @@ function renderPlayerPage() {
     if (from >= to || spells.some(sp => sp.from < to && (sp.to === 'present' ? Infinity : sp.to) > from)) return '';
     return `${from}–${next.from}`;
   });
+  // Conference titles (Finals losses) per stop: listed runner-up seasons go to the stop whose years
+  // cover them (or the only stop with that team); a one-team career gets every loss
+  const ruYears = (legacyContext().ruRoles[p.Player] || []).map(r => r.yr);
+  const nn = k => { const v = getNum(p[k]); return v === -Infinity ? 0 : Math.round(v); };
+  const confTitlesAt = i => {
+    const t = teams[i];
+    if (oneTeam) return Math.max(ruYears.length, nn('Finals App') - nn('Champions'));
+    return ruYears.filter(y => {
+      if (finalsTeams(y).ru !== t) return false;
+      const stops = teams.map((x, j) => j).filter(j => teams[j] === t);
+      if (stops.length === 1) return true;
+      const covering = stops.find(j => (yearsOf[j] || '').split(/\s*,\s*/).some(sp => { const e = ends(sp); return e && e.from < y && y <= (e.to === 'present' ? Infinity : e.to); }));
+      return covering === undefined ? i === stops[0] : covering === i;
+    }).length;
+  };
   if (teams.length) parts.push(`<div class="chart-card"><div class="chart-title">${icon('jersey')} Team Journey</div>
     <div class="journey">${teams.map((t, i) => {
       const red = p._titleStints, ret = retired.filter(r => r.team === t);
       // With red cells, mark the exact stint; a team with two red stints gets no count (it isn't known per stint)
       const twice = red && teams.filter((x, j) => x === t && red[j]).length > 1;
       const titles = red && !red[i] ? 0 : titlesWithTeam(p, t), label = twice ? 'Title' : `${titles} title${titles > 1 ? 's' : ''}`;
+      const conf = confTitlesAt(i), confLabel = `${conf} conf. title${conf > 1 ? 's' : ''}`;
       return `${i ? '<span class="journey-arrow" aria-hidden="true">→</span>' : ''}<div class="journey-stop">
         <span class="journey-n">${i + 1}</span>${teamLink(t, t)}
         ${yearsOf[i] ? `<span class="journey-years">${yearsOf[i]}</span>` : ''}
-        <span class="journey-tags">${titles ? `<em class="tag-gold">${icon('trophy')} ${label}</em>` : ''}${ret.map(r => `<em class="tag-ret">#${r.num} retired</em>`).join('')}</span></div>`;
+        <span class="journey-tags">${titles ? `<em class="tag-gold">${icon('trophy')} ${label}</em>` : ''}${conf ? `<em class="tag-silver">${icon('trophy')} ${confLabel}</em>` : ''}${ret.map(r => `<em class="tag-ret">#${r.num} retired</em>`).join('')}</span></div>`;
     }).join('')}</div></div>`);
 
   // Career numbers
