@@ -121,7 +121,8 @@ function buildPlayerIndex() {
 // Returns the player record a sheet name refers to, or null if unknown or ambiguous.
 // season (optional) picks between players who share a short name, e.g. "B.James".
 // Earlier names of players (normalised) -> the name used on their player row
-const NAME_ALIASES = { lalcindor: 'Kareem Abdul-Jabbar', lewalcindor: 'Kareem Abdul-Jabbar', chrisjackson: 'Mahmoud Abdul-Rauf', ronartest: 'Metta World Peace' };
+const NAME_ALIASES = { lalcindor: 'Kareem Abdul-Jabbar', lewalcindor: 'Kareem Abdul-Jabbar', chrisjackson: 'Mahmoud Abdul-Rauf', ronartest: 'Metta World Peace',
+  lebronjamesjr: 'Bronny James', lebronjamesjunior: 'Bronny James' };
 // A Retired # row's honoree, checked against the years they spent with the team
 function resolveRetired(r) {
   const y = String(r.years || '').match(/\d{4}/);

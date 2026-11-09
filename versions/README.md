@@ -10,7 +10,6 @@ they are still in the git history if ever needed.
 |---|---|---|
 | `v20.html` | v20: phone app, custom icon, locked table headers | player pages, compare v2, draft, legacy ranking, search, data check |
 | `v22.html` | v22: player pages, compare v2, draft, simple legacy formula, search, data check | points-system legacy formula |
-| `v46.html` | v46: Awards table fits phones | League History as cards on phones |
 | `v47.html` | v47: League History cards on phones | Team History BC + Retired # tabs, All-NBA back to 1947 |
 | `v48.html` | v48: Team History + Retired # tabs, All-NBA to 1947 | wins chart in 20-season blocks, years on Team Journey |
 | `v49.html` | v49: wins chart blocks, Team Journey years | "-" in Season Stat Leader = not tracked |
@@ -20,6 +19,7 @@ they are still in the git history if ever needed.
 | `v53.html` | v53: Rookie of the Year from NBA History | app checks for new files on every open |
 | `v54.html` | v54: app checks for new files on every open | ROTY table shows the overall draft pick instead of Win |
 | `v55.html` | v55: ROTY table with overall draft pick | Pick column removed (most rookies have no draft code) |
+| `v56.html` | v56: ROTY table without Pick | "LeBron James Jr." read as Bronny James |
 
 Online: https://hong111o.github.io/2k17universe/versions/v20.html and .../versions/v22.html
 
