@@ -10,7 +10,6 @@ they are still in the git history if ever needed.
 |---|---|---|
 | `v20.html` | v20: phone app, custom icon, locked table headers | player pages, compare v2, draft, legacy ranking, search, data check |
 | `v22.html` | v22: player pages, compare v2, draft, simple legacy formula, search, data check | points-system legacy formula |
-| `v48.html` | v48: Team History + Retired # tabs, All-NBA to 1947 | wins chart in 20-season blocks, years on Team Journey |
 | `v49.html` | v49: wins chart blocks, Team Journey years | "-" in Season Stat Leader = not tracked |
 | `v50.html` | v50: "-" = stat not tracked | typo-tolerant names (Geogre), more Team Journey years |
 | `v51.html` | v51: retired-number years fill Team Journey gaps | Retired # matched by years (Connie ≠ Corie Hawkins), years-vs-career check |
@@ -20,6 +19,7 @@ they are still in the git history if ever needed.
 | `v55.html` | v55: ROTY table with overall draft pick | Pick column removed (most rookies have no draft code) |
 | `v56.html` | v56: ROTY table without Pick | "LeBron James Jr." read as Bronny James |
 | `v57.html` | v57: "LeBron James Jr." = Bronny | Runner-Up Stars: roles and Finals-loss points in the legacy score |
+| `v58.html` | v58: Runner-Up Stars in the legacy score | silver "Conference Title" trophy on player timelines |
 
 Online: https://hong111o.github.io/2k17universe/versions/v20.html and .../versions/v22.html
 

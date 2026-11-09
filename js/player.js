@@ -21,7 +21,8 @@ function careerEvents(name) {
     }
     if ([h.RU1, h.RU2, h.RU3].some(x => isMe(x, yr))) {
       const role = (legacyContext().ruRoles[name] || []).find(r => r.yr === yr);
-      add(yr, 'Finals loss', 'ev-ru', role ? `Lost the Finals as ${role.label}` : '');
+      const winner = finalsTeams(yr).champ;
+      add(yr, 'Conference Title', 'ev-ru', `Lost the Finals${winner ? ' to the ' + winner : ''}${role ? ' as ' + role.label : ''}`);
     }
     if (isMe(h.FMVP, yr)) add(yr, 'Finals MVP', 'ev-fmvp');
     if (isMe(h.MVP, yr)) add(yr, 'MVP', 'ev-mvp');
@@ -167,7 +168,7 @@ function renderPlayerPage() {
     ${(() => { const rr = legacyContext().ruRoles[p.Player] || [], cnt = {}; rr.forEach(r => cnt[r.label] = (cnt[r.label] || 0) + 1);
       const un = Math.max(0, n('Finals App') - n('Champions') - rr.length);
       const line = [...Object.entries(cnt).sort((a, b) => ROLE_ORDER.indexOf(a[0]) - ROLE_ORDER.indexOf(b[0])).map(([l, c]) => `${c} as ${l}`), ...(un ? [`${un} as rotation player`] : [])].join(' · ');
-      return line ? `<div class="lg-roles lg-roles-ru"><b>Finals losses:</b> ${line}</div>` : ''; })()}</div>`;
+      return line ? `<div class="lg-roles lg-roles-ru"><b>Conference titles:</b> ${line}</div>` : ''; })()}</div>`;
   const shelfHtml = `<div class="chart-card"><div class="chart-title">${icon('trophy', 'ic-champ')} Trophy Shelf</div>
     ${shelf.length ? `<div class="trophy-shelf">${shelf.map(([ic, label, count, tone]) => `<div class="trophy ${tone}">${icon(ic)}<b>${count}</b><span>${label}</span></div>`).join('')}</div>` : '<p class="muted">No awards recorded yet.</p>'}
     </div>`;
@@ -254,11 +255,11 @@ function renderPlayerPage() {
   // Timeline
   const timeline = careerEvents(p.Player);
   if (timeline.length) parts.push(`<div class="chart-card"><div class="chart-title">${icon('calendar')} Career Timeline</div>
-    <div class="tl-key">${[['ev-champ', 'Title'], ['ev-fmvp', 'Finals MVP'], ['ev-mvp', 'MVP'], ['ev-dpoy', 'DPOY'], ['ev-ru', 'Finals loss'], ['ev-nba1', 'All-NBA'], ['ev-stat', 'Stat leader'], ['ev-roy', 'Rookie']]
+    <div class="tl-key">${[['ev-champ', 'Title'], ['ev-fmvp', 'Finals MVP'], ['ev-mvp', 'MVP'], ['ev-dpoy', 'DPOY'], ['ev-ru', 'Conference Title'], ['ev-nba1', 'All-NBA'], ['ev-stat', 'Stat leader'], ['ev-roy', 'Rookie']]
       .filter(([c]) => timeline.some(t => t.items.some(e => c === 'ev-nba1' ? /^ev-nba/.test(e.cls) : c === 'ev-roy' ? /^ev-(roy|rookie)$/.test(e.cls) : e.cls === c)))
       .map(([c, l]) => `<span class="tl-chip ${c}">${l}</span>`).join('')}</div>
     <div class="timeline">${timeline.map(t => `<div class="tl-row"><div class="tl-season">${seasonLink(t.yr)}</div>
-      <div class="tl-items">${t.items.map(e => `<span class="tl-chip ${e.cls}"${e.tip ? ` title="${e.tip}"` : ''}>${e.cls === 'ev-champ' && e.label === 'Champion' ? icon('trophy','ic-champ') + ' ' : ''}${e.label}</span>`).join('')}</div></div>`).join('')}</div></div>`);
+      <div class="tl-items">${t.items.map(e => `<span class="tl-chip ${e.cls}"${e.tip ? ` title="${e.tip}"` : ''}>${e.cls === 'ev-champ' && e.label === 'Champion' ? icon('trophy','ic-champ') + ' ' : e.cls === 'ev-ru' ? icon('trophy','ic-silver') + ' ' : ''}${e.label}</span>`).join('')}</div></div>`).join('')}</div></div>`);
 
   // Similar players
   const sim = similarPlayers(p, 5);

@@ -267,7 +267,7 @@ tr.row-pending td:first-child{font-style:normal;}
 .tl-chip.ev-mvp{--ev:var(--ev-mvp);} .tl-chip.ev-dpoy{--ev:var(--ev-dpoy);} .tl-chip.ev-stat{--ev:var(--ev-stat);}
 .tl-chip.ev-nba1,.tl-chip.ev-nba2,.tl-chip.ev-nba3{--ev:var(--ev-nba);}
 .tl-chip.ev-roy,.tl-chip.ev-rookie{--ev:var(--ev-roy);}
-.tl-chip.ev-ru{color:var(--ink-2);border-color:var(--line-strong);border-style:dashed;}
+.tl-chip.ev-ru{background:var(--silver-tint);color:var(--ink);border-color:color-mix(in srgb,var(--silver) 45%,transparent);}
 .lg-roles-ru{margin-top:6px;padding-top:0;border-top:0;}
 .hist-ru{min-width:220px;}
 .tl-chip.ev-mvp,.tl-chip.ev-dpoy,.tl-chip.ev-stat,.tl-chip.ev-nba1,.tl-chip.ev-nba2,.tl-chip.ev-nba3,.tl-chip.ev-roy,.tl-chip.ev-rookie{color:var(--ev);background:color-mix(in srgb,var(--ev) 14%,var(--surface));border-color:color-mix(in srgb,var(--ev) 40%,transparent);}

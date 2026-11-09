@@ -231,7 +231,7 @@ function legacy(p) {
     return { total, parts };
   });
 }
-const LEGACY_PARTS = [['mvp', 'MVP'], ['fmvp', 'Finals MVP'], ['titles', 'Title roles'], ['finals', 'Finals losses'], ['teams', 'All-NBA / Def / Rookie'], ['allStar', 'All-Star'], ['dpoy', 'DPOY'], ['statTitles', 'Stat titles'], ['other', 'ROY / 6MOY / MIP'], ['production', 'Production']];
+const LEGACY_PARTS = [['mvp', 'MVP'], ['fmvp', 'Finals MVP'], ['titles', 'Title roles'], ['finals', 'Conference titles'], ['teams', 'All-NBA / Def / Rookie'], ['allStar', 'All-Star'], ['dpoy', 'DPOY'], ['statTitles', 'Stat titles'], ['other', 'ROY / 6MOY / MIP'], ['production', 'Production']];
 function legacyRatio() {
   try { const v = localStorage.getItem('nba2k17-legacy-ratio'); return v === null || isNaN(Number(v)) ? 50 : Math.min(100, Math.max(0, Number(v))); } catch (e) { return 50; }
 }
