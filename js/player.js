@@ -254,6 +254,10 @@ function renderPlayerPage() {
         <span class="journey-tags">${titles ? `<em class="tag-gold">${icon('trophy')} ${label}</em>` : ''}${conf ? `<em class="tag-silver">${icon('trophy')} ${confLabel}</em>` : ''}${ret.map(r => `<em class="tag-ret">#${r.num} retired</em>`).join('')}</span></div>`;
     }).join('')}</div></div>`);
 
+  // Finals the player played in as a listed star
+  const finalsHtml = playerFinalsHtml(p);
+  if (finalsHtml) parts.push(finalsHtml);
+
   // Career numbers
   if (hasStats) {
     const avg = k => { const v = perGame(p, k); return v === null ? '—' : v.toFixed(1); };

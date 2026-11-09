@@ -4,7 +4,7 @@
 // =====================================================================
 // SECTION NAVIGATION
 // =====================================================================
-const SECTIONS = ['overview','players','top20','bypos','current','draft','compare','player','legacy','settings','teams','team','awards','season','history','statleaders','allnba','decades','records','leaders'];
+const SECTIONS = ['overview','players','top20','bypos','current','draft','compare','player','legacy','settings','teams','team','awards','finals','season','history','statleaders','allnba','decades','records','leaders'];
 function showSection(id) {
   if (!SECTIONS.includes(id)) id = 'overview';
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -33,6 +33,7 @@ function showSection(id) {
   if (location.hash.slice(1) !== hash) history.replaceState(null, '', '#' + hash);
   if (id === 'draft') renderDraft();
   if (id === 'awards') renderAwards();
+  if (id === 'finals') renderFinals();
   if (id === 'legacy') renderLegacy();
   if (id === 'settings') { renderSettings(); markDataProblemsSeen(); }
   if (id !== 'player' && id !== 'team') { try { localStorage.setItem('nba2k17-tab', id); } catch(e) {} }

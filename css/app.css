@@ -713,3 +713,33 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
 .wc-range{margin:4px 0 10px;max-width:100%;overflow-x:auto;scrollbar-width:none;}
 .wc-range button{flex:none;}
 .journey-years{display:block;font-size:12px;color:var(--ink-3);margin-top:2px;}
+
+/* Finals page */
+.fx-list{display:grid;gap:12px;}
+.fx-card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;}
+.fx-card.fx-upset{border-color:color-mix(in srgb,var(--champ) 55%,var(--line));}
+.fx-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.fx-season{font-weight:700;font-size:16px;}
+.fx-score{margin-left:auto;color:var(--ink-3);font-size:13px;white-space:nowrap;}
+.fx-badge{background:var(--champ-tint);color:var(--champ-ink);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 8px;border-radius:999px;}
+.fx-sides{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.fx-side{min-width:0;}
+.fx-team{font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.fx-lose .fx-team{color:var(--ink-2);}
+.fx-stars{display:flex;flex-direction:column;gap:4px;font-size:13px;}
+.fx-star b{font-weight:700;color:var(--ink-2);margin-left:2px;}
+.fx-star i{font-style:normal;color:var(--ink-3);font-size:12px;margin-left:6px;}
+.fx-fmvp{margin-top:6px;font-size:12px;color:var(--champ-ink);}
+.fx-more{justify-self:center;}
+.fx-count{margin:6px 0 10px;font-size:13px;}
+.fx-note{font-size:12px;margin:4px 0 8px;}
+.fx-toolbar{margin-bottom:0;}
+.fx-grid > div:last-child .chart-card{margin-bottom:14px;}
+@media (max-width:640px){.fx-sides{grid-template-columns:1fr;gap:10px;}.fx-lose{border-top:1px solid var(--line);padding-top:8px;}}
+/* Player page Finals card */
+.pf-list{display:grid;gap:6px;}
+.pf-row{display:grid;grid-template-columns:76px 48px 1fr auto;gap:8px;align-items:baseline;font-size:13px;}
+.pf-res{font-weight:700;font-size:12px;text-align:center;border-radius:4px;padding:1px 0;}
+.pf-w{background:var(--champ-tint);color:var(--champ-ink);} .pf-l{background:var(--silver-tint);color:var(--ink-2);}
+.pf-opp{min-width:0;}
+@media (max-width:640px){.pf-row{grid-template-columns:70px 44px 1fr;}.pf-score{display:none;}}

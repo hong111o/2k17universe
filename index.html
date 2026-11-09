@@ -98,6 +98,7 @@
     <button data-sec="team" data-group="teams" class="nav-ghost" tabindex="-1" aria-hidden="true">Team</button>
     <button data-sec="season" data-group="seasons" onclick="openSeason()">Season Hub</button>
     <button data-sec="history" data-group="seasons" onclick="showSection('history')">League History</button>
+    <button data-sec="finals" data-group="seasons" onclick="showSection('finals')">Finals</button>
     <button data-sec="awards" data-group="seasons" onclick="showSection('awards')">Awards</button>
     <button data-sec="statleaders" data-group="seasons" onclick="showSection('statleaders')">Stat Leaders</button>
     <button data-sec="allnba" data-group="seasons" onclick="showSection('allnba')">All-NBA Teams</button>
@@ -130,6 +131,13 @@
     <div class="atr-tabs" id="statTabs"></div>
     <div id="statContent"></div>
   </div>
+</div>
+
+<!-- FINALS -->
+<div id="sec-finals" class="section">
+  <div class="section-title">Finals</div>
+  <div class="section-sub">Every Finals head to head: both teams' stars, upsets, repeat matchups and rivalries</div>
+  <div id="finalsContent"></div>
 </div>
 
 <!-- AWARDS -->
@@ -455,6 +463,7 @@
 <script src="js/league.js"></script>
 <script src="js/player.js"></script>
 <script src="js/engine.js"></script>
+<script src="js/finals.js"></script>
 <script src="js/settings.js"></script>
 <script src="js/main.js"></script>
 </body>
