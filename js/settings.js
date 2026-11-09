@@ -59,9 +59,14 @@ function runDataCheck() {
     const base = DB.allPlayers.find(x => x.Player === r.Player);
     if (!base) { add('warn', sheet, 'B' + r._row, `"${r.Player}" isn't in All Players.`); return; }
     if (POSITIONS.includes(sheet) && base.Position !== sheet) add('warn', sheet, 'B' + r._row, `${r.Player} is on the ${sheet} sheet, but All Players lists ${base.Position}.`);
-    const diffs = (list.headers || []).filter(k => k in base && !['Rank','Position','Rookie Team','RookieTeam','_row'].includes(k))
+    // Retired numbers are compared as a set: the same numbers in another order are fine
+    const retKeys = (list.headers || []).filter(k => /^# Retired/.test(k) && k in base);
+    const retSet = o => retKeys.map(k => String(o[k] ?? '').trim()).filter(Boolean).sort().join('|');
+    const diffs = (list.headers || []).filter(k => k in base && !retKeys.includes(k) && !['Rank','Position','Rookie Team','RookieTeam','_row'].includes(k))
       .filter(k => { const a = r[k], b = base[k]; return !((a ?? '') === (b ?? '') || (typeof a === 'number' && typeof b === 'number' && Math.abs(a - b) < 0.05)); });
-    if (diffs.length) add('warn', sheet, 'row ' + r._row, `${r.Player} differs from All Players row ${base._row} in ${diffs.slice(0, 4).map(k => `${k} (${r[k] ?? 'blank'} vs ${base[k] ?? 'blank'})`).join(', ')}${diffs.length > 4 ? ` and ${diffs.length - 4} more` : ''}.`);
+    const parts = diffs.map(k => `${k} ${r[k] ?? 'blank'} here, ${base[k] ?? 'blank'} in All Players`);
+    if (retKeys.length && retSet(r) !== retSet(base)) parts.push(`retired numbers ${retKeys.map(k => r[k]).filter(Boolean).join(', ') || 'none'} here, ${retKeys.map(k => base[k]).filter(Boolean).join(', ') || 'none'} in All Players`);
+    if (parts.length) add('warn', sheet, 'row ' + r._row, `${r.Player}'s ${sheet} row doesn't match All Players row ${base._row}: ${parts.slice(0, 4).join('; ')}${parts.length > 4 ? ` and ${parts.length - 4} more` : ''}.`);
   }));
   // 5. Award counts vs NBA History, for careers that History fully covers
   const firstHist = Math.min(...DB.history.map(h => Number(h.Season)).filter(y => !isNaN(y)));
