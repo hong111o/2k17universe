@@ -288,6 +288,9 @@ tr.row-pending td:first-child{font-style:normal;}
 .tl-chip.ev-mvp{--ev:var(--ev-mvp);} .tl-chip.ev-dpoy{--ev:var(--ev-dpoy);} .tl-chip.ev-stat{--ev:var(--ev-stat);}
 .tl-chip.ev-nba1,.tl-chip.ev-nba2,.tl-chip.ev-nba3{--ev:var(--ev-nba);}
 .tl-chip.ev-roy,.tl-chip.ev-rookie{--ev:var(--ev-roy);}
+.tl-chip.ev-ru{background:var(--silver-tint);color:var(--ink);border-color:color-mix(in srgb,var(--silver) 45%,transparent);}
+.lg-roles-ru{margin-top:6px;padding-top:0;border-top:0;}
+.hist-ru{min-width:220px;}
 .tl-chip.ev-mvp,.tl-chip.ev-dpoy,.tl-chip.ev-stat,.tl-chip.ev-nba1,.tl-chip.ev-nba2,.tl-chip.ev-nba3,.tl-chip.ev-roy,.tl-chip.ev-rookie{color:var(--ev);background:color-mix(in srgb,var(--ev) 14%,var(--surface));border-color:color-mix(in srgb,var(--ev) 40%,transparent);}
 .tl-chip.ev-rookie{background:color-mix(in srgb,var(--ev) 7%,var(--surface));}
 .tl-key{display:flex;flex-wrap:wrap;gap:6px;margin:-4px 0 12px;}
@@ -497,7 +500,7 @@ tr.row-playoff .st-rank{color:var(--ink);}
 .journey-n{font-size:11px;font-weight:700;color:var(--ink-3);}
 .journey-tags{display:flex;gap:5px;flex-wrap:wrap;}
 .journey-tags em{font-style:normal;font-size:11px;font-weight:700;border-radius:3px;padding:1px 6px;display:inline-flex;align-items:center;gap:3px;}
-.tag-gold{background:var(--champ-tint);color:var(--champ-ink);} .tag-ret{background:var(--ink);color:var(--surface);}
+.tag-gold{background:var(--champ-tint);color:var(--champ-ink);} .tag-silver{background:var(--silver-tint);color:var(--ink-2);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--silver) 45%,transparent);} .tag-silver svg{color:var(--silver);} .tag-ret{background:var(--ink);color:var(--surface);}
 .journey-arrow{color:var(--ink-3);font-size:18px;}
 .sim-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;}
 .sim{background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:12px;cursor:pointer;display:flex;flex-direction:column;gap:3px;}
@@ -995,7 +998,8 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
         <th onclick="sortHist('FMVP')">Finals MVP</th>
         <th onclick="sortHist('MVP')">MVP</th>
         <th onclick="sortHist('DPOY')">DPOY</th>
-        <th>Champion Star 1</th><th>Star 2</th><th>Star 3</th>
+        <th onclick="sortHist('ROTY')">ROTY</th>
+        <th>Champion Star 1</th><th>Star 2</th><th>Star 3</th><th class="hist-ru-h">Runner-up Stars</th>
       </tr></thead>
       <tbody id="histBody"></tbody>
     </table></div>
@@ -1444,7 +1448,7 @@ function readTeamLogos(wb) {
   } catch (err) { console.warn('Could not read team logos:', err); }
   return logos;
 }
-// NBA History has a small team logo beside each MVP, Finals MVP and DPOY (columns B, E and G).
+// NBA History has a small team logo beside each MVP, Finals MVP, DPOY and ROTY (columns B, E, G and I).
 // Those pictures reuse the NBA Logo sheet's image files, so each one tells us the winner's team.
 function readAwardTeams(wb) {
   const out = {};
@@ -1468,16 +1472,19 @@ function readAwardTeams(wb) {
       const c = Number(from[1]), h = byRow.get(Number(from[2]) + 1), team = logoMediaTeam[media[emb[1]]];
       if (!h || !team) return;
       // The logo belongs to the award column right beside it
-      const kind = Object.entries(cols).map(([k, col]) => [k, Math.abs(col - c)]).sort((x, y) => x[1] - y[1])[0];
+      // (a logo between DPOY and ROTY is the one to the left of its name, like MVP's and DPOY's)
+      const kind = Object.entries(cols).map(([k, col]) => [k, Math.abs(col - c), col > c ? 0 : 1]).sort((x, y) => x[1] - y[1] || x[2] - y[2])[0];
       if (kind && kind[1] <= 1 && h[kind[0]] && h[kind[0]] !== '-') h[kind[0] + 'Team'] = team;
     });
   } catch (err) { console.warn('Could not read award teams:', err); }
   // A logo picture that isn't on the NBA Logo sheet can't be recognised; a one-team career still tells us
-  (DB.history || []).forEach(h => ['MVP', 'FMVP', 'DPOY'].forEach(k => {
+  (DB.history || []).forEach(h => ['MVP', 'FMVP', 'DPOY', 'ROTY'].forEach(k => {
     if (!h[k] || h[k] === '-' || h[k + 'Team']) return;
     const p = resolvePlayer(h[k], h.Season), teams = p ? [...new Set(playerTeams(p))] : [];
     if (teams.length === 1) h[k + 'Team'] = teams[0];
   }));
+  // A shared award ("Jason Kidd / Grant Hill") has one logo for two players; show no team
+  (DB.history || []).forEach(h => ['MVP', 'FMVP', 'DPOY', 'ROTY'].forEach(k => { if (coNames(h[k]).length > 1) delete h[k + 'Team']; }));
   return out;
 }
 // ---------------------------------------------------------------------
@@ -1618,22 +1625,32 @@ function parseWorkbook(wb) {
     // Columns are found by their header, so inserting or moving a column in Excel is safe
     const H = rows[0] || [], col = headerFinder('NBA History', H);
     const cSeason = col('Season', 0), cMVP = col('MVP', 2), cFMVP = col('FMVP', 3), cFinals = col('Finals', 5), cDPOY = col('DPOY', 7);
+    // Rookie of the Year was added later; older workbooks don't have the column
+    const cROTY = H.findIndex(h => /^(roty|roy|rookie of the year)$/i.test(String(h || '').trim()));
     // "Champion Stars (Rating)" sits over three columns; use the ones that hold "Name (99)" values
     const hStars = H.findIndex(h => /champion stars/i.test(String(h || '')));
+    // "Runner-Up Stars (Rating)" works the same way, further right
+    const hRu = H.findIndex(h => /runner.?up stars/i.test(String(h || '')));
+    const looksStar = c => rows.slice(1).some(r => /\(\d+\)\s*$/.test(String(r[c] ?? '')));
+    const starsNear = (hc, limit) => [hc - 1, hc, hc + 1, hc + 2, hc + 3].filter(c => c >= 0 && c < limit && looksStar(c)).slice(0, 3);
     let starCols = [9, 10, 11];
     if (hStars >= 0) {
-      const looksStar = c => rows.slice(1, 40).some(r => /\(\d+\)\s*$/.test(String(r[c] ?? '')));
-      const near = [hStars - 1, hStars, hStars + 1, hStars + 2, hStars + 3].filter(c => c >= 0 && looksStar(c));
-      if (near.length) starCols = near.slice(0, 3);
+      const near = starsNear(hStars, hRu > hStars ? hRu - 1 : Infinity);
+      if (near.length) starCols = near;
     } else layoutWarn('NBA History', 'Couldn\'t find the "Champion Stars" header; reading columns J–L.');
+    const ruCols = hRu >= 0 ? starsNear(hRu, Infinity).filter(c => !starCols.includes(c)) : [];
     DB.history = rows.slice(1)
       .filter(r => r[cSeason] !== null && r[cSeason] !== undefined)
       .map(r => ({
         _row: rows.indexOf(r) + 1,
-        Season: r[cSeason], MVP: r[cMVP], FMVP: r[cFMVP], Finals: r[cFinals], DPOY: r[cDPOY],
-        Star1: r[starCols[0]], Star2: r[starCols[1]], Star3: r[starCols[2]]
+        Season: r[cSeason], MVP: r[cMVP], FMVP: r[cFMVP], Finals: r[cFinals], DPOY: r[cDPOY], ROTY: cROTY >= 0 ? r[cROTY] : undefined,
+        Star1: r[starCols[0]], Star2: r[starCols[1]], Star3: r[starCols[2]],
+        RU1: ruCols[0] !== undefined ? r[ruCols[0]] : undefined, RU2: ruCols[1] !== undefined ? r[ruCols[1]] : undefined, RU3: ruCols[2] !== undefined ? r[ruCols[2]] : undefined
       }));
     DB.historyCols = { MVP: cMVP, FMVP: cFMVP, DPOY: cDPOY };
+    if (cROTY >= 0) DB.historyCols.ROTY = cROTY;
+    DB.historyStarCols = starCols;
+    DB.historyRuCols = ruCols;
   }
 
   setProgress('Loading Teams...');
@@ -2036,7 +2053,13 @@ function buildPlayerIndex() {
 // Returns the player record a sheet name refers to, or null if unknown or ambiguous.
 // season (optional) picks between players who share a short name, e.g. "B.James".
 // Earlier names of players (normalised) -> the name used on their player row
-const NAME_ALIASES = { lalcindor: 'Kareem Abdul-Jabbar', lewalcindor: 'Kareem Abdul-Jabbar', chrisjackson: 'Mahmoud Abdul-Rauf', ronartest: 'Metta World Peace' };
+const NAME_ALIASES = { lalcindor: 'Kareem Abdul-Jabbar', lewalcindor: 'Kareem Abdul-Jabbar', chrisjackson: 'Mahmoud Abdul-Rauf', ronartest: 'Metta World Peace',
+  lebronjamesjr: 'Bronny James', lebronjamesjunior: 'Bronny James' };
+// A Retired # row's honoree, checked against the years they spent with the team
+function resolveRetired(r) {
+  const y = String(r.years || '').match(/\d{4}/);
+  return resolvePlayer(r.who, y ? Number(y[0]) + 1 : undefined);
+}
 function resolvePlayer(raw, season) {
   if (!raw) return null;
   const key = raw + '|' + (season || '');
@@ -2079,15 +2102,26 @@ function resolvePlayer(raw, season) {
       result = pick(cands);
     } else if (n.length >= 6) {
       // Misspelt full name, e.g. "Michael Jordon"
-      result = pick(closest(playerIndex, 'norm', n, n.length >= 10 ? 2 : 1));
+      // With a season, the misspelt name must belong to someone playing then:
+      // "Connie Hawkins" (1969–1973) is not "Corie Hawkins" (2067–)
+      let cands = closest(playerIndex, 'norm', n, n.length >= 10 ? 2 : 1);
+      // The surname may be off by one letter at most and the first name must start the same:
+      // "Paul Geogre" is Paul George, but "Charles Oakley" is not Charles Barkley
+      const last = s => s.split(' ').pop(), lastN = last(n);
+      cands = cands.filter(c => c.norm[0] === n[0] && editDistance(last(c.norm), lastN) <= 1);
+      if (season) { const yr = Number(season); cands = cands.filter(c => !c.span || (yr >= c.span[0] && yr <= c.span[1])); }
+      result = pick(cands);
     }
   }
   return (resolveCache[key] = result);
 }
 // Player name as written in the sheet, clickable when it can be matched to a player.
+// Shared awards are written "Jason Kidd / Grant Hill"
+const coNames = v => String(v ?? '').split(/\s+\/\s+/).map(s => s.trim()).filter(Boolean);
 function nameLink(raw, opts) {
   opts = opts || {};
   if (!raw) return '—';
+  if (!opts.label && / \/ /.test(String(raw))) return coNames(raw).map(n => nameLink(n, opts)).join(' / ');
   const p = resolvePlayer(raw, opts.season);
   const label = opts.label || raw;
   const style = opts.style ? ` style="${opts.style}"` : '';
@@ -2455,7 +2489,7 @@ function playerMatchesFilters(row, prefix = 'player') {
   if (dec) { const sp = careerSpan(p.Season), d = Number(dec); if (!sp || sp[0] - 1 > d + 9 || sp[1] - 1 < d) return false; }
   if (draft) { const d = draftInfo(p); if (!d || (draft === 'undrafted' ? d.kind !== 'undrafted' : d.year !== Number(draft))) return false; }
   if (honor) {
-    if (honor === 'ROY') { if (!/^o$/i.test(String(p.ROTY || '').trim())) return false; }
+    if (honor === 'ROY') { if (!isRoty(p)) return false; }
     else { const [k, min] = honor.split(':'); if (!(getNum(p[k]) >= Number(min))) return false; }
   }
   return true;
@@ -2646,7 +2680,7 @@ function retiredForTeam(teamName) {
   (DB.retiredList || []).forEach(r => {
     const t = teamByCode(r.code);
     if (!t || t.Team !== teamName) return;
-    const p = r.type === 'Player' ? resolvePlayer(r.who) : null;
+    const p = r.type === 'Player' ? resolveRetired(r) : null;
     seen.add(key(r.num, p ? p.Player : r.who));
     out.push({ num: r.num, player: p ? p.Player : r.who, linked: !!p, type: r.type, years: r.years });
   });
@@ -3077,7 +3111,7 @@ function filterHistory() {
   const q = document.getElementById('histSearch').value.toLowerCase();
   histState.filtered = DB.history.filter(h =>
     !q || String(h.Season).includes(q) ||
-    ['MVP','FMVP','DPOY','Finals','Star1','Star2','Star3'].some(k => String(h[k]||'').toLowerCase().includes(q)) ||
+    ['MVP','FMVP','DPOY','ROTY','Finals','Star1','Star2','Star3','RU1','RU2','RU3'].some(k => String(h[k]||'').toLowerCase().includes(q)) ||
     fullTeamName(extractChampTeam(h.Finals||'')).toLowerCase().includes(q));
   histState.page = 1;
   renderHistory();
@@ -3112,7 +3146,9 @@ function renderHistory() {
       ${histName(h.FMVP, h.FMVPTeam)}
       ${histName(h.MVP, h.MVPTeam)}
       ${histName(h.DPOY, h.DPOYTeam)}
+      ${histName(h.ROTY, h.ROTYTeam)}
       ${starCell(h.Star1)}${starCell(h.Star2)}${starCell(h.Star3)}
+      ${DB.historyRuCols && DB.historyRuCols.length ? `<td class="hist-ru">${[h.RU1, h.RU2, h.RU3].filter(Boolean).map(s => { const r = String(s).match(/\((\d+)\)$/)?.[1]; return `${nameLink(String(s).replace(/\s*\(\d+\)\s*$/, '').trim(), {season: h.Season})}${r ? ` <span class="muted">${r}</span>` : ''}`; }).join(', ') || '<span class="muted">—</span>'}</td>` : ''}
     </tr>`;
   }).join('');
   // Phones: one card per season instead of the nine-column table
@@ -3124,8 +3160,10 @@ function renderHistory() {
     return `<div class="hcard">
       <div class="hc-top"><span class="hc-season">${seasonLink(h.Season)}</span><span class="hc-score">${h.Finals || ''}</span></div>
       <div class="hc-champ">${champAbbr ? `${icon('trophy', 'ic-champ')} ${teamIn(fullTeamName(champAbbr), h.Season)}${ru ? ` <span class="muted nowrap">over ${teamLink(ru, teamCode(ru))}</span>` : ''}` : '<span class="muted">Champion not recorded</span>'}</div>
-      <div class="hc-awards">${award('Finals MVP', h.FMVP, h.FMVPTeam)}${award('MVP', h.MVP, h.MVPTeam)}${award('DPOY', h.DPOY, h.DPOYTeam)}</div>
+      <div class="hc-awards">${award('Finals MVP', h.FMVP, h.FMVPTeam)}${award('MVP', h.MVP, h.MVPTeam)}${award('DPOY', h.DPOY, h.DPOYTeam)}${award('ROTY', h.ROTY, h.ROTYTeam)}</div>
       ${stars.length ? `<div class="hc-stars"><span>Champion stars</span> ${stars.join(' · ')}</div>` : ''}
+      ${(() => { const rs = [h.RU1, h.RU2, h.RU3].filter(Boolean).map(s => { const r = String(s).match(/\((\d+)\)$/)?.[1]; return `${nameLink(nm(s), { season: h.Season })}${r ? ` <span class="muted">${r}</span>` : ''}`; });
+        return rs.length ? `<div class="hc-stars hc-ru"><span>Runner-up stars</span> ${rs.join(' · ')}</div>` : ''; })()}
     </div>`;
   }).join('');
   renderPag('histPag', filtered.length, perPage, page, 'goHistPage');
@@ -3207,6 +3245,7 @@ function renderHome() {
       <div class="hero-award"><div class="ha-label">Finals MVP</div><div class="ha-name">${h.FMVPTeam ? teamLogo(h.FMVPTeam) : ''}${award(h.FMVP)}</div></div>
       <div class="hero-award"><div class="ha-label">MVP</div><div class="ha-name">${h.MVPTeam ? teamLogo(h.MVPTeam) : ''}${award(h.MVP)}</div></div>
       <div class="hero-award"><div class="ha-label">DPOY</div><div class="ha-name">${h.DPOYTeam ? teamLogo(h.DPOYTeam) : ''}${award(h.DPOY)}</div></div>
+      ${h.ROTY && h.ROTY !== '-' ? `<div class="hero-award"><div class="ha-label">ROTY</div><div class="ha-name">${h.ROTYTeam ? teamLogo(h.ROTYTeam) : ''}${award(h.ROTY)}</div></div>` : ''}
       ${best ? `<div class="hero-award"><div class="ha-label">Best Record</div><div class="ha-name">${teamLink(best.team)} <span class="nowrap">${best.w}-${best.l}</span></div></div>` : ''}
     </div>
   </section>`);
@@ -3261,7 +3300,7 @@ function archiveCard() {
     <div class="arch-head">${seasonLink(yr)} <span class="muted">· ${ago} season${ago === 1 ? '' : 's'} ago</span></div>
     <div class="rb-row"><span class="rb-rank">${icon('trophy', 'ic-champ')}</span><span class="rb-main">${teamIn(champ, yr)}</span><span class="rb-val">${cr ? `${cr.w}-${cr.l}` : ''}</span>
       <span class="rb-sub">Champion${ru ? ` · beat ${teamIn(ru, yr)} ${finalsScore(h)}` : ''}</span></div>
-    ${award('Finals MVP', h.FMVP)}${award('MVP', h.MVP)}${award('DPOY', h.DPOY)}
+    ${award('Finals MVP', h.FMVP)}${award('MVP', h.MVP)}${award('DPOY', h.DPOY)}${award('ROTY', h.ROTY)}
     ${best && best.team !== champ ? `<div class="rb-row"><span class="rb-rank"></span><span class="rb-main">${teamIn(best.team, yr)}</span><span class="rb-val">${best.w}-${best.l}</span><span class="rb-sub">Best record</span></div>` : ''}
   </div>`;
 }
@@ -3329,7 +3368,7 @@ function diffSnapshots(prev, cur) {
     const later = DB.history.filter(x => Number(x.Season) > yr && finalsTeams(x.Season).champ === champ).length;
     const nth = t && Number(t.Championship) ? Number(t.Championship) - later : 0;
     return `<b>${seasonLink(yr)}:</b> ${champ ? `${teamLink(champ)} win ${nth > 0 ? `their ${ordinal(nth)} title` : 'the title'}${ru ? `, beating ${teamLink(ru)} ${finalsScore(h)}` : ''}.` : ''}
-      ${[award('Finals MVP', h.FMVP, yr), award('MVP', h.MVP, yr), award('DPOY', h.DPOY, yr)].filter(Boolean).join(' · ')}`;
+      ${[award('Finals MVP', h.FMVP, yr), award('MVP', h.MVP, yr), award('DPOY', h.DPOY, yr), award('ROTY', h.ROTY, yr)].filter(Boolean).join(' · ')}`;
   });
   if (seasons.length) groups.push({ title: 'New season' + (seasons.length > 1 ? 's' : ''), icon: 'trophy', items: seasons });
   if (backfill.length) groups.push({ title: 'History added', icon: 'calendar', items: [`${backfill.length} earlier season${backfill.length > 1 ? 's' : ''} added to NBA History (${seasonLabel(backfill[0])}${backfill.length > 1 ? ' to ' + seasonLabel(backfill[backfill.length - 1]) : ''})`] });
@@ -3435,16 +3474,21 @@ function renderSeason() {
   sections.push(`<div class="stats-cards sh-awards">
     ${tile(icon('trophy','ic-champ') + ' Champion', champ ? teamIn(champ, yr) : '<span class="muted">—</span>',
       ru ? `beat ${teamIn(ru, yr)} ${finalsScore}${champRow ? ` · ${champRow.w}-${champRow.l} season` : ''}` : '')}
-    ${['FMVP', 'MVP', 'DPOY'].map(k => tile(k === 'FMVP' ? 'Finals MVP' : k, award(h?.[k]), h?.[k + 'Team'] && h[k] && h[k] !== '-' ? teamIn(h[k + 'Team'], yr) : '')).join('')}
+    ${['FMVP', 'MVP', 'DPOY', 'ROTY'].filter(k => k !== 'ROTY' || (h?.ROTY && h.ROTY !== '-')).map(k => tile(k === 'FMVP' ? 'Finals MVP' : k, award(h?.[k]), h?.[k + 'Team'] && h[k] && h[k] !== '-' ? teamIn(h[k + 'Team'], yr) : '')).join('')}
     ${best ? tile('Best Record', teamIn(best.team, yr), `${best.w}-${best.l}`) : ''}
   </div>`);
 
-  const stars = h ? [h.Star1, h.Star2, h.Star3].filter(Boolean) : [];
-  if (stars.length) sections.push(`<div class="chart-card"><div class="chart-title">${icon('star')} Champion Stars <span class="muted">(rating)</span></div>
+  // Champion and runner-up stars, each with the role the legacy score gives them
+  const starCard = (title, list, roleMap, team) => {
+    const stars = list.filter(Boolean); if (!stars.length) return;
+    sections.push(`<div class="chart-card"><div class="chart-title">${icon('star')} ${title} <span class="muted">(rating)</span>${team ? ` <span class="muted">· ${teamIn(team, yr)}</span>` : ''}</div>
     <div class="decade-player-chips">${stars.map(st => {
       const clean = String(st).replace(/\s*\(\d+\)\s*$/, '').trim(), rating = String(st).match(/\((\d+)\)$/)?.[1];
-      return `<div class="decade-chip starter">${nameLink(clean, {season: yr})}${rating ? ` <span class="muted">(${rating})</span>` : ''}</div>`;
+      const p = resolvePlayer(clean, yr), role = p && (legacyContext()[roleMap][p.Player] || []).find(r => r.yr === yr);
+      return `<div class="decade-chip starter">${nameLink(clean, {season: yr})}${rating ? ` <span class="muted">(${rating})</span>` : ''}${role ? ` <span class="muted">· ${role.label}</span>` : ''}</div>`;
     }).join('')}</div></div>`);
+  };
+  if (h) { starCard('Champion Stars', [h.Star1, h.Star2, h.Star3], 'roles', champ); starCard('Runner-up Stars', [h.RU1, h.RU2, h.RU3], 'ruRoles', ru); }
 
   const sl = DB.statLeaders.find(x => Number(x.Season) === yr);
   const leaders = [['Points','PtsLeader','PtsTeam','PPG'],['Rebounds','RebLeader','RebTeam','RPG'],['Assists','AstLeader','AstTeam','APG'],
@@ -3740,7 +3784,7 @@ function renderCurrent() {
   const curSlice = curSorted.slice((curState.page-1)*curState.perPage, curState.page*curState.perPage);
   document.getElementById('curBody').innerHTML = curSlice.map(p => {
     const other = p['Other Award'];
-    const roty = p.ROTY === 'O' || p.ROTY === 'o';
+    const roty = isRoty(p);
     const teams = [];
     for (let i=1;i<=6;i++){const k=i===1?'Team':'Team'+i; if(p[k])teams.push(p[k]);}
     return `<tr>
@@ -3868,6 +3912,11 @@ function careerEvents(name) {
       const role = (legacyContext().roles[name] || []).find(r => r.yr === yr);
       add(yr, 'Champion', 'ev-champ', role ? `Title as ${role.label}` : '');
     }
+    if ([h.RU1, h.RU2, h.RU3].some(x => isMe(x, yr))) {
+      const role = (legacyContext().ruRoles[name] || []).find(r => r.yr === yr);
+      const winner = finalsTeams(yr).champ;
+      add(yr, 'Conference Title', 'ev-ru', `Lost the Finals${winner ? ' to the ' + winner : ''}${role ? ' as ' + role.label : ''}`);
+    }
     if (isMe(h.FMVP, yr)) add(yr, 'Finals MVP', 'ev-fmvp');
     if (isMe(h.MVP, yr)) add(yr, 'MVP', 'ev-mvp');
     if (isMe(h.DPOY, yr)) add(yr, 'DPOY', 'ev-dpoy');
@@ -3881,7 +3930,9 @@ function careerEvents(name) {
   const me = everyPlayer().find(x => x.Player === name), first = me && careerSpan(me.Season)?.[0];
   if (first) {
     const tip = 'The workbook doesn\'t record the year; shown in the first season';
-    if (/^o$/i.test(String(me.ROTY || '').trim())) add(first, 'Rookie of the Year', 'ev-roy', tip);
+    const ry = rotySeasons(me);
+    if (ry.length) ry.forEach(y => add(y, 'Rookie of the Year', 'ev-roy'));
+    else if (isRoty(me)) add(first, 'Rookie of the Year', 'ev-roy', tip);
     const rt = String(me.RookieTeam ?? me['Rookie Team'] ?? '').trim();
     if (rt === '1st' || rt === '2nd') add(first, `All-Rookie ${rt} Team`, 'ev-rookie', tip);
   }
@@ -3986,7 +4037,7 @@ function renderPlayerPage() {
     ['shield', 'DPOY', n('DPOY'), ''], ['star', 'All-Star', n('All Stars'), ''],
     ['list', 'All-NBA 1st', n('1st Team'), ''], ['list', 'All-NBA 2nd', n('2nd Team'), ''], ['list', 'All-NBA 3rd', n('3rd Team'), ''],
     ['shield', 'All-Defense 1st', n('1st D Team'), ''], ['shield', 'All-Defense 2nd', n('2nd D Team'), ''],
-    ['star', 'Rookie of the Year', /^o$/i.test(String(p.ROTY || '').trim()) ? 1 : 0, ''],
+    ['star', 'Rookie of the Year', isRoty(p) ? 1 : 0, ''],
     ['star', String(p['Other Award'] || '').replace(/\s*\(\d+\)\s*$/, '').trim() || 'Other award', otherAwardCount(p), ''],
     ...[['PtsLeader', 'Scoring title'], ['RebLeader', 'Rebounding title'], ['AstLeader', 'Assists title'], ['StlLeader', 'Steals title'], ['BlkLeader', 'Blocks title']]
       .map(([k, l]) => { const c = DB.statLeaders.filter(r => r[k] && resolvePlayer(r[k], r.Season) === p).length; return ['chart', c > 1 ? l + 's' : l, c, '']; }),
@@ -4006,7 +4057,11 @@ function renderPlayerPage() {
       <button class="card-link" onclick="showSection('legacy')">Full ranking</button></div>
     <div class="legacy-total fold-keep"><b>${Math.round(L.total).toLocaleString()}</b><span>points${rk ? ` · #${rk} of ${everyPlayer().length}` : ''}</span></div>
     ${partRows.length ? `<div class="lg-parts">${partRows.map(r => `<div class="lg-part"><span>${r.label}</span><span class="lg-track"><i style="width:${Math.max(2, r.v / partRows[0].v * 100)}%"></i></span><b>${Math.round(r.v).toLocaleString()}</b></div>`).join('')}</div>` : '<p class="muted">No points yet.</p>'}
-    ${roleLine ? `<div class="lg-roles"><b>Titles:</b> ${roleLine}</div>` : ''}</div>`;
+    ${roleLine ? `<div class="lg-roles"><b>Titles:</b> ${roleLine}</div>` : ''}
+    ${(() => { const rr = legacyContext().ruRoles[p.Player] || [], cnt = {}; rr.forEach(r => cnt[r.label] = (cnt[r.label] || 0) + 1);
+      const un = Math.max(0, n('Finals App') - n('Champions') - rr.length);
+      const line = [...Object.entries(cnt).sort((a, b) => ROLE_ORDER.indexOf(a[0]) - ROLE_ORDER.indexOf(b[0])).map(([l, c]) => `${c} as ${l}`), ...(un ? [`${un} as rotation player`] : [])].join(' · ');
+      return line ? `<div class="lg-roles lg-roles-ru"><b>Conference titles:</b> ${line}</div>` : ''; })()}</div>`;
   const shelfHtml = `<div class="chart-card"><div class="chart-title">${icon('trophy', 'ic-champ')} Trophy Shelf</div>
     ${shelf.length ? `<div class="trophy-shelf">${shelf.map(([ic, label, count, tone]) => `<div class="trophy ${tone}">${icon(ic)}<b>${count}</b><span>${label}</span></div>`).join('')}</div>` : '<p class="muted">No awards recorded yet.</p>'}
     </div>`;
@@ -4037,7 +4092,7 @@ function renderPlayerPage() {
   // with one team are split between the two stops), or the whole career for a one-team career
   const oneTeam = new Set(teams).size === 1;
   const stintYears = (t, i) => {
-    const row = (DB.retiredList || []).find(r => r.years && r.type === 'Player' && teamByCode(r.code)?.Team === t && resolvePlayer(r.who) === p);
+    const row = (DB.retiredList || []).find(r => r.years && r.type === 'Player' && teamByCode(r.code)?.Team === t && resolveRetired(r) === p);
     if (row) {
       const parts2 = row.years.split(/\s*,\s*/), nth = teams.slice(0, i).filter(x => x === t).length, count = teams.filter(x => x === t).length;
       return count > 1 && parts2.length === count ? parts2[nth] : row.years;
@@ -4064,16 +4119,32 @@ function renderPlayerPage() {
     if (from >= to || spells.some(sp => sp.from < to && (sp.to === 'present' ? Infinity : sp.to) > from)) return '';
     return `${from}–${next.from}`;
   });
+  // Conference titles (Finals losses) per stop: listed runner-up seasons go to the stop whose years
+  // cover them (or the only stop with that team); a one-team career gets every loss
+  const ruYears = (legacyContext().ruRoles[p.Player] || []).map(r => r.yr);
+  const nn = k => { const v = getNum(p[k]); return v === -Infinity ? 0 : Math.round(v); };
+  const confTitlesAt = i => {
+    const t = teams[i];
+    if (oneTeam) return Math.max(ruYears.length, nn('Finals App') - nn('Champions'));
+    return ruYears.filter(y => {
+      if (finalsTeams(y).ru !== t) return false;
+      const stops = teams.map((x, j) => j).filter(j => teams[j] === t);
+      if (stops.length === 1) return true;
+      const covering = stops.find(j => (yearsOf[j] || '').split(/\s*,\s*/).some(sp => { const e = ends(sp); return e && e.from < y && y <= (e.to === 'present' ? Infinity : e.to); }));
+      return covering === undefined ? i === stops[0] : covering === i;
+    }).length;
+  };
   if (teams.length) parts.push(`<div class="chart-card"><div class="chart-title">${icon('jersey')} Team Journey</div>
     <div class="journey">${teams.map((t, i) => {
       const red = p._titleStints, ret = retired.filter(r => r.team === t);
       // With red cells, mark the exact stint; a team with two red stints gets no count (it isn't known per stint)
       const twice = red && teams.filter((x, j) => x === t && red[j]).length > 1;
       const titles = red && !red[i] ? 0 : titlesWithTeam(p, t), label = twice ? 'Title' : `${titles} title${titles > 1 ? 's' : ''}`;
+      const conf = confTitlesAt(i), confLabel = `${conf} conf. title${conf > 1 ? 's' : ''}`;
       return `${i ? '<span class="journey-arrow" aria-hidden="true">→</span>' : ''}<div class="journey-stop">
         <span class="journey-n">${i + 1}</span>${teamLink(t, t)}
         ${yearsOf[i] ? `<span class="journey-years">${yearsOf[i]}</span>` : ''}
-        <span class="journey-tags">${titles ? `<em class="tag-gold">${icon('trophy')} ${label}</em>` : ''}${ret.map(r => `<em class="tag-ret">#${r.num} retired</em>`).join('')}</span></div>`;
+        <span class="journey-tags">${titles ? `<em class="tag-gold">${icon('trophy')} ${label}</em>` : ''}${conf ? `<em class="tag-silver">${icon('trophy')} ${confLabel}</em>` : ''}${ret.map(r => `<em class="tag-ret">#${r.num} retired</em>`).join('')}</span></div>`;
     }).join('')}</div></div>`);
 
   // Career numbers
@@ -4093,11 +4164,11 @@ function renderPlayerPage() {
   // Timeline
   const timeline = careerEvents(p.Player);
   if (timeline.length) parts.push(`<div class="chart-card"><div class="chart-title">${icon('calendar')} Career Timeline</div>
-    <div class="tl-key">${[['ev-champ', 'Title'], ['ev-fmvp', 'Finals MVP'], ['ev-mvp', 'MVP'], ['ev-dpoy', 'DPOY'], ['ev-nba1', 'All-NBA'], ['ev-stat', 'Stat leader'], ['ev-roy', 'Rookie']]
+    <div class="tl-key">${[['ev-champ', 'Title'], ['ev-fmvp', 'Finals MVP'], ['ev-mvp', 'MVP'], ['ev-dpoy', 'DPOY'], ['ev-ru', 'Conference Title'], ['ev-nba1', 'All-NBA'], ['ev-stat', 'Stat leader'], ['ev-roy', 'Rookie']]
       .filter(([c]) => timeline.some(t => t.items.some(e => c === 'ev-nba1' ? /^ev-nba/.test(e.cls) : c === 'ev-roy' ? /^ev-(roy|rookie)$/.test(e.cls) : e.cls === c)))
       .map(([c, l]) => `<span class="tl-chip ${c}">${l}</span>`).join('')}</div>
     <div class="timeline">${timeline.map(t => `<div class="tl-row"><div class="tl-season">${seasonLink(t.yr)}</div>
-      <div class="tl-items">${t.items.map(e => `<span class="tl-chip ${e.cls}"${e.tip ? ` title="${e.tip}"` : ''}>${e.cls === 'ev-champ' && e.label === 'Champion' ? icon('trophy','ic-champ') + ' ' : ''}${e.label}</span>`).join('')}</div></div>`).join('')}</div></div>`);
+      <div class="tl-items">${t.items.map(e => `<span class="tl-chip ${e.cls}"${e.tip ? ` title="${e.tip}"` : ''}>${e.cls === 'ev-champ' && e.label === 'Champion' ? icon('trophy','ic-champ') + ' ' : e.cls === 'ev-ru' ? icon('trophy','ic-silver') + ' ' : ''}${e.label}</span>`).join('')}</div></div>`).join('')}</div></div>`);
 
   // Similar players
   const sim = similarPlayers(p, 5);
@@ -4216,34 +4287,37 @@ function setAwardTab(k) { awardTab = k; renderAwards(); }
 function renderAwards() {
   document.getElementById('awardTabs').innerHTML = AWARD_TABS.map(([k, l]) => `<button class="${k === awardTab ? 'active' : ''}" onclick="setAwardTab('${k}')">${l}</button>`).join('');
   let list;
+  const histKey = awardTab === 'ROY' ? 'ROTY' : awardTab;
+  list = DB.history.filter(h => h[histKey] && h[histKey] !== '-').flatMap(h => coNames(h[histKey]).map((n, i, all) => ({ yr: Number(h.Season), name: n, key: playerKey(n, h.Season), team: all.length > 1 ? null : h[histKey + 'Team'] })))
+    .filter(x => !isNaN(x.yr));
+  let guessed = 0;
   if (awardTab === 'ROY') {
-    // The workbook marks Rookie of the Year without a year: it is placed in the first season
-    list = everyPlayer().filter(p => /^o$/i.test(String(p.ROTY || '').trim())).map(p => ({ yr: careerSpan(p.Season)?.[0], name: p.Player, key: p.Player }))
-      .filter(x => x.yr).sort((a, b) => a.yr - b.yr);
-  } else {
-    list = DB.history.filter(h => h[awardTab] && h[awardTab] !== '-').map(h => ({ yr: Number(h.Season), name: h[awardTab], key: playerKey(h[awardTab], h.Season), team: h[awardTab + 'Team'] }))
-      .filter(x => !isNaN(x.yr)).sort((a, b) => a.yr - b.yr);
+    // Players marked "o" in All Players for a season NBA History has no ROTY for: shown in their first season
+    const have = new Set(list.map(x => x.yr)), named = new Set(list.map(x => x.key));
+    everyPlayer().filter(p => /^o$/i.test(String(p.ROTY || '').trim()) && !named.has(p.Player)).forEach(p => {
+      const yr = careerSpan(p.Season)?.[0];
+      if (yr && !have.has(yr)) { list.push({ yr, name: p.Player, key: p.Player, guess: true }); guessed++; }
+    });
   }
+  list.sort((a, b) => a.yr - b.yr);
   const counts = {}, nth = list.map(x => (counts[x.key] = (counts[x.key] || 0) + 1));
   const label = AWARD_TABS.find(([k]) => k === awardTab)[1];
   const champOf = yr => finalsTeams(yr).champ;
   const rows = list.map((x, i) => ({ ...x, nth: nth[i] })).reverse().map(x => {
     const p = resolvePlayer(x.name, x.yr);
     const team = x.team || (awardTab === 'FMVP' ? champOf(x.yr) : null);
-    return `<tr><td class="stick-1">${seasonLink(x.yr)}</td><td>${nameLink(x.name, { season: x.yr })} ${p ? posBadge(p.Position) : ''}</td>
-      ${awardTab === 'ROY' ? '' : `<td class="nowrap">${team ? teamLink(team, teamCode(team)) : '<span class="muted">—</span>'}</td>`}
-      <td class="num">${x.nth > 1 ? `<b>${ordinal(x.nth)}</b>` : '1st'}</td></tr>`;
+    return `<tr><td class="stick-1">${seasonLink(x.yr)}${x.guess ? '<span class="muted" title="Year not in NBA History; shown in the first season"> *</span>' : ''}</td><td>${nameLink(x.name, { season: x.yr })} ${p ? posBadge(p.Position) : ''}</td>
+      <td class="nowrap">${team ? teamLink(team, teamCode(team)) : '<span class="muted">—</span>'}</td>
+      ${awardTab === 'ROY' ? '' : `<td class="num">${x.nth > 1 ? `<b>${ordinal(x.nth)}</b>` : '1st'}</td>`}</tr>`;
   }).join('');
   const most = withRanks(Object.entries(counts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).filter(([, c]) => c >= 2).slice(0, 15), ([, c]) => c);
   const span = list.length ? `${seasonLabel(list[0].yr)} to ${seasonLabel(list[list.length - 1].yr)}` : '';
-  document.getElementById('awardsSub').textContent = awardTab === 'ROY'
-    ? `${list.length} Rookies of the Year from All Players and Current Player · shown in each player's first season, since the year isn't recorded`
-    : `${list.length} ${label} winners from NBA History${span ? ', ' + span : ''}`;
+  document.getElementById('awardsSub').textContent = `${list.length} ${awardTab === 'ROY' ? 'Rookies of the Year' : label + ' winners'} from NBA History${span ? ', ' + span : ''}`
+    + (guessed ? ` · * ${guessed} from All Players, shown in the first season` : '');
   document.getElementById('awardsContent').innerHTML = `<div class="player-grid">
-    <div><div class="table-wrap stat-table"><table><thead><tr><th class="stick-1">Season</th><th>${label}</th>${awardTab === 'ROY' ? '' : '<th>Team</th>'}<th class="num" title="Which win of the player's career">Win</th></tr></thead><tbody>${rows || '<tr><td colspan="4" class="muted">No winners recorded.</td></tr>'}</tbody></table></div></div>
+    <div><div class="table-wrap stat-table"><table><thead><tr><th class="stick-1">Season</th><th>${label}</th><th>Team</th>${awardTab === 'ROY' ? '' : `<th class="num" title="Which win of the player's career">Win</th>`}</tr></thead><tbody>${rows || '<tr><td colspan="4" class="muted">No winners recorded.</td></tr>'}</tbody></table></div></div>
     <div>${(() => {
       // Which franchises its winners played for (from the logos beside each name in NBA History)
-      if (awardTab === 'ROY') return '';
       const byTeam = {};
       list.forEach(x => { const t = x.team || (awardTab === 'FMVP' ? champOf(x.yr) : null); if (t) byTeam[t] = (byTeam[t] || 0) + 1; });
       const rows2 = withRanks(Object.entries(byTeam).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 10), ([, c]) => c);
@@ -4424,6 +4498,14 @@ const POS_NAMES = { PG: 'Point Guard', SG: 'Shooting Guard', SF: 'Small Forward'
 const careerPlayers = () => DB.allPlayers.filter(p => p.Player);
 const everyPlayer = () => cached('everyPlayer', () => [...DB.allPlayers, ...DB.currentPlayers].filter(p => p.Player));
 const isActive = p => DB.currentPlayers.includes(p);
+// Rookie of the Year: NBA History's ROTY column gives the season; All Players only marks "o"
+const rotyByPlayer = () => cached('rotyByPlayer', () => {
+  const m = {};
+  DB.history.forEach(h => h.ROTY && h.ROTY !== '-' && coNames(h.ROTY).forEach(n => { const p = resolvePlayer(n, h.Season); if (p) (m[p.Player] = m[p.Player] || []).push(Number(h.Season)); }));
+  return m;
+});
+const rotySeasons = p => (p && rotyByPlayer()[p.Player]) || [];
+const isRoty = p => !!p && (/^o$/i.test(String(p.ROTY || '').trim()) || rotySeasons(p).length > 0);
 
 // "03Rnd1Pick1" -> {year: 2003, round: 1, pick: 1}; also handles Territorial, Undrafted,
 // ABA picks and the typos in the sheet ("58Rnd1Pcik1", "67Rick1Pick14", "79RndPick1")
@@ -4534,6 +4616,9 @@ const LEGACY_SCHEMA = [
   { group: 'Championship roles (NBA History champion stars)', items: [['roleSingle', 'Only star listed (single core)', 120], ['roleFranchise', 'Top star (franchise player)', 100],
       ['roleCoStar', 'Co-stars (top two within the rating gap)', 80], ['roleSecond', 'Second star', 70], ['roleCore', 'Third star (core)', 60],
       ['roleRotation', 'Title as a non-listed player (rotation)', 25], ['coStarGap', 'Co-star rating gap', 2]] },
+  { group: 'Finals runner-up roles (NBA History runner-up stars)', items: [['ruSingle', 'Only star listed (single core)', 60], ['ruFranchise', 'Top star (franchise player)', 50],
+      ['ruCoStar', 'Co-stars (top two within the rating gap)', 40], ['ruSecond', 'Second star', 35], ['ruCore', 'Third star (core)', 30],
+      ['ruRotation', 'Finals loss as a non-listed player (rotation)', 12]] },
   { group: 'Career production', items: [['pts1000', 'Per 1,000 career points', 8], ['other1000', 'Per 1,000 rebounds, assists or steals + blocks', 4]] },
 ];
 const LEGACY_DEFAULTS = Object.fromEntries(LEGACY_SCHEMA.flatMap(g => g.items.map(([k, , v]) => [k, v])));
@@ -4562,24 +4647,30 @@ function decayedPoints(base, count, step, floor, seasons, streak) {
 // Seasons, roles and stat titles per player, read once from NBA History and Season Stat Leader
 function legacyContext() {
   return cached('legacyContext', () => {
-    const w = legacyWeights(), ctx = { mvp: {}, fmvp: {}, roles: {}, titles: {}, firstHistory: Infinity };
+    const w = legacyWeights(), ctx = { mvp: {}, fmvp: {}, roles: {}, ruRoles: {}, titles: {}, firstHistory: Infinity };
     const push = (map, p, v) => (map[p.Player] = map[p.Player] || []).push(v);
     DB.history.forEach(h => {
       const yr = Number(h.Season);
       if (isNaN(yr)) return;
       ctx.firstHistory = Math.min(ctx.firstHistory, yr);
       [['MVP', 'mvp'], ['FMVP', 'fmvp']].forEach(([k, m]) => { const p = h[k] && h[k] !== '-' ? resolvePlayer(h[k], yr) : null; if (p) push(ctx[m], p, yr); });
-      const stars = [h.Star1, h.Star2, h.Star3].filter(x => x && x !== '-').map(x => {
-        const r = String(x).match(/\((\d+)\)\s*$/);
-        return { p: resolvePlayer(String(x).replace(/\s*\(\d+\)\s*$/, '').trim(), yr), rating: r ? Number(r[1]) : null };
-      });
-      if (!stars.length) return;
-      const coStars = stars.length > 1 && stars[0].rating !== null && stars[1].rating !== null && stars[0].rating - stars[1].rating <= w.coStarGap;
-      stars.forEach((st, i) => {
-        if (!st.p) return;
-        const role = stars.length === 1 ? ['roleSingle', 'single core'] : coStars && i < 2 ? ['roleCoStar', 'co-star'] : i === 0 ? ['roleFranchise', 'franchise player'] : i === 1 ? ['roleSecond', 'second star'] : ['roleCore', 'core'];
-        push(ctx.roles, st.p, { yr, key: role[0], label: role[1] });
-      });
+      // Champion and runner-up stars get roles the same way: one listed star is a single core,
+      // top two within the rating gap are co-stars, otherwise franchise / second / core
+      const assign = (list, map, keys) => {
+        const stars = list.filter(x => x && x !== '-').map(x => {
+          const r = String(x).match(/\((\d+)\)\s*$/);
+          return { p: resolvePlayer(String(x).replace(/\s*\(\d+\)\s*$/, '').trim(), yr), rating: r ? Number(r[1]) : null };
+        });
+        if (!stars.length) return;
+        const coStars = stars.length > 1 && stars[0].rating !== null && stars[1].rating !== null && stars[0].rating - stars[1].rating <= w.coStarGap;
+        stars.forEach((st, i) => {
+          if (!st.p) return;
+          const k = stars.length === 1 ? 0 : coStars && i < 2 ? 2 : i === 0 ? 1 : i === 1 ? 3 : 4;
+          push(map, st.p, { yr, key: keys[k], label: ['single core', 'franchise player', 'co-star', 'second star', 'core'][k] });
+        });
+      };
+      assign([h.Star1, h.Star2, h.Star3], ctx.roles, ['roleSingle', 'roleFranchise', 'roleCoStar', 'roleSecond', 'roleCore']);
+      assign([h.RU1, h.RU2, h.RU3], ctx.ruRoles, ['ruSingle', 'ruFranchise', 'ruCoStar', 'ruSecond', 'ruCore']);
     });
     [['PtsLeader', 'ptsTitle'], ['RebLeader', 'rebTitle'], ['AstLeader', 'astTitle'], ['StlLeader', 'stlTitle'], ['BlkLeader', 'blkTitle']].forEach(([k, key]) =>
       DB.statLeaders.forEach(r => { const p = r[k] ? resolvePlayer(r[k], r.Season) : null; if (p) { const t = (ctx.titles[p.Player] = ctx.titles[p.Player] || {}); t[key] = (t[key] || 0) + 1; } }));
@@ -4591,7 +4682,7 @@ function legacy(p) {
   return cached('legacy|' + p.Player, () => {
     const w = legacyWeights(), ctx = legacyContext();
     const n = k => { const v = getNum(p[k]); return v === -Infinity ? 0 : Math.round(v); };
-    const roty = /^o$/i.test(String(p.ROTY || '').trim());
+    const roty = isRoty(p);
     const rookieTeam = String(p.RookieTeam ?? p['Rookie Team'] ?? '').trim();
     const teamPicks = [...Array(n('1st Team')).fill(w.allNba1), ...Array(n('2nd Team')).fill(w.allNba2), ...Array(n('3rd Team')).fill(w.allNba3),
       ...Array(n('1st D Team')).fill(w.allDef1), ...Array(n('2nd D Team')).fill(w.allDef2), ...(rookieTeam === '1st' ? [w.rookie1] : rookieTeam === '2nd' ? [w.rookie2] : [])];
@@ -4599,6 +4690,8 @@ function legacy(p) {
     // estimated from career level; any other title counts as a rotation player's
     const roles = ctx.roles[p.Player] || [];
     const unlisted = Math.max(0, n('Champions') - roles.length);
+    const ruRoles = ctx.ruRoles[p.Player] || [];
+    const unlistedLosses = Math.max(0, n('Finals App') - n('Champions') - ruRoles.length);
     const span = careerSpan(p.Season);
     const preHistoryRole = n('MVP') > 0 ? w.roleFranchise : (n('1st Team') > 0 || n('All Stars') >= 5) ? w.roleCore : w.roleRotation;
     const unlistedEach = span && span[0] < ctx.firstHistory ? preHistoryRole : w.roleRotation;
@@ -4607,6 +4700,8 @@ function legacy(p) {
       mvp: decayedPoints(w.mvp, n('MVP'), w.mvpStep, w.mvpFloor, ctx.mvp[p.Player], true),
       fmvp: decayedPoints(w.fmvp, n('FMVP'), w.fmvpStep, w.fmvpFloor, ctx.fmvp[p.Player], true),
       titles: roles.reduce((a, r) => a + w[r.key], 0) + unlisted * unlistedEach,
+      // Finals losses: listed runner-up stars by role, every other loss as a rotation player
+      finals: ruRoles.reduce((a, r) => a + w[r.key], 0) + unlistedLosses * w.ruRotation,
       teams: teamPicks.sort((a, b) => b - a).reduce((a, v, k) => a + v * Math.max(w.teamFloor, 1 - w.teamStep * k), 0),
       allStar: decayedPoints(w.allStar, n('All Stars'), w.allStarStep, w.allStarFloor),
       dpoy: decayedPoints(w.dpoy, n('DPOY'), w.dpoyStep, w.dpoyFloor),
@@ -4621,7 +4716,7 @@ function legacy(p) {
     return { total, parts };
   });
 }
-const LEGACY_PARTS = [['mvp', 'MVP'], ['fmvp', 'Finals MVP'], ['titles', 'Title roles'], ['teams', 'All-NBA / Def / Rookie'], ['allStar', 'All-Star'], ['dpoy', 'DPOY'], ['statTitles', 'Stat titles'], ['other', 'ROY / 6MOY / MIP'], ['production', 'Production']];
+const LEGACY_PARTS = [['mvp', 'MVP'], ['fmvp', 'Finals MVP'], ['titles', 'Title roles'], ['finals', 'Conference titles'], ['teams', 'All-NBA / Def / Rookie'], ['allStar', 'All-Star'], ['dpoy', 'DPOY'], ['statTitles', 'Stat titles'], ['other', 'ROY / 6MOY / MIP'], ['production', 'Production']];
 function legacyRatio() {
   try { const v = localStorage.getItem('nba2k17-legacy-ratio'); return v === null || isNaN(Number(v)) ? 50 : Math.min(100, Math.max(0, Number(v))); } catch (e) { return 50; }
 }
@@ -4853,9 +4948,14 @@ function runDataCheck() {
     const base = DB.allPlayers.find(x => x.Player === r.Player);
     if (!base) { add('warn', sheet, 'B' + r._row, `"${r.Player}" isn't in All Players.`); return; }
     if (POSITIONS.includes(sheet) && base.Position !== sheet) add('warn', sheet, 'B' + r._row, `${r.Player} is on the ${sheet} sheet, but All Players lists ${base.Position}.`);
-    const diffs = (list.headers || []).filter(k => k in base && !['Rank','Position','Rookie Team','RookieTeam','_row'].includes(k))
+    // Retired numbers are compared as a set: the same numbers in another order are fine
+    const retKeys = (list.headers || []).filter(k => /^# Retired/.test(k) && k in base);
+    const retSet = o => retKeys.map(k => String(o[k] ?? '').trim()).filter(Boolean).sort().join('|');
+    const diffs = (list.headers || []).filter(k => k in base && !retKeys.includes(k) && !['Rank','Position','Rookie Team','RookieTeam','_row'].includes(k))
       .filter(k => { const a = r[k], b = base[k]; return !((a ?? '') === (b ?? '') || (typeof a === 'number' && typeof b === 'number' && Math.abs(a - b) < 0.05)); });
-    if (diffs.length) add('warn', sheet, 'row ' + r._row, `${r.Player} differs from All Players row ${base._row} in ${diffs.slice(0, 4).map(k => `${k} (${r[k] ?? 'blank'} vs ${base[k] ?? 'blank'})`).join(', ')}${diffs.length > 4 ? ` and ${diffs.length - 4} more` : ''}.`);
+    const parts = diffs.map(k => `${k} ${r[k] ?? 'blank'} here, ${base[k] ?? 'blank'} in All Players`);
+    if (retKeys.length && retSet(r) !== retSet(base)) parts.push(`retired numbers ${retKeys.map(k => r[k]).filter(Boolean).join(', ') || 'none'} here, ${retKeys.map(k => base[k]).filter(Boolean).join(', ') || 'none'} in All Players`);
+    if (parts.length) add('warn', sheet, 'row ' + r._row, `${r.Player}'s ${sheet} row doesn't match All Players row ${base._row}: ${parts.slice(0, 4).join('; ')}${parts.length > 4 ? ` and ${parts.length - 4} more` : ''}.`);
   }));
   // 5. Award counts vs NBA History, for careers that History fully covers
   const firstHist = Math.min(...DB.history.map(h => Number(h.Season)).filter(y => !isNaN(y)));
@@ -4888,7 +4988,8 @@ function runDataCheck() {
     const p = resolvePlayer(clean, season);
     if (p && p.Player !== clean && !seen.has(sheet + clean)) { seen.add(sheet + clean); add('info', sheet, cell, `"${clean}" is spelled differently from "${p.Player}" in the player sheets.`); }
   };
-  DB.history.forEach(h => [['MVP','C'],['FMVP','D'],['DPOY','H'],['Star1','J'],['Star2','K'],['Star3','L']].forEach(([k, c]) => nameCheck('NBA History', c + h._row, h[k], h.Season)));
+  const hc = { ...(DB.historyCols || {}) }; (DB.historyStarCols || []).forEach((c, i) => { hc['Star' + (i + 1)] = c; }); (DB.historyRuCols || []).forEach((c, i) => { hc['RU' + (i + 1)] = c; });
+  DB.history.forEach(h => Object.entries(hc).forEach(([k, c]) => coNames(h[k]).forEach(n => nameCheck('NBA History', XLSX.utils.encode_col(c) + h._row, n, h.Season))));
   [...DB.awardRecords, ...DB.allTimeStats].forEach(cat => cat.entries.forEach(e => nameCheck('NBA All-Time Record', `${cat.name} list`, e.player)));
   DB.decades.forEach(d => [...d.starter, ...d.subs].forEach(n => nameCheck('Decade NBA Team', d.decade, n)));
   // 9. Players named in other sheets who have no row in All Players or Current Player
@@ -4903,8 +5004,8 @@ function runDataCheck() {
     missing.get(k).where.push(where);
   };
   DB.allNbaSeasons.forEach(s => s.teams.forEach(t => t.slots.forEach(sl => note(sl.player, s.season, `All NBA Team ${seasonLabel(s.season)} (${['1st','2nd','3rd'][t.team - 1] || t.team} Team)`))));
-  DB.history.forEach(h => [['MVP', 'MVP'], ['FMVP', 'Finals MVP'], ['DPOY', 'DPOY'], ['Star1', 'champion star'], ['Star2', 'champion star'], ['Star3', 'champion star']]
-    .forEach(([k, l]) => note(h[k], h.Season, `NBA History ${seasonLabel(h.Season)} (${l})`)));
+  DB.history.forEach(h => [['MVP', 'MVP'], ['FMVP', 'Finals MVP'], ['DPOY', 'DPOY'], ['ROTY', 'ROTY'], ['Star1', 'champion star'], ['Star2', 'champion star'], ['Star3', 'champion star'], ['RU1', 'runner-up star'], ['RU2', 'runner-up star'], ['RU3', 'runner-up star']]
+    .forEach(([k, l]) => coNames(h[k]).forEach(n => note(n, h.Season, `NBA History ${seasonLabel(h.Season)} (${l})`))));
   DB.statLeaders.forEach(r => STAT_LEADER_KEYS.forEach(k => note(r[k], r.Season, `Season Stat Leader ${seasonLabel(r.Season)}`)));
   DB.decades.forEach(d => [...d.starter, ...d.subs].forEach(n => note(n, null, `Decade NBA Team ${d.decade}`)));
   [...missing.values()].sort((a, b) => b.where.length - a.where.length || a.name.localeCompare(b.name)).forEach(m =>
@@ -4937,10 +5038,40 @@ function runDataCheck() {
     const t = teamByCode(r.code);
     if (!t) { add('warn', 'Retired #', 'A' + r._row, `Team code "${r.code}" isn't recognized.`); return; }
     if (r.type !== 'Player') return;
-    const p = resolvePlayer(r.who);
-    if (!p || isActive(p)) return;
+    const p = resolveRetired(r);
+    if (!p) return;
+    const sp = careerSpan(p.Season), yrs = (String(r.years || '').match(/\d{4}/g) || []).map(Number);
+    if (sp && yrs.length) {
+      const from = Math.min(...yrs) + 1, to = Math.max(...yrs);
+      if (from < sp[0] || (sp[1] !== Infinity && to > sp[1])) add('warn', 'Retired #', 'G' + r._row, `${p.Player}: Years with Franchise ${r.years} go outside the career in All Players (${p.Season}).`);
+    }
+    if (isActive(p)) return;
     const has = retiredNums(p).some(v => { const [n, ...rest] = String(v).trim().split(/\s+/); return String(n) === String(r.num) && teamByCode(rest.join(' '))?.Team === t.Team; });
     if (!has) add('warn', 'All Players', cellOf(p, '# Retired'), `${p.Player}: Retired # lists ${r.num} ${r.code}, but the player's All Players row doesn't.`);
+  });
+  // 12. Rookie of the Year: NBA History's ROTY column and the "o" in All Players should agree,
+  //     and the season should be the player's first
+  if (DB.historyCols && DB.historyCols.ROTY !== undefined) {
+    const col = XLSX.utils.encode_col(DB.historyCols.ROTY), covered = new Set(DB.history.filter(h => h.ROTY && h.ROTY !== '-').map(h => Number(h.Season)));
+    DB.history.forEach(h => coNames(h.ROTY === '-' ? '' : h.ROTY).forEach(n => {
+      const p = resolvePlayer(n, h.Season);
+      if (!p) return;
+      if (!/^o$/i.test(String(p.ROTY || '').trim())) add('warn', 'All Players', cellOf(p, 'ROTY'), `${p.Player}: NBA History lists ${seasonLabel(h.Season)} Rookie of the Year, but the ROTY column isn't marked "o".`);
+      const sp = careerSpan(p.Season);
+      // (a late debut like David Robinson's two years after the draft is fine)
+      if (sp && Math.abs(Number(h.Season) - sp[0]) > 2) add('warn', 'NBA History', col + h._row, `${p.Player} is ${seasonLabel(h.Season)} Rookie of the Year, but the career in All Players starts in ${seasonLabel(sp[0])}.`);
+    }));
+    everyPlayer().filter(p => /^o$/i.test(String(p.ROTY || '').trim()) && !rotySeasons(p).length).forEach(p => {
+      const yr = careerSpan(p.Season)?.[0];
+      if (yr && covered.has(yr)) add('warn', 'All Players', cellOf(p, 'ROTY'), `${p.Player} is marked Rookie of the Year, but NBA History names someone else for ${seasonLabel(yr)}.`);
+    });
+  }
+  // 13. Runner-Up Stars: a player can't be listed for more Finals losses than Finals App − Champions
+  const ruSeen = {};
+  DB.history.forEach(h => [h.RU1, h.RU2, h.RU3].forEach(x => { const m = String(x || '').match(/^(.*?)\s*\(\d+\)\s*$/); const p = m && resolvePlayer(m[1].trim(), h.Season); if (p) (ruSeen[p.Player] = ruSeen[p.Player] || { p, yrs: [] }).yrs.push(Number(h.Season)); }));
+  Object.values(ruSeen).forEach(({ p, yrs }) => {
+    const n = k => { const v = getNum(p[k]); return v === -Infinity ? 0 : Math.round(v); }, losses = n('Finals App') - n('Champions');
+    if (yrs.length > losses) add('warn', isActive(p) ? 'Current Player' : 'All Players', cellOf(p, 'Finals App'), `${p.Player}: listed in Runner-Up Stars for ${yrs.length} Finals (${yrs.sort((a, b) => a - b).map(seasonLabel).join(', ')}), but Finals App − Champions = ${losses}.`);
   });
   // 8. Gaps the user is still filling in
   const missingLeaders = DB.statLeaders.filter(r => !statRowEntered(r)).map(r => r.Season);

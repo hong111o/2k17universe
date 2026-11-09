@@ -103,24 +103,7 @@ function runDataCheck() {
   DB.history.forEach(h => Object.entries(hc).forEach(([k, c]) => coNames(h[k]).forEach(n => nameCheck('NBA History', XLSX.utils.encode_col(c) + h._row, n, h.Season))));
   [...DB.awardRecords, ...DB.allTimeStats].forEach(cat => cat.entries.forEach(e => nameCheck('NBA All-Time Record', `${cat.name} list`, e.player)));
   DB.decades.forEach(d => [...d.starter, ...d.subs].forEach(n => nameCheck('Decade NBA Team', d.decade, n)));
-  // 9. Players named in other sheets who have no row in All Players or Current Player
-  //    (their names can't link to a player page until they're added)
-  const missing = new Map();
-  const note = (raw, season, where) => {
-    if (!raw || raw === '-') return;
-    const clean = String(raw).replace(/\s*\(\d+\)\s*$/, '').trim();
-    if (!clean || resolvePlayer(clean, season)) return;
-    const k = normName(clean);
-    if (!missing.has(k)) missing.set(k, { name: clean, where: [] });
-    missing.get(k).where.push(where);
-  };
-  DB.allNbaSeasons.forEach(s => s.teams.forEach(t => t.slots.forEach(sl => note(sl.player, s.season, `All NBA Team ${seasonLabel(s.season)} (${['1st','2nd','3rd'][t.team - 1] || t.team} Team)`))));
-  DB.history.forEach(h => [['MVP', 'MVP'], ['FMVP', 'Finals MVP'], ['DPOY', 'DPOY'], ['ROTY', 'ROTY'], ['Star1', 'champion star'], ['Star2', 'champion star'], ['Star3', 'champion star'], ['RU1', 'runner-up star'], ['RU2', 'runner-up star'], ['RU3', 'runner-up star']]
-    .forEach(([k, l]) => coNames(h[k]).forEach(n => note(n, h.Season, `NBA History ${seasonLabel(h.Season)} (${l})`))));
-  DB.statLeaders.forEach(r => STAT_LEADER_KEYS.forEach(k => note(r[k], r.Season, `Season Stat Leader ${seasonLabel(r.Season)}`)));
-  DB.decades.forEach(d => [...d.starter, ...d.subs].forEach(n => note(n, null, `Decade NBA Team ${d.decade}`)));
-  [...missing.values()].sort((a, b) => b.where.length - a.where.length || a.name.localeCompare(b.name)).forEach(m =>
-    add('info', 'All Players', '', `"${m.name}" isn't in All Players or Current Player, so the name can't link to a player page. Named in ${m.where.slice(0, 3).join('; ')}${m.where.length > 3 ? ` and ${m.where.length - 3} more` : ''}.`));
+  // (Names with no All Players or Current Player row are fine: not every player is worth a row)
   // 10. Team History: every season's wins and losses must balance, and its Finals
   //     column must agree with NBA History
   const thName = 'Team History BC';
