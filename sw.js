@@ -2,7 +2,7 @@
 // The page itself is fetched from the network first so updates show up on the next open;
 // the cached copy is used only when offline. Libraries and fonts never change, so they
 // come from the cache first.
-const VERSION = 'v62';
+const VERSION = 'v63';
 const CACHE = '2k17-stats-' + VERSION;
 const APP_SHELL = [
   './',

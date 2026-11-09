@@ -761,12 +761,14 @@ function renderCurrent() {
     <th class="num" onclick="onSortCur('1st D Team')">1st-D${curSI('1st D Team')}</th>
     <th class="num" onclick="onSortCur('2nd D Team')">2nd-D${curSI('2nd D Team')}</th>
     <th class="num" onclick="onSortCur('DPOY')">DPOY${curSI('DPOY')}</th>
+    <th class="num" onclick="onSortCur('Legacy')">Legacy${curSI('Legacy')}</th>
     <th>ROTY</th>
     <th onclick="onSortCur('Other Award')">Other${curSI('Other Award')}</th>
     <th>Teams</th>`;
   // Sort current players
   const curS = sortStates.cur || {col:'Season', dir:1};
   const curSorted = [...curState.filtered].sort((a,b) => {
+    if (curS.col === 'Legacy') return ((legacyRow(a)?.score ?? -1) - (legacyRow(b)?.score ?? -1)) * curS.dir;
     const av = a[curS.col], bv = b[curS.col];
     const an = parseFloat(av), bn = parseFloat(bv);
     if (!isNaN(an) && !isNaN(bn)) return (an - bn) * curS.dir;
@@ -795,6 +797,7 @@ function renderCurrent() {
       <td class="num">${p['1st D Team']||0}</td>
       <td class="num">${p['2nd D Team']||0}</td>
       <td class="num">${p.DPOY||0}</td>
+      <td class="num">${legacyCell(p)}</td>
       <td>${roty?'Yes':'<span class="muted">—</span>'}</td>
       <td class="muted">${other&&other!=='/'&&other!==0?other:'—'}</td>
       <td>${[...new Set(teams)].map(t=>`<span class="team-tag">${teamLink(t)}</span>`).join(' ')}</td>

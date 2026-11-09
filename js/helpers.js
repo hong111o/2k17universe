@@ -289,6 +289,7 @@ function buildPlayerHead(tblKey, mode, extraCols) {
     ${th('DTeam','D-Team')}
     ${exp ? th('1st D Team','1st-D')+th('2nd D Team','2nd-D') : ''}
     ${th('DPOY','DPOY')}
+    ${th('Legacy','Legacy')}
     <th>Retired#</th><th>Teams</th>`;
 }
 // Combined All-Defensive selections; a blank cell counts as 0
@@ -329,6 +330,7 @@ function buildPlayerRow(row, tblKey, mode, rank, showPos) {
     <td class="num">${dTeamTotal(row)}</td>
     ${exp ? `<td class="num">${row['1st D Team']||0}</td><td class="num">${row['2nd D Team']||0}</td>` : ''}
     <td class="num">${row.DPOY||0}</td>
+    <td class="num">${legacyCell(row)}</td>
     <td class="retired">${retiredNums(row).join(' · ')||'—'}</td>
     <td>${teamTags(row)}</td>
   </tr>`;
@@ -344,6 +346,7 @@ function sortedByMode(arr, key, mode) {
       if (av !== null && bv !== null) return (av - bv) * dir;
     }
     if (col === 'DTeam') return (dTeamTotal(a) - dTeamTotal(b)) * dir;
+    if (col === 'Legacy') return ((legacyRow(a)?.score ?? -1) - (legacyRow(b)?.score ?? -1)) * dir;
     // Season column: sort by the numeric year part (e.g. "2004-24" -> 2004)
     if (col === 'Season') {
       const ay = parseInt(String(a[col]||'0').split('-')[0]) || 0;

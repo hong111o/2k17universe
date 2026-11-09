@@ -10,7 +10,6 @@ they are still in the git history if ever needed.
 |---|---|---|
 | `v20.html` | v20: phone app, custom icon, locked table headers | player pages, compare v2, draft, legacy ranking, search, data check |
 | `v22.html` | v22: player pages, compare v2, draft, simple legacy formula, search, data check | points-system legacy formula |
-| `v52.html` | v52: Retired # matched by years, years-vs-career check | Rookie of the Year from NBA History in League History, Awards, Home and Season Hub |
 | `v53.html` | v53: Rookie of the Year from NBA History | app checks for new files on every open |
 | `v54.html` | v54: app checks for new files on every open | ROTY table shows the overall draft pick instead of Win |
 | `v55.html` | v55: ROTY table with overall draft pick | Pick column removed (most rookies have no draft code) |
@@ -20,6 +19,7 @@ they are still in the git history if ever needed.
 | `v59.html` | v59: silver Conference Title on timelines | conference titles on Team Journey stops |
 | `v60.html` | v60: conference titles on Team Journey | Top 20 / position check ignores retired-number order, clearer wording |
 | `v61.html` | v61: retired numbers compared as a set | Data Check no longer lists names without a player row |
+| `v62.html` | v62: no "not in All Players" notes | Legacy column and sort on every player list |
 
 Online: https://hong111o.github.io/2k17universe/versions/v20.html and .../versions/v22.html
 

@@ -252,7 +252,7 @@ function playerCard(row, rank, mode, active) {
     <div class="pc-body">
       <div class="pc-top"><span class="pc-name">${row.Player}</span>${posBadge(row.Position)}</div>
       <div class="pc-meta">${row.Season || ''}${active ? '' : ' · ' + [...new Set(['Team','Team2','Team3'].map(k => row[k]).filter(Boolean))].join(', ')}</div>
-      <div class="pc-stats">${statsLine}</div>
+      <div class="pc-stats">${statsLine}${(() => { const l = legacyRow(row); return l ? `<span><b>#${l.rank}</b> legacy</span>` : ''; })()}</div>
       ${honors.length ? `<div class="pc-honors">${honors.join(' · ')}</div>` : ''}
     </div>
   </div>`;

@@ -200,7 +200,7 @@
       <option value="1st Team:1">All-NBA 1st Team</option><option value="ROY">Rookie of the Year</option></select>
     <button class="icon-btn" id="playersModeBtn" onclick="toggleMode('players')">AVERAGES</button>
     <button class="icon-btn" id="playersExpandBtn" onclick="toggleExpand('players')">+ MORE COLS</button>
-    <select class="m-sort" aria-label="Sort by" onchange="mobileSort('players', this.value)"><option value="">Sort: default</option><option value="PTS">Points</option><option value="REB">Rebounds</option><option value="AST">Assists</option><option value="STL">Steals</option><option value="BLK">Blocks</option><option value="GP">Games</option><option value="Champions">Titles</option><option value="MVP">MVPs</option><option value="FMVP">Finals MVPs</option><option value="DPOY">DPOY</option><option value="All Stars">All-Stars</option><option value="All NBA Team">All-NBA</option></select>
+    <select class="m-sort" aria-label="Sort by" onchange="mobileSort('players', this.value)"><option value="">Sort: default</option><option value="Legacy">Legacy score</option><option value="PTS">Points</option><option value="REB">Rebounds</option><option value="AST">Assists</option><option value="STL">Steals</option><option value="BLK">Blocks</option><option value="GP">Games</option><option value="Champions">Titles</option><option value="MVP">MVPs</option><option value="FMVP">Finals MVPs</option><option value="DPOY">DPOY</option><option value="All Stars">All-Stars</option><option value="All NBA Team">All-NBA</option></select>
     <button class="icon-btn m-sort m-dir" id="playersSortDir" type="button" onclick="flipSortDir('players')" aria-label="Sort direction">↓ High first</button>
     <span class="results-count" id="playerCount"></span>
   </div>
@@ -218,7 +218,7 @@
     <select id="top20PosFilter" onchange="filterTop20()"><option value="">All Positions</option><option>PG</option><option>SG</option><option>SF</option><option>PF</option><option>C</option></select>
     <button class="icon-btn" id="top20ModeBtn" onclick="toggleMode('top20')">TOTALS</button>
     <button class="icon-btn" id="top20ExpandBtn" onclick="toggleExpand('top20')">+ MORE COLS</button>
-    <select class="m-sort" aria-label="Sort by" onchange="mobileSort('top20', this.value)"><option value="">Sort: rank</option><option value="PTS">Points</option><option value="REB">Rebounds</option><option value="AST">Assists</option><option value="STL">Steals</option><option value="BLK">Blocks</option><option value="GP">Games</option><option value="Champions">Titles</option><option value="MVP">MVPs</option><option value="FMVP">Finals MVPs</option><option value="DPOY">DPOY</option><option value="All Stars">All-Stars</option><option value="All NBA Team">All-NBA</option></select>
+    <select class="m-sort" aria-label="Sort by" onchange="mobileSort('top20', this.value)"><option value="">Sort: rank</option><option value="Legacy">Legacy score</option><option value="PTS">Points</option><option value="REB">Rebounds</option><option value="AST">Assists</option><option value="STL">Steals</option><option value="BLK">Blocks</option><option value="GP">Games</option><option value="Champions">Titles</option><option value="MVP">MVPs</option><option value="FMVP">Finals MVPs</option><option value="DPOY">DPOY</option><option value="All Stars">All-Stars</option><option value="All NBA Team">All-NBA</option></select>
     <button class="icon-btn m-sort m-dir" id="top20SortDir" type="button" onclick="flipSortDir('top20')" aria-label="Sort direction">↓ High first</button>
     <span class="results-count" id="top20Count"></span>
   </div>
@@ -242,7 +242,7 @@
     <div class="search-wrap"><span class="icon"><svg class="ic"><use href="#i-search"/></svg></span><input type="text" id="posSearch" placeholder="Search players..." oninput="filterPos()"></div>
     <button class="icon-btn" id="posModeBtn" onclick="toggleMode('pos')">AVERAGES</button>
     <button class="icon-btn" id="posExpandBtn" onclick="toggleExpand('pos')">+ MORE COLS</button>
-    <select class="m-sort" aria-label="Sort by" onchange="mobileSort('pos', this.value)"><option value="">Sort: rank</option><option value="PTS">Points</option><option value="REB">Rebounds</option><option value="AST">Assists</option><option value="STL">Steals</option><option value="BLK">Blocks</option><option value="GP">Games</option><option value="Champions">Titles</option><option value="MVP">MVPs</option><option value="FMVP">Finals MVPs</option><option value="DPOY">DPOY</option><option value="All Stars">All-Stars</option><option value="All NBA Team">All-NBA</option></select>
+    <select class="m-sort" aria-label="Sort by" onchange="mobileSort('pos', this.value)"><option value="">Sort: rank</option><option value="Legacy">Legacy score</option><option value="PTS">Points</option><option value="REB">Rebounds</option><option value="AST">Assists</option><option value="STL">Steals</option><option value="BLK">Blocks</option><option value="GP">Games</option><option value="Champions">Titles</option><option value="MVP">MVPs</option><option value="FMVP">Finals MVPs</option><option value="DPOY">DPOY</option><option value="All Stars">All-Stars</option><option value="All NBA Team">All-NBA</option></select>
     <button class="icon-btn m-sort m-dir" id="posSortDir" type="button" onclick="flipSortDir('pos')" aria-label="Sort direction">↓ High first</button>
   </div>
   <div class="table-wrap"><table><thead><tr id="posHead"></tr></thead><tbody id="posBody"></tbody></table></div>
@@ -351,7 +351,7 @@
   <div class="toolbar">
     <div class="search-wrap"><span class="icon"><svg class="ic"><use href="#i-search"/></svg></span><input type="text" id="curSearch" placeholder="Search players..." oninput="filterCurrent()"></div>
     <select id="curPosFilter" onchange="filterCurrent()"><option value="">All Positions</option><option>PG</option><option>SG</option><option>SF</option><option>PF</option><option>C</option></select>
-    <select class="m-sort" aria-label="Sort by" onchange="mobileSort('cur', this.value)"><option value="">Sort: newest</option><option value="Champions">Titles</option><option value="MVP">MVPs</option><option value="FMVP">Finals MVPs</option><option value="DPOY">DPOY</option><option value="All Stars">All-Stars</option><option value="All NBA Team">All-NBA</option><option value="Exp">Experience</option></select>
+    <select class="m-sort" aria-label="Sort by" onchange="mobileSort('cur', this.value)"><option value="">Sort: newest</option><option value="Legacy">Legacy score</option><option value="Champions">Titles</option><option value="MVP">MVPs</option><option value="FMVP">Finals MVPs</option><option value="DPOY">DPOY</option><option value="All Stars">All-Stars</option><option value="All NBA Team">All-NBA</option><option value="Exp">Experience</option></select>
     <button class="icon-btn m-sort m-dir" id="curSortDir" type="button" onclick="flipSortDir('cur')" aria-label="Sort direction">↓ High first</button>
     <span class="results-count" id="curCount"></span>
   </div>

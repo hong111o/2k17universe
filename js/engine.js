@@ -252,6 +252,9 @@ function legacyRanking() {
   return cached('legacyRanking', () => withRanks(everyPlayer().map(p => ({ p, score: legacy(p).total })).sort((a, b) => b.score - a.score), r => Math.round(r.score)));
 }
 const legacyRankOf = p => legacyRanking().find(r => r.p === p)?.rank;
+// Legacy score and rank for any list row (Top 20 and position sheets hold copies of the player)
+const legacyRow = row => { const p = everyPlayer().includes(row) ? row : resolvePlayer(row.Player); return p ? { p, score: legacy(p).total, rank: legacyRankOf(p) } : null; };
+const legacyCell = row => { const l = legacyRow(row); return l ? `<span title="${Math.round(l.score).toLocaleString()} legacy points">#${l.rank}</span>` : '<span class="muted">—</span>'; };
 
 // Closest statistical matches: distance between standardized per-game profiles
 const SIM_KEYS = [
