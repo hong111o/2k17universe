@@ -131,6 +131,9 @@ const LEGACY_SCHEMA = [
   { group: 'Championship roles (NBA History champion stars)', items: [['roleSingle', 'Only star listed (single core)', 120], ['roleFranchise', 'Top star (franchise player)', 100],
       ['roleCoStar', 'Co-stars (top two within the rating gap)', 80], ['roleSecond', 'Second star', 70], ['roleCore', 'Third star (core)', 60],
       ['roleRotation', 'Title as a non-listed player (rotation)', 25], ['coStarGap', 'Co-star rating gap', 2]] },
+  { group: 'Finals runner-up roles (NBA History runner-up stars)', items: [['ruSingle', 'Only star listed (single core)', 60], ['ruFranchise', 'Top star (franchise player)', 50],
+      ['ruCoStar', 'Co-stars (top two within the rating gap)', 40], ['ruSecond', 'Second star', 35], ['ruCore', 'Third star (core)', 30],
+      ['ruRotation', 'Finals loss as a non-listed player (rotation)', 12]] },
   { group: 'Career production', items: [['pts1000', 'Per 1,000 career points', 8], ['other1000', 'Per 1,000 rebounds, assists or steals + blocks', 4]] },
 ];
 const LEGACY_DEFAULTS = Object.fromEntries(LEGACY_SCHEMA.flatMap(g => g.items.map(([k, , v]) => [k, v])));
@@ -159,24 +162,30 @@ function decayedPoints(base, count, step, floor, seasons, streak) {
 // Seasons, roles and stat titles per player, read once from NBA History and Season Stat Leader
 function legacyContext() {
   return cached('legacyContext', () => {
-    const w = legacyWeights(), ctx = { mvp: {}, fmvp: {}, roles: {}, titles: {}, firstHistory: Infinity };
+    const w = legacyWeights(), ctx = { mvp: {}, fmvp: {}, roles: {}, ruRoles: {}, titles: {}, firstHistory: Infinity };
     const push = (map, p, v) => (map[p.Player] = map[p.Player] || []).push(v);
     DB.history.forEach(h => {
       const yr = Number(h.Season);
       if (isNaN(yr)) return;
       ctx.firstHistory = Math.min(ctx.firstHistory, yr);
       [['MVP', 'mvp'], ['FMVP', 'fmvp']].forEach(([k, m]) => { const p = h[k] && h[k] !== '-' ? resolvePlayer(h[k], yr) : null; if (p) push(ctx[m], p, yr); });
-      const stars = [h.Star1, h.Star2, h.Star3].filter(x => x && x !== '-').map(x => {
-        const r = String(x).match(/\((\d+)\)\s*$/);
-        return { p: resolvePlayer(String(x).replace(/\s*\(\d+\)\s*$/, '').trim(), yr), rating: r ? Number(r[1]) : null };
-      });
-      if (!stars.length) return;
-      const coStars = stars.length > 1 && stars[0].rating !== null && stars[1].rating !== null && stars[0].rating - stars[1].rating <= w.coStarGap;
-      stars.forEach((st, i) => {
-        if (!st.p) return;
-        const role = stars.length === 1 ? ['roleSingle', 'single core'] : coStars && i < 2 ? ['roleCoStar', 'co-star'] : i === 0 ? ['roleFranchise', 'franchise player'] : i === 1 ? ['roleSecond', 'second star'] : ['roleCore', 'core'];
-        push(ctx.roles, st.p, { yr, key: role[0], label: role[1] });
-      });
+      // Champion and runner-up stars get roles the same way: one listed star is a single core,
+      // top two within the rating gap are co-stars, otherwise franchise / second / core
+      const assign = (list, map, keys) => {
+        const stars = list.filter(x => x && x !== '-').map(x => {
+          const r = String(x).match(/\((\d+)\)\s*$/);
+          return { p: resolvePlayer(String(x).replace(/\s*\(\d+\)\s*$/, '').trim(), yr), rating: r ? Number(r[1]) : null };
+        });
+        if (!stars.length) return;
+        const coStars = stars.length > 1 && stars[0].rating !== null && stars[1].rating !== null && stars[0].rating - stars[1].rating <= w.coStarGap;
+        stars.forEach((st, i) => {
+          if (!st.p) return;
+          const k = stars.length === 1 ? 0 : coStars && i < 2 ? 2 : i === 0 ? 1 : i === 1 ? 3 : 4;
+          push(map, st.p, { yr, key: keys[k], label: ['single core', 'franchise player', 'co-star', 'second star', 'core'][k] });
+        });
+      };
+      assign([h.Star1, h.Star2, h.Star3], ctx.roles, ['roleSingle', 'roleFranchise', 'roleCoStar', 'roleSecond', 'roleCore']);
+      assign([h.RU1, h.RU2, h.RU3], ctx.ruRoles, ['ruSingle', 'ruFranchise', 'ruCoStar', 'ruSecond', 'ruCore']);
     });
     [['PtsLeader', 'ptsTitle'], ['RebLeader', 'rebTitle'], ['AstLeader', 'astTitle'], ['StlLeader', 'stlTitle'], ['BlkLeader', 'blkTitle']].forEach(([k, key]) =>
       DB.statLeaders.forEach(r => { const p = r[k] ? resolvePlayer(r[k], r.Season) : null; if (p) { const t = (ctx.titles[p.Player] = ctx.titles[p.Player] || {}); t[key] = (t[key] || 0) + 1; } }));
@@ -196,6 +205,8 @@ function legacy(p) {
     // estimated from career level; any other title counts as a rotation player's
     const roles = ctx.roles[p.Player] || [];
     const unlisted = Math.max(0, n('Champions') - roles.length);
+    const ruRoles = ctx.ruRoles[p.Player] || [];
+    const unlistedLosses = Math.max(0, n('Finals App') - n('Champions') - ruRoles.length);
     const span = careerSpan(p.Season);
     const preHistoryRole = n('MVP') > 0 ? w.roleFranchise : (n('1st Team') > 0 || n('All Stars') >= 5) ? w.roleCore : w.roleRotation;
     const unlistedEach = span && span[0] < ctx.firstHistory ? preHistoryRole : w.roleRotation;
@@ -204,6 +215,8 @@ function legacy(p) {
       mvp: decayedPoints(w.mvp, n('MVP'), w.mvpStep, w.mvpFloor, ctx.mvp[p.Player], true),
       fmvp: decayedPoints(w.fmvp, n('FMVP'), w.fmvpStep, w.fmvpFloor, ctx.fmvp[p.Player], true),
       titles: roles.reduce((a, r) => a + w[r.key], 0) + unlisted * unlistedEach,
+      // Finals losses: listed runner-up stars by role, every other loss as a rotation player
+      finals: ruRoles.reduce((a, r) => a + w[r.key], 0) + unlistedLosses * w.ruRotation,
       teams: teamPicks.sort((a, b) => b - a).reduce((a, v, k) => a + v * Math.max(w.teamFloor, 1 - w.teamStep * k), 0),
       allStar: decayedPoints(w.allStar, n('All Stars'), w.allStarStep, w.allStarFloor),
       dpoy: decayedPoints(w.dpoy, n('DPOY'), w.dpoyStep, w.dpoyFloor),
@@ -218,7 +231,7 @@ function legacy(p) {
     return { total, parts };
   });
 }
-const LEGACY_PARTS = [['mvp', 'MVP'], ['fmvp', 'Finals MVP'], ['titles', 'Title roles'], ['teams', 'All-NBA / Def / Rookie'], ['allStar', 'All-Star'], ['dpoy', 'DPOY'], ['statTitles', 'Stat titles'], ['other', 'ROY / 6MOY / MIP'], ['production', 'Production']];
+const LEGACY_PARTS = [['mvp', 'MVP'], ['fmvp', 'Finals MVP'], ['titles', 'Title roles'], ['finals', 'Finals losses'], ['teams', 'All-NBA / Def / Rookie'], ['allStar', 'All-Star'], ['dpoy', 'DPOY'], ['statTitles', 'Stat titles'], ['other', 'ROY / 6MOY / MIP'], ['production', 'Production']];
 function legacyRatio() {
   try { const v = localStorage.getItem('nba2k17-legacy-ratio'); return v === null || isNaN(Number(v)) ? 50 : Math.min(100, Math.max(0, Number(v))); } catch (e) { return 50; }
 }

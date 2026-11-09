@@ -173,6 +173,10 @@ function resolvePlayer(raw, season) {
       // With a season, the misspelt name must belong to someone playing then:
       // "Connie Hawkins" (1969–1973) is not "Corie Hawkins" (2067–)
       let cands = closest(playerIndex, 'norm', n, n.length >= 10 ? 2 : 1);
+      // The surname may be off by one letter at most and the first name must start the same:
+      // "Paul Geogre" is Paul George, but "Charles Oakley" is not Charles Barkley
+      const last = s => s.split(' ').pop(), lastN = last(n);
+      cands = cands.filter(c => c.norm[0] === n[0] && editDistance(last(c.norm), lastN) <= 1);
       if (season) { const yr = Number(season); cands = cands.filter(c => !c.span || (yr >= c.span[0] && yr <= c.span[1])); }
       result = pick(cands);
     }

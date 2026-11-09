@@ -462,22 +462,28 @@ function parseWorkbook(wb) {
     const cROTY = H.findIndex(h => /^(roty|roy|rookie of the year)$/i.test(String(h || '').trim()));
     // "Champion Stars (Rating)" sits over three columns; use the ones that hold "Name (99)" values
     const hStars = H.findIndex(h => /champion stars/i.test(String(h || '')));
+    // "Runner-Up Stars (Rating)" works the same way, further right
+    const hRu = H.findIndex(h => /runner.?up stars/i.test(String(h || '')));
+    const looksStar = c => rows.slice(1).some(r => /\(\d+\)\s*$/.test(String(r[c] ?? '')));
+    const starsNear = (hc, limit) => [hc - 1, hc, hc + 1, hc + 2, hc + 3].filter(c => c >= 0 && c < limit && looksStar(c)).slice(0, 3);
     let starCols = [9, 10, 11];
     if (hStars >= 0) {
-      const looksStar = c => rows.slice(1, 40).some(r => /\(\d+\)\s*$/.test(String(r[c] ?? '')));
-      const near = [hStars - 1, hStars, hStars + 1, hStars + 2, hStars + 3].filter(c => c >= 0 && looksStar(c));
-      if (near.length) starCols = near.slice(0, 3);
+      const near = starsNear(hStars, hRu > hStars ? hRu - 1 : Infinity);
+      if (near.length) starCols = near;
     } else layoutWarn('NBA History', 'Couldn\'t find the "Champion Stars" header; reading columns J–L.');
+    const ruCols = hRu >= 0 ? starsNear(hRu, Infinity).filter(c => !starCols.includes(c)) : [];
     DB.history = rows.slice(1)
       .filter(r => r[cSeason] !== null && r[cSeason] !== undefined)
       .map(r => ({
         _row: rows.indexOf(r) + 1,
         Season: r[cSeason], MVP: r[cMVP], FMVP: r[cFMVP], Finals: r[cFinals], DPOY: r[cDPOY], ROTY: cROTY >= 0 ? r[cROTY] : undefined,
-        Star1: r[starCols[0]], Star2: r[starCols[1]], Star3: r[starCols[2]]
+        Star1: r[starCols[0]], Star2: r[starCols[1]], Star3: r[starCols[2]],
+        RU1: ruCols[0] !== undefined ? r[ruCols[0]] : undefined, RU2: ruCols[1] !== undefined ? r[ruCols[1]] : undefined, RU3: ruCols[2] !== undefined ? r[ruCols[2]] : undefined
       }));
     DB.historyCols = { MVP: cMVP, FMVP: cFMVP, DPOY: cDPOY };
     if (cROTY >= 0) DB.historyCols.ROTY = cROTY;
     DB.historyStarCols = starCols;
+    DB.historyRuCols = ruCols;
   }
 
   setProgress('Loading Teams...');

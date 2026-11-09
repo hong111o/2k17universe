@@ -102,7 +102,7 @@ function filterHistory() {
   const q = document.getElementById('histSearch').value.toLowerCase();
   histState.filtered = DB.history.filter(h =>
     !q || String(h.Season).includes(q) ||
-    ['MVP','FMVP','DPOY','ROTY','Finals','Star1','Star2','Star3'].some(k => String(h[k]||'').toLowerCase().includes(q)) ||
+    ['MVP','FMVP','DPOY','ROTY','Finals','Star1','Star2','Star3','RU1','RU2','RU3'].some(k => String(h[k]||'').toLowerCase().includes(q)) ||
     fullTeamName(extractChampTeam(h.Finals||'')).toLowerCase().includes(q));
   histState.page = 1;
   renderHistory();
@@ -139,6 +139,7 @@ function renderHistory() {
       ${histName(h.DPOY, h.DPOYTeam)}
       ${histName(h.ROTY, h.ROTYTeam)}
       ${starCell(h.Star1)}${starCell(h.Star2)}${starCell(h.Star3)}
+      ${DB.historyRuCols && DB.historyRuCols.length ? `<td class="hist-ru">${[h.RU1, h.RU2, h.RU3].filter(Boolean).map(s => { const r = String(s).match(/\((\d+)\)$/)?.[1]; return `${nameLink(String(s).replace(/\s*\(\d+\)\s*$/, '').trim(), {season: h.Season})}${r ? ` <span class="muted">${r}</span>` : ''}`; }).join(', ') || '<span class="muted">—</span>'}</td>` : ''}
     </tr>`;
   }).join('');
   // Phones: one card per season instead of the nine-column table
@@ -152,6 +153,8 @@ function renderHistory() {
       <div class="hc-champ">${champAbbr ? `${icon('trophy', 'ic-champ')} ${teamIn(fullTeamName(champAbbr), h.Season)}${ru ? ` <span class="muted nowrap">over ${teamLink(ru, teamCode(ru))}</span>` : ''}` : '<span class="muted">Champion not recorded</span>'}</div>
       <div class="hc-awards">${award('Finals MVP', h.FMVP, h.FMVPTeam)}${award('MVP', h.MVP, h.MVPTeam)}${award('DPOY', h.DPOY, h.DPOYTeam)}${award('ROTY', h.ROTY, h.ROTYTeam)}</div>
       ${stars.length ? `<div class="hc-stars"><span>Champion stars</span> ${stars.join(' · ')}</div>` : ''}
+      ${(() => { const rs = [h.RU1, h.RU2, h.RU3].filter(Boolean).map(s => { const r = String(s).match(/\((\d+)\)$/)?.[1]; return `${nameLink(nm(s), { season: h.Season })}${r ? ` <span class="muted">${r}</span>` : ''}`; });
+        return rs.length ? `<div class="hc-stars hc-ru"><span>Runner-up stars</span> ${rs.join(' · ')}</div>` : ''; })()}
     </div>`;
   }).join('');
   renderPag('histPag', filtered.length, perPage, page, 'goHistPage');
@@ -466,12 +469,17 @@ function renderSeason() {
     ${best ? tile('Best Record', teamIn(best.team, yr), `${best.w}-${best.l}`) : ''}
   </div>`);
 
-  const stars = h ? [h.Star1, h.Star2, h.Star3].filter(Boolean) : [];
-  if (stars.length) sections.push(`<div class="chart-card"><div class="chart-title">${icon('star')} Champion Stars <span class="muted">(rating)</span></div>
+  // Champion and runner-up stars, each with the role the legacy score gives them
+  const starCard = (title, list, roleMap, team) => {
+    const stars = list.filter(Boolean); if (!stars.length) return;
+    sections.push(`<div class="chart-card"><div class="chart-title">${icon('star')} ${title} <span class="muted">(rating)</span>${team ? ` <span class="muted">· ${teamIn(team, yr)}</span>` : ''}</div>
     <div class="decade-player-chips">${stars.map(st => {
       const clean = String(st).replace(/\s*\(\d+\)\s*$/, '').trim(), rating = String(st).match(/\((\d+)\)$/)?.[1];
-      return `<div class="decade-chip starter">${nameLink(clean, {season: yr})}${rating ? ` <span class="muted">(${rating})</span>` : ''}</div>`;
+      const p = resolvePlayer(clean, yr), role = p && (legacyContext()[roleMap][p.Player] || []).find(r => r.yr === yr);
+      return `<div class="decade-chip starter">${nameLink(clean, {season: yr})}${rating ? ` <span class="muted">(${rating})</span>` : ''}${role ? ` <span class="muted">· ${role.label}</span>` : ''}</div>`;
     }).join('')}</div></div>`);
+  };
+  if (h) { starCard('Champion Stars', [h.Star1, h.Star2, h.Star3], 'roles', champ); starCard('Runner-up Stars', [h.RU1, h.RU2, h.RU3], 'ruRoles', ru); }
 
   const sl = DB.statLeaders.find(x => Number(x.Season) === yr);
   const leaders = [['Points','PtsLeader','PtsTeam','PPG'],['Rebounds','RebLeader','RebTeam','RPG'],['Assists','AstLeader','AstTeam','APG'],

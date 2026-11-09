@@ -94,7 +94,7 @@ function runDataCheck() {
     const p = resolvePlayer(clean, season);
     if (p && p.Player !== clean && !seen.has(sheet + clean)) { seen.add(sheet + clean); add('info', sheet, cell, `"${clean}" is spelled differently from "${p.Player}" in the player sheets.`); }
   };
-  const hc = { ...(DB.historyCols || {}) }; (DB.historyStarCols || []).forEach((c, i) => { hc['Star' + (i + 1)] = c; });
+  const hc = { ...(DB.historyCols || {}) }; (DB.historyStarCols || []).forEach((c, i) => { hc['Star' + (i + 1)] = c; }); (DB.historyRuCols || []).forEach((c, i) => { hc['RU' + (i + 1)] = c; });
   DB.history.forEach(h => Object.entries(hc).forEach(([k, c]) => coNames(h[k]).forEach(n => nameCheck('NBA History', XLSX.utils.encode_col(c) + h._row, n, h.Season))));
   [...DB.awardRecords, ...DB.allTimeStats].forEach(cat => cat.entries.forEach(e => nameCheck('NBA All-Time Record', `${cat.name} list`, e.player)));
   DB.decades.forEach(d => [...d.starter, ...d.subs].forEach(n => nameCheck('Decade NBA Team', d.decade, n)));
@@ -110,7 +110,7 @@ function runDataCheck() {
     missing.get(k).where.push(where);
   };
   DB.allNbaSeasons.forEach(s => s.teams.forEach(t => t.slots.forEach(sl => note(sl.player, s.season, `All NBA Team ${seasonLabel(s.season)} (${['1st','2nd','3rd'][t.team - 1] || t.team} Team)`))));
-  DB.history.forEach(h => [['MVP', 'MVP'], ['FMVP', 'Finals MVP'], ['DPOY', 'DPOY'], ['ROTY', 'ROTY'], ['Star1', 'champion star'], ['Star2', 'champion star'], ['Star3', 'champion star']]
+  DB.history.forEach(h => [['MVP', 'MVP'], ['FMVP', 'Finals MVP'], ['DPOY', 'DPOY'], ['ROTY', 'ROTY'], ['Star1', 'champion star'], ['Star2', 'champion star'], ['Star3', 'champion star'], ['RU1', 'runner-up star'], ['RU2', 'runner-up star'], ['RU3', 'runner-up star']]
     .forEach(([k, l]) => coNames(h[k]).forEach(n => note(n, h.Season, `NBA History ${seasonLabel(h.Season)} (${l})`))));
   DB.statLeaders.forEach(r => STAT_LEADER_KEYS.forEach(k => note(r[k], r.Season, `Season Stat Leader ${seasonLabel(r.Season)}`)));
   DB.decades.forEach(d => [...d.starter, ...d.subs].forEach(n => note(n, null, `Decade NBA Team ${d.decade}`)));
@@ -172,6 +172,13 @@ function runDataCheck() {
       if (yr && covered.has(yr)) add('warn', 'All Players', cellOf(p, 'ROTY'), `${p.Player} is marked Rookie of the Year, but NBA History names someone else for ${seasonLabel(yr)}.`);
     });
   }
+  // 13. Runner-Up Stars: a player can't be listed for more Finals losses than Finals App − Champions
+  const ruSeen = {};
+  DB.history.forEach(h => [h.RU1, h.RU2, h.RU3].forEach(x => { const m = String(x || '').match(/^(.*?)\s*\(\d+\)\s*$/); const p = m && resolvePlayer(m[1].trim(), h.Season); if (p) (ruSeen[p.Player] = ruSeen[p.Player] || { p, yrs: [] }).yrs.push(Number(h.Season)); }));
+  Object.values(ruSeen).forEach(({ p, yrs }) => {
+    const n = k => { const v = getNum(p[k]); return v === -Infinity ? 0 : Math.round(v); }, losses = n('Finals App') - n('Champions');
+    if (yrs.length > losses) add('warn', isActive(p) ? 'Current Player' : 'All Players', cellOf(p, 'Finals App'), `${p.Player}: listed in Runner-Up Stars for ${yrs.length} Finals (${yrs.sort((a, b) => a - b).map(seasonLabel).join(', ')}), but Finals App − Champions = ${losses}.`);
+  });
   // 8. Gaps the user is still filling in
   const missingLeaders = DB.statLeaders.filter(r => !statRowEntered(r)).map(r => r.Season);
   if (missingLeaders.length) add('info', 'Season Stat Leader', '', `${missingLeaders.length} seasons have no leaders entered yet.`);
