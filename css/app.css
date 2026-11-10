@@ -748,7 +748,7 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
 .pf-w{background:var(--champ-tint);color:var(--champ-ink);} .pf-l{background:var(--silver-tint);color:var(--ink-3);}
 .pf-opp{min-width:0;display:flex;flex-direction:column;line-height:1.3;}
 .pf-team{color:var(--ink-3);white-space:nowrap;} .pf-team .team-link{font-weight:600;}
-.pf-stars{color:var(--ink-3);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pf-stars{color:var(--ink-3);font-size:12px;}
 .pf-score{color:var(--ink-2);font-variant-numeric:tabular-nums;font-weight:600;}
 .pf-rivals{margin-top:8px;padding-top:8px;border-top:1px solid var(--line);font-size:13px;}
 .pf-rivals > span:first-child{color:var(--ink-3);font-size:12px;font-weight:600;margin-right:4px;}
