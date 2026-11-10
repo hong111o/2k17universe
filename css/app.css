@@ -109,6 +109,9 @@ main{max-width:1320px;margin:0 auto;padding-block:24px 48px;padding-left:max(16p
 .player-link,.team-link,.season-link,.star-link{cursor:pointer;color:var(--link);font-weight:600;text-decoration:none;}
 .player-link:hover,.team-link:hover,.season-link:hover,.star-link:hover{color:var(--link-hover);text-decoration:underline;}
 .name-plain{color:var(--ink);cursor:default;}
+/* A name never breaks across two lines; lists wrap between names instead */
+.player-link,.name-plain,.team-link,.season-link,.star-link,.nm{white-space:nowrap;}
+.hero-title .team-link{white-space:normal;}
 .team-tag{color:var(--ink-3);font-size:12px;font-weight:600;letter-spacing:.3px;}
 .team-tag .team-link{font-weight:600;}
 

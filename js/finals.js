@@ -154,7 +154,7 @@ function playerFinalsHtml(p) {
     <div class="pf-list">${rows.sort((a, b) => b.f.yr - a.f.yr).map(r => `<div class="pf-row">
       <span class="pf-season">${seasonLink(r.f.yr)}</span>
       <span class="pf-res ${r.won ? 'pf-w' : 'pf-l'}">${r.won ? 'W' : 'L'}</span>
-      <span class="pf-opp"><span class="pf-team">${r.won ? 'over' : 'to'} ${teamIn(r.opp, r.f.yr, teamCode(r.opp))}</span>${r.oppStars.length ? `<span class="pf-stars">${r.oppStars.map(s => s.name).join(', ')}</span>` : ''}</span>
+      <span class="pf-opp"><span class="pf-team">${r.won ? 'over' : 'to'} ${teamIn(r.opp, r.f.yr, teamCode(r.opp))}</span>${r.oppStars.length ? `<span class="pf-stars">${r.oppStars.map(s => `<span class="nm">${s.name}</span>`).join(', ')}</span>` : ''}</span>
       <span class="pf-score">${score(r)}</span></div>`).join('')}</div>
     ${rivals.length ? `<div class="pf-rivals"><span>Most-met</span> ${rivals.map(e => `${nameLink(e.name)} <span class="muted">${e.w}–${e.n - e.w}</span>`).join(' · ')}</div>` : ''}</div>`;
 }
