@@ -288,6 +288,9 @@ tr.row-pending td:first-child{font-style:normal;}
 .tl-chip.ev-mvp{--ev:var(--ev-mvp);} .tl-chip.ev-dpoy{--ev:var(--ev-dpoy);} .tl-chip.ev-stat{--ev:var(--ev-stat);}
 .tl-chip.ev-nba1,.tl-chip.ev-nba2,.tl-chip.ev-nba3{--ev:var(--ev-nba);}
 .tl-chip.ev-roy,.tl-chip.ev-rookie{--ev:var(--ev-roy);}
+.tl-chip.ev-ru{background:var(--silver-tint);color:var(--ink);border-color:color-mix(in srgb,var(--silver) 45%,transparent);}
+.lg-roles-ru{margin-top:6px;padding-top:0;border-top:0;}
+.hist-ru{min-width:220px;}
 .tl-chip.ev-mvp,.tl-chip.ev-dpoy,.tl-chip.ev-stat,.tl-chip.ev-nba1,.tl-chip.ev-nba2,.tl-chip.ev-nba3,.tl-chip.ev-roy,.tl-chip.ev-rookie{color:var(--ev);background:color-mix(in srgb,var(--ev) 14%,var(--surface));border-color:color-mix(in srgb,var(--ev) 40%,transparent);}
 .tl-chip.ev-rookie{background:color-mix(in srgb,var(--ev) 7%,var(--surface));}
 .tl-key{display:flex;flex-wrap:wrap;gap:6px;margin:-4px 0 12px;}
@@ -497,7 +500,7 @@ tr.row-playoff .st-rank{color:var(--ink);}
 .journey-n{font-size:11px;font-weight:700;color:var(--ink-3);}
 .journey-tags{display:flex;gap:5px;flex-wrap:wrap;}
 .journey-tags em{font-style:normal;font-size:11px;font-weight:700;border-radius:3px;padding:1px 6px;display:inline-flex;align-items:center;gap:3px;}
-.tag-gold{background:var(--champ-tint);color:var(--champ-ink);} .tag-ret{background:var(--ink);color:var(--surface);}
+.tag-gold{background:var(--champ-tint);color:var(--champ-ink);} .tag-silver{background:var(--silver-tint);color:var(--ink-2);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--silver) 45%,transparent);} .tag-silver svg{color:var(--silver);} .tag-ret{background:var(--ink);color:var(--surface);}
 .journey-arrow{color:var(--ink-3);font-size:18px;}
 .sim-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;}
 .sim{background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:12px;cursor:pointer;display:flex;flex-direction:column;gap:3px;}
@@ -731,6 +734,36 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
 .wc-range{margin:4px 0 10px;max-width:100%;overflow-x:auto;scrollbar-width:none;}
 .wc-range button{flex:none;}
 .journey-years{display:block;font-size:12px;color:var(--ink-3);margin-top:2px;}
+
+/* Finals page */
+.fx-list{display:grid;gap:12px;}
+.fx-card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;}
+.fx-card.fx-upset{border-color:color-mix(in srgb,var(--champ) 55%,var(--line));}
+.fx-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.fx-season{font-weight:700;font-size:16px;}
+.fx-score{margin-left:auto;color:var(--ink-3);font-size:13px;white-space:nowrap;}
+.fx-badge{background:var(--champ-tint);color:var(--champ-ink);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 8px;border-radius:999px;}
+.fx-sides{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.fx-side{min-width:0;}
+.fx-team{font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.fx-lose .fx-team{color:var(--ink-2);}
+.fx-stars{display:flex;flex-direction:column;gap:4px;font-size:13px;}
+.fx-star b{font-weight:700;color:var(--ink-2);margin-left:2px;}
+.fx-star i{font-style:normal;color:var(--ink-3);font-size:12px;margin-left:6px;}
+.fx-fmvp{margin-top:6px;font-size:12px;color:var(--champ-ink);}
+.fx-more{justify-self:center;}
+.fx-count{margin:6px 0 10px;font-size:13px;}
+.fx-note{font-size:12px;margin:4px 0 8px;}
+.fx-toolbar{margin-bottom:0;}
+.fx-grid > div:last-child .chart-card{margin-bottom:14px;}
+@media (max-width:640px){.fx-sides{grid-template-columns:1fr;gap:10px;}.fx-lose{border-top:1px solid var(--line);padding-top:8px;}}
+/* Player page Finals card */
+.pf-list{display:grid;gap:6px;}
+.pf-row{display:grid;grid-template-columns:76px 48px 1fr auto;gap:8px;align-items:baseline;font-size:13px;}
+.pf-res{font-weight:700;font-size:12px;text-align:center;border-radius:4px;padding:1px 0;}
+.pf-w{background:var(--champ-tint);color:var(--champ-ink);} .pf-l{background:var(--silver-tint);color:var(--ink-2);}
+.pf-opp{min-width:0;}
+@media (max-width:640px){.pf-row{grid-template-columns:70px 44px 1fr;}.pf-score{display:none;}}
 </style>
 </head>
 <body>
@@ -811,6 +844,7 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
     <button data-sec="team" data-group="teams" class="nav-ghost" tabindex="-1" aria-hidden="true">Team</button>
     <button data-sec="season" data-group="seasons" onclick="openSeason()">Season Hub</button>
     <button data-sec="history" data-group="seasons" onclick="showSection('history')">League History</button>
+    <button data-sec="finals" data-group="seasons" onclick="showSection('finals')">Finals</button>
     <button data-sec="awards" data-group="seasons" onclick="showSection('awards')">Awards</button>
     <button data-sec="statleaders" data-group="seasons" onclick="showSection('statleaders')">Stat Leaders</button>
     <button data-sec="allnba" data-group="seasons" onclick="showSection('allnba')">All-NBA Teams</button>
@@ -843,6 +877,13 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
     <div class="atr-tabs" id="statTabs"></div>
     <div id="statContent"></div>
   </div>
+</div>
+
+<!-- FINALS -->
+<div id="sec-finals" class="section">
+  <div class="section-title">Finals</div>
+  <div class="section-sub">Every Finals head to head: both teams' stars, upsets, repeat matchups and rivalries</div>
+  <div id="finalsContent"></div>
 </div>
 
 <!-- AWARDS -->
@@ -913,7 +954,7 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
       <option value="1st Team:1">All-NBA 1st Team</option><option value="ROY">Rookie of the Year</option></select>
     <button class="icon-btn" id="playersModeBtn" onclick="toggleMode('players')">AVERAGES</button>
     <button class="icon-btn" id="playersExpandBtn" onclick="toggleExpand('players')">+ MORE COLS</button>
-    <select class="m-sort" aria-label="Sort by" onchange="mobileSort('players', this.value)"><option value="">Sort: default</option><option value="PTS">Points</option><option value="REB">Rebounds</option><option value="AST">Assists</option><option value="STL">Steals</option><option value="BLK">Blocks</option><option value="GP">Games</option><option value="Champions">Titles</option><option value="MVP">MVPs</option><option value="FMVP">Finals MVPs</option><option value="DPOY">DPOY</option><option value="All Stars">All-Stars</option><option value="All NBA Team">All-NBA</option></select>
+    <select class="m-sort" aria-label="Sort by" onchange="mobileSort('players', this.value)"><option value="">Sort: default</option><option value="Legacy">Legacy score</option><option value="PTS">Points</option><option value="REB">Rebounds</option><option value="AST">Assists</option><option value="STL">Steals</option><option value="BLK">Blocks</option><option value="GP">Games</option><option value="Champions">Titles</option><option value="MVP">MVPs</option><option value="FMVP">Finals MVPs</option><option value="DPOY">DPOY</option><option value="All Stars">All-Stars</option><option value="All NBA Team">All-NBA</option></select>
     <button class="icon-btn m-sort m-dir" id="playersSortDir" type="button" onclick="flipSortDir('players')" aria-label="Sort direction">↓ High first</button>
     <span class="results-count" id="playerCount"></span>
   </div>
@@ -931,7 +972,7 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
     <select id="top20PosFilter" onchange="filterTop20()"><option value="">All Positions</option><option>PG</option><option>SG</option><option>SF</option><option>PF</option><option>C</option></select>
     <button class="icon-btn" id="top20ModeBtn" onclick="toggleMode('top20')">TOTALS</button>
     <button class="icon-btn" id="top20ExpandBtn" onclick="toggleExpand('top20')">+ MORE COLS</button>
-    <select class="m-sort" aria-label="Sort by" onchange="mobileSort('top20', this.value)"><option value="">Sort: rank</option><option value="PTS">Points</option><option value="REB">Rebounds</option><option value="AST">Assists</option><option value="STL">Steals</option><option value="BLK">Blocks</option><option value="GP">Games</option><option value="Champions">Titles</option><option value="MVP">MVPs</option><option value="FMVP">Finals MVPs</option><option value="DPOY">DPOY</option><option value="All Stars">All-Stars</option><option value="All NBA Team">All-NBA</option></select>
+    <select class="m-sort" aria-label="Sort by" onchange="mobileSort('top20', this.value)"><option value="">Sort: rank</option><option value="Legacy">Legacy score</option><option value="PTS">Points</option><option value="REB">Rebounds</option><option value="AST">Assists</option><option value="STL">Steals</option><option value="BLK">Blocks</option><option value="GP">Games</option><option value="Champions">Titles</option><option value="MVP">MVPs</option><option value="FMVP">Finals MVPs</option><option value="DPOY">DPOY</option><option value="All Stars">All-Stars</option><option value="All NBA Team">All-NBA</option></select>
     <button class="icon-btn m-sort m-dir" id="top20SortDir" type="button" onclick="flipSortDir('top20')" aria-label="Sort direction">↓ High first</button>
     <span class="results-count" id="top20Count"></span>
   </div>
@@ -955,7 +996,7 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
     <div class="search-wrap"><span class="icon"><svg class="ic"><use href="#i-search"/></svg></span><input type="text" id="posSearch" placeholder="Search players..." oninput="filterPos()"></div>
     <button class="icon-btn" id="posModeBtn" onclick="toggleMode('pos')">AVERAGES</button>
     <button class="icon-btn" id="posExpandBtn" onclick="toggleExpand('pos')">+ MORE COLS</button>
-    <select class="m-sort" aria-label="Sort by" onchange="mobileSort('pos', this.value)"><option value="">Sort: rank</option><option value="PTS">Points</option><option value="REB">Rebounds</option><option value="AST">Assists</option><option value="STL">Steals</option><option value="BLK">Blocks</option><option value="GP">Games</option><option value="Champions">Titles</option><option value="MVP">MVPs</option><option value="FMVP">Finals MVPs</option><option value="DPOY">DPOY</option><option value="All Stars">All-Stars</option><option value="All NBA Team">All-NBA</option></select>
+    <select class="m-sort" aria-label="Sort by" onchange="mobileSort('pos', this.value)"><option value="">Sort: rank</option><option value="Legacy">Legacy score</option><option value="PTS">Points</option><option value="REB">Rebounds</option><option value="AST">Assists</option><option value="STL">Steals</option><option value="BLK">Blocks</option><option value="GP">Games</option><option value="Champions">Titles</option><option value="MVP">MVPs</option><option value="FMVP">Finals MVPs</option><option value="DPOY">DPOY</option><option value="All Stars">All-Stars</option><option value="All NBA Team">All-NBA</option></select>
     <button class="icon-btn m-sort m-dir" id="posSortDir" type="button" onclick="flipSortDir('pos')" aria-label="Sort direction">↓ High first</button>
   </div>
   <div class="table-wrap"><table><thead><tr id="posHead"></tr></thead><tbody id="posBody"></tbody></table></div>
@@ -996,7 +1037,7 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
         <th onclick="sortHist('MVP')">MVP</th>
         <th onclick="sortHist('DPOY')">DPOY</th>
         <th onclick="sortHist('ROTY')">ROTY</th>
-        <th>Champion Star 1</th><th>Star 2</th><th>Star 3</th>
+        <th>Champion Star 1</th><th>Star 2</th><th>Star 3</th><th class="hist-ru-h">Runner-up Stars</th>
       </tr></thead>
       <tbody id="histBody"></tbody>
     </table></div>
@@ -1064,7 +1105,7 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
   <div class="toolbar">
     <div class="search-wrap"><span class="icon"><svg class="ic"><use href="#i-search"/></svg></span><input type="text" id="curSearch" placeholder="Search players..." oninput="filterCurrent()"></div>
     <select id="curPosFilter" onchange="filterCurrent()"><option value="">All Positions</option><option>PG</option><option>SG</option><option>SF</option><option>PF</option><option>C</option></select>
-    <select class="m-sort" aria-label="Sort by" onchange="mobileSort('cur', this.value)"><option value="">Sort: newest</option><option value="Champions">Titles</option><option value="MVP">MVPs</option><option value="FMVP">Finals MVPs</option><option value="DPOY">DPOY</option><option value="All Stars">All-Stars</option><option value="All NBA Team">All-NBA</option><option value="Exp">Experience</option></select>
+    <select class="m-sort" aria-label="Sort by" onchange="mobileSort('cur', this.value)"><option value="">Sort: newest</option><option value="Legacy">Legacy score</option><option value="Champions">Titles</option><option value="MVP">MVPs</option><option value="FMVP">Finals MVPs</option><option value="DPOY">DPOY</option><option value="All Stars">All-Stars</option><option value="All NBA Team">All-NBA</option><option value="Exp">Experience</option></select>
     <button class="icon-btn m-sort m-dir" id="curSortDir" type="button" onclick="flipSortDir('cur')" aria-label="Sort direction">↓ High first</button>
     <span class="results-count" id="curCount"></span>
   </div>
@@ -1626,22 +1667,28 @@ function parseWorkbook(wb) {
     const cROTY = H.findIndex(h => /^(roty|roy|rookie of the year)$/i.test(String(h || '').trim()));
     // "Champion Stars (Rating)" sits over three columns; use the ones that hold "Name (99)" values
     const hStars = H.findIndex(h => /champion stars/i.test(String(h || '')));
+    // "Runner-Up Stars (Rating)" works the same way, further right
+    const hRu = H.findIndex(h => /runner.?up stars/i.test(String(h || '')));
+    const looksStar = c => rows.slice(1).some(r => /\(\d+\)\s*$/.test(String(r[c] ?? '')));
+    const starsNear = (hc, limit) => [hc - 1, hc, hc + 1, hc + 2, hc + 3].filter(c => c >= 0 && c < limit && looksStar(c)).slice(0, 3);
     let starCols = [9, 10, 11];
     if (hStars >= 0) {
-      const looksStar = c => rows.slice(1, 40).some(r => /\(\d+\)\s*$/.test(String(r[c] ?? '')));
-      const near = [hStars - 1, hStars, hStars + 1, hStars + 2, hStars + 3].filter(c => c >= 0 && looksStar(c));
-      if (near.length) starCols = near.slice(0, 3);
+      const near = starsNear(hStars, hRu > hStars ? hRu - 1 : Infinity);
+      if (near.length) starCols = near;
     } else layoutWarn('NBA History', 'Couldn\'t find the "Champion Stars" header; reading columns J–L.');
+    const ruCols = hRu >= 0 ? starsNear(hRu, Infinity).filter(c => !starCols.includes(c)) : [];
     DB.history = rows.slice(1)
       .filter(r => r[cSeason] !== null && r[cSeason] !== undefined)
       .map(r => ({
         _row: rows.indexOf(r) + 1,
         Season: r[cSeason], MVP: r[cMVP], FMVP: r[cFMVP], Finals: r[cFinals], DPOY: r[cDPOY], ROTY: cROTY >= 0 ? r[cROTY] : undefined,
-        Star1: r[starCols[0]], Star2: r[starCols[1]], Star3: r[starCols[2]]
+        Star1: r[starCols[0]], Star2: r[starCols[1]], Star3: r[starCols[2]],
+        RU1: ruCols[0] !== undefined ? r[ruCols[0]] : undefined, RU2: ruCols[1] !== undefined ? r[ruCols[1]] : undefined, RU3: ruCols[2] !== undefined ? r[ruCols[2]] : undefined
       }));
     DB.historyCols = { MVP: cMVP, FMVP: cFMVP, DPOY: cDPOY };
     if (cROTY >= 0) DB.historyCols.ROTY = cROTY;
     DB.historyStarCols = starCols;
+    DB.historyRuCols = ruCols;
   }
 
   setProgress('Loading Teams...');
@@ -2044,7 +2091,8 @@ function buildPlayerIndex() {
 // Returns the player record a sheet name refers to, or null if unknown or ambiguous.
 // season (optional) picks between players who share a short name, e.g. "B.James".
 // Earlier names of players (normalised) -> the name used on their player row
-const NAME_ALIASES = { lalcindor: 'Kareem Abdul-Jabbar', lewalcindor: 'Kareem Abdul-Jabbar', chrisjackson: 'Mahmoud Abdul-Rauf', ronartest: 'Metta World Peace' };
+const NAME_ALIASES = { lalcindor: 'Kareem Abdul-Jabbar', lewalcindor: 'Kareem Abdul-Jabbar', chrisjackson: 'Mahmoud Abdul-Rauf', ronartest: 'Metta World Peace',
+  lebronjamesjr: 'Bronny James', lebronjamesjunior: 'Bronny James' };
 // A Retired # row's honoree, checked against the years they spent with the team
 function resolveRetired(r) {
   const y = String(r.years || '').match(/\d{4}/);
@@ -2095,6 +2143,10 @@ function resolvePlayer(raw, season) {
       // With a season, the misspelt name must belong to someone playing then:
       // "Connie Hawkins" (1969–1973) is not "Corie Hawkins" (2067–)
       let cands = closest(playerIndex, 'norm', n, n.length >= 10 ? 2 : 1);
+      // The surname may be off by one letter at most and the first name must start the same:
+      // "Paul Geogre" is Paul George, but "Charles Oakley" is not Charles Barkley
+      const last = s => s.split(' ').pop(), lastN = last(n);
+      cands = cands.filter(c => c.norm[0] === n[0] && editDistance(last(c.norm), lastN) <= 1);
       if (season) { const yr = Number(season); cands = cands.filter(c => !c.span || (yr >= c.span[0] && yr <= c.span[1])); }
       result = pick(cands);
     }
@@ -2207,6 +2259,7 @@ function buildPlayerHead(tblKey, mode, extraCols) {
     ${th('DTeam','D-Team')}
     ${exp ? th('1st D Team','1st-D')+th('2nd D Team','2nd-D') : ''}
     ${th('DPOY','DPOY')}
+    ${th('Legacy','Legacy')}
     <th>Retired#</th><th>Teams</th>`;
 }
 // Combined All-Defensive selections; a blank cell counts as 0
@@ -2247,6 +2300,7 @@ function buildPlayerRow(row, tblKey, mode, rank, showPos) {
     <td class="num">${dTeamTotal(row)}</td>
     ${exp ? `<td class="num">${row['1st D Team']||0}</td><td class="num">${row['2nd D Team']||0}</td>` : ''}
     <td class="num">${row.DPOY||0}</td>
+    <td class="num">${legacyCell(row)}</td>
     <td class="retired">${retiredNums(row).join(' · ')||'—'}</td>
     <td>${teamTags(row)}</td>
   </tr>`;
@@ -2262,6 +2316,7 @@ function sortedByMode(arr, key, mode) {
       if (av !== null && bv !== null) return (av - bv) * dir;
     }
     if (col === 'DTeam') return (dTeamTotal(a) - dTeamTotal(b)) * dir;
+    if (col === 'Legacy') return ((legacyRow(a)?.score ?? -1) - (legacyRow(b)?.score ?? -1)) * dir;
     // Season column: sort by the numeric year part (e.g. "2004-24" -> 2004)
     if (col === 'Season') {
       const ay = parseInt(String(a[col]||'0').split('-')[0]) || 0;
@@ -2283,7 +2338,7 @@ function onSort(key, col) {
 // =====================================================================
 // SECTION NAVIGATION
 // =====================================================================
-const SECTIONS = ['overview','players','top20','bypos','current','draft','compare','player','legacy','settings','teams','team','awards','season','history','statleaders','allnba','decades','records','leaders'];
+const SECTIONS = ['overview','players','top20','bypos','current','draft','compare','player','legacy','settings','teams','team','awards','finals','season','history','statleaders','allnba','decades','records','leaders'];
 function showSection(id) {
   if (!SECTIONS.includes(id)) id = 'overview';
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -2312,6 +2367,7 @@ function showSection(id) {
   if (location.hash.slice(1) !== hash) history.replaceState(null, '', '#' + hash);
   if (id === 'draft') renderDraft();
   if (id === 'awards') renderAwards();
+  if (id === 'finals') renderFinals();
   if (id === 'legacy') renderLegacy();
   if (id === 'settings') { renderSettings(); markDataProblemsSeen(); }
   if (id !== 'player' && id !== 'team') { try { localStorage.setItem('nba2k17-tab', id); } catch(e) {} }
@@ -3097,7 +3153,7 @@ function filterHistory() {
   const q = document.getElementById('histSearch').value.toLowerCase();
   histState.filtered = DB.history.filter(h =>
     !q || String(h.Season).includes(q) ||
-    ['MVP','FMVP','DPOY','ROTY','Finals','Star1','Star2','Star3'].some(k => String(h[k]||'').toLowerCase().includes(q)) ||
+    ['MVP','FMVP','DPOY','ROTY','Finals','Star1','Star2','Star3','RU1','RU2','RU3'].some(k => String(h[k]||'').toLowerCase().includes(q)) ||
     fullTeamName(extractChampTeam(h.Finals||'')).toLowerCase().includes(q));
   histState.page = 1;
   renderHistory();
@@ -3134,6 +3190,7 @@ function renderHistory() {
       ${histName(h.DPOY, h.DPOYTeam)}
       ${histName(h.ROTY, h.ROTYTeam)}
       ${starCell(h.Star1)}${starCell(h.Star2)}${starCell(h.Star3)}
+      ${DB.historyRuCols && DB.historyRuCols.length ? `<td class="hist-ru">${[h.RU1, h.RU2, h.RU3].filter(Boolean).map(s => { const r = String(s).match(/\((\d+)\)$/)?.[1]; return `${nameLink(String(s).replace(/\s*\(\d+\)\s*$/, '').trim(), {season: h.Season})}${r ? ` <span class="muted">${r}</span>` : ''}`; }).join(', ') || '<span class="muted">—</span>'}</td>` : ''}
     </tr>`;
   }).join('');
   // Phones: one card per season instead of the nine-column table
@@ -3147,6 +3204,8 @@ function renderHistory() {
       <div class="hc-champ">${champAbbr ? `${icon('trophy', 'ic-champ')} ${teamIn(fullTeamName(champAbbr), h.Season)}${ru ? ` <span class="muted nowrap">over ${teamLink(ru, teamCode(ru))}</span>` : ''}` : '<span class="muted">Champion not recorded</span>'}</div>
       <div class="hc-awards">${award('Finals MVP', h.FMVP, h.FMVPTeam)}${award('MVP', h.MVP, h.MVPTeam)}${award('DPOY', h.DPOY, h.DPOYTeam)}${award('ROTY', h.ROTY, h.ROTYTeam)}</div>
       ${stars.length ? `<div class="hc-stars"><span>Champion stars</span> ${stars.join(' · ')}</div>` : ''}
+      ${(() => { const rs = [h.RU1, h.RU2, h.RU3].filter(Boolean).map(s => { const r = String(s).match(/\((\d+)\)$/)?.[1]; return `${nameLink(nm(s), { season: h.Season })}${r ? ` <span class="muted">${r}</span>` : ''}`; });
+        return rs.length ? `<div class="hc-stars hc-ru"><span>Runner-up stars</span> ${rs.join(' · ')}</div>` : ''; })()}
     </div>`;
   }).join('');
   renderPag('histPag', filtered.length, perPage, page, 'goHistPage');
@@ -3461,12 +3520,17 @@ function renderSeason() {
     ${best ? tile('Best Record', teamIn(best.team, yr), `${best.w}-${best.l}`) : ''}
   </div>`);
 
-  const stars = h ? [h.Star1, h.Star2, h.Star3].filter(Boolean) : [];
-  if (stars.length) sections.push(`<div class="chart-card"><div class="chart-title">${icon('star')} Champion Stars <span class="muted">(rating)</span></div>
+  // Champion and runner-up stars, each with the role the legacy score gives them
+  const starCard = (title, list, roleMap, team) => {
+    const stars = list.filter(Boolean); if (!stars.length) return;
+    sections.push(`<div class="chart-card"><div class="chart-title">${icon('star')} ${title} <span class="muted">(rating)</span>${team ? ` <span class="muted">· ${teamIn(team, yr)}</span>` : ''}</div>
     <div class="decade-player-chips">${stars.map(st => {
       const clean = String(st).replace(/\s*\(\d+\)\s*$/, '').trim(), rating = String(st).match(/\((\d+)\)$/)?.[1];
-      return `<div class="decade-chip starter">${nameLink(clean, {season: yr})}${rating ? ` <span class="muted">(${rating})</span>` : ''}</div>`;
+      const p = resolvePlayer(clean, yr), role = p && (legacyContext()[roleMap][p.Player] || []).find(r => r.yr === yr);
+      return `<div class="decade-chip starter">${nameLink(clean, {season: yr})}${rating ? ` <span class="muted">(${rating})</span>` : ''}${role ? ` <span class="muted">· ${role.label}</span>` : ''}</div>`;
     }).join('')}</div></div>`);
+  };
+  if (h) { starCard('Champion Stars', [h.Star1, h.Star2, h.Star3], 'roles', champ); starCard('Runner-up Stars', [h.RU1, h.RU2, h.RU3], 'ruRoles', ru); }
 
   const sl = DB.statLeaders.find(x => Number(x.Season) === yr);
   const leaders = [['Points','PtsLeader','PtsTeam','PPG'],['Rebounds','RebLeader','RebTeam','RPG'],['Assists','AstLeader','AstTeam','APG'],
@@ -3748,12 +3812,14 @@ function renderCurrent() {
     <th class="num" onclick="onSortCur('1st D Team')">1st-D${curSI('1st D Team')}</th>
     <th class="num" onclick="onSortCur('2nd D Team')">2nd-D${curSI('2nd D Team')}</th>
     <th class="num" onclick="onSortCur('DPOY')">DPOY${curSI('DPOY')}</th>
+    <th class="num" onclick="onSortCur('Legacy')">Legacy${curSI('Legacy')}</th>
     <th>ROTY</th>
     <th onclick="onSortCur('Other Award')">Other${curSI('Other Award')}</th>
     <th>Teams</th>`;
   // Sort current players
   const curS = sortStates.cur || {col:'Season', dir:1};
   const curSorted = [...curState.filtered].sort((a,b) => {
+    if (curS.col === 'Legacy') return ((legacyRow(a)?.score ?? -1) - (legacyRow(b)?.score ?? -1)) * curS.dir;
     const av = a[curS.col], bv = b[curS.col];
     const an = parseFloat(av), bn = parseFloat(bv);
     if (!isNaN(an) && !isNaN(bn)) return (an - bn) * curS.dir;
@@ -3782,6 +3848,7 @@ function renderCurrent() {
       <td class="num">${p['1st D Team']||0}</td>
       <td class="num">${p['2nd D Team']||0}</td>
       <td class="num">${p.DPOY||0}</td>
+      <td class="num">${legacyCell(p)}</td>
       <td>${roty?'Yes':'<span class="muted">—</span>'}</td>
       <td class="muted">${other&&other!=='/'&&other!==0?other:'—'}</td>
       <td>${[...new Set(teams)].map(t=>`<span class="team-tag">${teamLink(t)}</span>`).join(' ')}</td>
@@ -3889,6 +3956,11 @@ function careerEvents(name) {
     if ([h.Star1, h.Star2, h.Star3].some(x => isMe(x, yr)) || isMe(h.FMVP, yr)) {
       const role = (legacyContext().roles[name] || []).find(r => r.yr === yr);
       add(yr, 'Champion', 'ev-champ', role ? `Title as ${role.label}` : '');
+    }
+    if ([h.RU1, h.RU2, h.RU3].some(x => isMe(x, yr))) {
+      const role = (legacyContext().ruRoles[name] || []).find(r => r.yr === yr);
+      const winner = finalsTeams(yr).champ;
+      add(yr, 'Conference Title', 'ev-ru', `Lost the Finals${winner ? ' to the ' + winner : ''}${role ? ' as ' + role.label : ''}`);
     }
     if (isMe(h.FMVP, yr)) add(yr, 'Finals MVP', 'ev-fmvp');
     if (isMe(h.MVP, yr)) add(yr, 'MVP', 'ev-mvp');
@@ -4030,7 +4102,11 @@ function renderPlayerPage() {
       <button class="card-link" onclick="showSection('legacy')">Full ranking</button></div>
     <div class="legacy-total fold-keep"><b>${Math.round(L.total).toLocaleString()}</b><span>points${rk ? ` · #${rk} of ${everyPlayer().length}` : ''}</span></div>
     ${partRows.length ? `<div class="lg-parts">${partRows.map(r => `<div class="lg-part"><span>${r.label}</span><span class="lg-track"><i style="width:${Math.max(2, r.v / partRows[0].v * 100)}%"></i></span><b>${Math.round(r.v).toLocaleString()}</b></div>`).join('')}</div>` : '<p class="muted">No points yet.</p>'}
-    ${roleLine ? `<div class="lg-roles"><b>Titles:</b> ${roleLine}</div>` : ''}</div>`;
+    ${roleLine ? `<div class="lg-roles"><b>Titles:</b> ${roleLine}</div>` : ''}
+    ${(() => { const rr = legacyContext().ruRoles[p.Player] || [], cnt = {}; rr.forEach(r => cnt[r.label] = (cnt[r.label] || 0) + 1);
+      const un = Math.max(0, n('Finals App') - n('Champions') - rr.length);
+      const line = [...Object.entries(cnt).sort((a, b) => ROLE_ORDER.indexOf(a[0]) - ROLE_ORDER.indexOf(b[0])).map(([l, c]) => `${c} as ${l}`), ...(un ? [`${un} as rotation player`] : [])].join(' · ');
+      return line ? `<div class="lg-roles lg-roles-ru"><b>Conference titles:</b> ${line}</div>` : ''; })()}</div>`;
   const shelfHtml = `<div class="chart-card"><div class="chart-title">${icon('trophy', 'ic-champ')} Trophy Shelf</div>
     ${shelf.length ? `<div class="trophy-shelf">${shelf.map(([ic, label, count, tone]) => `<div class="trophy ${tone}">${icon(ic)}<b>${count}</b><span>${label}</span></div>`).join('')}</div>` : '<p class="muted">No awards recorded yet.</p>'}
     </div>`;
@@ -4088,17 +4164,37 @@ function renderPlayerPage() {
     if (from >= to || spells.some(sp => sp.from < to && (sp.to === 'present' ? Infinity : sp.to) > from)) return '';
     return `${from}–${next.from}`;
   });
+  // Conference titles (Finals losses) per stop: listed runner-up seasons go to the stop whose years
+  // cover them (or the only stop with that team); a one-team career gets every loss
+  const ruYears = (legacyContext().ruRoles[p.Player] || []).map(r => r.yr);
+  const nn = k => { const v = getNum(p[k]); return v === -Infinity ? 0 : Math.round(v); };
+  const confTitlesAt = i => {
+    const t = teams[i];
+    if (oneTeam) return Math.max(ruYears.length, nn('Finals App') - nn('Champions'));
+    return ruYears.filter(y => {
+      if (finalsTeams(y).ru !== t) return false;
+      const stops = teams.map((x, j) => j).filter(j => teams[j] === t);
+      if (stops.length === 1) return true;
+      const covering = stops.find(j => (yearsOf[j] || '').split(/\s*,\s*/).some(sp => { const e = ends(sp); return e && e.from < y && y <= (e.to === 'present' ? Infinity : e.to); }));
+      return covering === undefined ? i === stops[0] : covering === i;
+    }).length;
+  };
   if (teams.length) parts.push(`<div class="chart-card"><div class="chart-title">${icon('jersey')} Team Journey</div>
     <div class="journey">${teams.map((t, i) => {
       const red = p._titleStints, ret = retired.filter(r => r.team === t);
       // With red cells, mark the exact stint; a team with two red stints gets no count (it isn't known per stint)
       const twice = red && teams.filter((x, j) => x === t && red[j]).length > 1;
       const titles = red && !red[i] ? 0 : titlesWithTeam(p, t), label = twice ? 'Title' : `${titles} title${titles > 1 ? 's' : ''}`;
+      const conf = confTitlesAt(i), confLabel = `${conf} conf. title${conf > 1 ? 's' : ''}`;
       return `${i ? '<span class="journey-arrow" aria-hidden="true">→</span>' : ''}<div class="journey-stop">
         <span class="journey-n">${i + 1}</span>${teamLink(t, t)}
         ${yearsOf[i] ? `<span class="journey-years">${yearsOf[i]}</span>` : ''}
-        <span class="journey-tags">${titles ? `<em class="tag-gold">${icon('trophy')} ${label}</em>` : ''}${ret.map(r => `<em class="tag-ret">#${r.num} retired</em>`).join('')}</span></div>`;
+        <span class="journey-tags">${titles ? `<em class="tag-gold">${icon('trophy')} ${label}</em>` : ''}${conf ? `<em class="tag-silver">${icon('trophy')} ${confLabel}</em>` : ''}${ret.map(r => `<em class="tag-ret">#${r.num} retired</em>`).join('')}</span></div>`;
     }).join('')}</div></div>`);
+
+  // Finals the player played in as a listed star
+  const finalsHtml = playerFinalsHtml(p);
+  if (finalsHtml) parts.push(finalsHtml);
 
   // Career numbers
   if (hasStats) {
@@ -4117,11 +4213,11 @@ function renderPlayerPage() {
   // Timeline
   const timeline = careerEvents(p.Player);
   if (timeline.length) parts.push(`<div class="chart-card"><div class="chart-title">${icon('calendar')} Career Timeline</div>
-    <div class="tl-key">${[['ev-champ', 'Title'], ['ev-fmvp', 'Finals MVP'], ['ev-mvp', 'MVP'], ['ev-dpoy', 'DPOY'], ['ev-nba1', 'All-NBA'], ['ev-stat', 'Stat leader'], ['ev-roy', 'Rookie']]
+    <div class="tl-key">${[['ev-champ', 'Title'], ['ev-fmvp', 'Finals MVP'], ['ev-mvp', 'MVP'], ['ev-dpoy', 'DPOY'], ['ev-ru', 'Conference Title'], ['ev-nba1', 'All-NBA'], ['ev-stat', 'Stat leader'], ['ev-roy', 'Rookie']]
       .filter(([c]) => timeline.some(t => t.items.some(e => c === 'ev-nba1' ? /^ev-nba/.test(e.cls) : c === 'ev-roy' ? /^ev-(roy|rookie)$/.test(e.cls) : e.cls === c)))
       .map(([c, l]) => `<span class="tl-chip ${c}">${l}</span>`).join('')}</div>
     <div class="timeline">${timeline.map(t => `<div class="tl-row"><div class="tl-season">${seasonLink(t.yr)}</div>
-      <div class="tl-items">${t.items.map(e => `<span class="tl-chip ${e.cls}"${e.tip ? ` title="${e.tip}"` : ''}>${e.cls === 'ev-champ' && e.label === 'Champion' ? icon('trophy','ic-champ') + ' ' : ''}${e.label}</span>`).join('')}</div></div>`).join('')}</div></div>`);
+      <div class="tl-items">${t.items.map(e => `<span class="tl-chip ${e.cls}"${e.tip ? ` title="${e.tip}"` : ''}>${e.cls === 'ev-champ' && e.label === 'Champion' ? icon('trophy','ic-champ') + ' ' : e.cls === 'ev-ru' ? icon('trophy','ic-silver') + ' ' : ''}${e.label}</span>`).join('')}</div></div>`).join('')}</div></div>`);
 
   // Similar players
   const sim = similarPlayers(p, 5);
@@ -4261,14 +4357,14 @@ function renderAwards() {
     const team = x.team || (awardTab === 'FMVP' ? champOf(x.yr) : null);
     return `<tr><td class="stick-1">${seasonLink(x.yr)}${x.guess ? '<span class="muted" title="Year not in NBA History; shown in the first season"> *</span>' : ''}</td><td>${nameLink(x.name, { season: x.yr })} ${p ? posBadge(p.Position) : ''}</td>
       <td class="nowrap">${team ? teamLink(team, teamCode(team)) : '<span class="muted">—</span>'}</td>
-      <td class="num">${x.nth > 1 ? `<b>${ordinal(x.nth)}</b>` : '1st'}</td></tr>`;
+      ${awardTab === 'ROY' ? '' : `<td class="num">${x.nth > 1 ? `<b>${ordinal(x.nth)}</b>` : '1st'}</td>`}</tr>`;
   }).join('');
   const most = withRanks(Object.entries(counts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).filter(([, c]) => c >= 2).slice(0, 15), ([, c]) => c);
   const span = list.length ? `${seasonLabel(list[0].yr)} to ${seasonLabel(list[list.length - 1].yr)}` : '';
   document.getElementById('awardsSub').textContent = `${list.length} ${awardTab === 'ROY' ? 'Rookies of the Year' : label + ' winners'} from NBA History${span ? ', ' + span : ''}`
     + (guessed ? ` · * ${guessed} from All Players, shown in the first season` : '');
   document.getElementById('awardsContent').innerHTML = `<div class="player-grid">
-    <div><div class="table-wrap stat-table"><table><thead><tr><th class="stick-1">Season</th><th>${label}</th><th>Team</th><th class="num" title="Which win of the player's career">Win</th></tr></thead><tbody>${rows || '<tr><td colspan="4" class="muted">No winners recorded.</td></tr>'}</tbody></table></div></div>
+    <div><div class="table-wrap stat-table"><table><thead><tr><th class="stick-1">Season</th><th>${label}</th><th>Team</th>${awardTab === 'ROY' ? '' : `<th class="num" title="Which win of the player's career">Win</th>`}</tr></thead><tbody>${rows || '<tr><td colspan="4" class="muted">No winners recorded.</td></tr>'}</tbody></table></div></div>
     <div>${(() => {
       // Which franchises its winners played for (from the logos beside each name in NBA History)
       const byTeam = {};
@@ -4569,6 +4665,9 @@ const LEGACY_SCHEMA = [
   { group: 'Championship roles (NBA History champion stars)', items: [['roleSingle', 'Only star listed (single core)', 120], ['roleFranchise', 'Top star (franchise player)', 100],
       ['roleCoStar', 'Co-stars (top two within the rating gap)', 80], ['roleSecond', 'Second star', 70], ['roleCore', 'Third star (core)', 60],
       ['roleRotation', 'Title as a non-listed player (rotation)', 25], ['coStarGap', 'Co-star rating gap', 2]] },
+  { group: 'Finals runner-up roles (NBA History runner-up stars)', items: [['ruSingle', 'Only star listed (single core)', 60], ['ruFranchise', 'Top star (franchise player)', 50],
+      ['ruCoStar', 'Co-stars (top two within the rating gap)', 40], ['ruSecond', 'Second star', 35], ['ruCore', 'Third star (core)', 30],
+      ['ruRotation', 'Finals loss as a non-listed player (rotation)', 12]] },
   { group: 'Career production', items: [['pts1000', 'Per 1,000 career points', 8], ['other1000', 'Per 1,000 rebounds, assists or steals + blocks', 4]] },
 ];
 const LEGACY_DEFAULTS = Object.fromEntries(LEGACY_SCHEMA.flatMap(g => g.items.map(([k, , v]) => [k, v])));
@@ -4597,24 +4696,30 @@ function decayedPoints(base, count, step, floor, seasons, streak) {
 // Seasons, roles and stat titles per player, read once from NBA History and Season Stat Leader
 function legacyContext() {
   return cached('legacyContext', () => {
-    const w = legacyWeights(), ctx = { mvp: {}, fmvp: {}, roles: {}, titles: {}, firstHistory: Infinity };
+    const w = legacyWeights(), ctx = { mvp: {}, fmvp: {}, roles: {}, ruRoles: {}, titles: {}, firstHistory: Infinity };
     const push = (map, p, v) => (map[p.Player] = map[p.Player] || []).push(v);
     DB.history.forEach(h => {
       const yr = Number(h.Season);
       if (isNaN(yr)) return;
       ctx.firstHistory = Math.min(ctx.firstHistory, yr);
       [['MVP', 'mvp'], ['FMVP', 'fmvp']].forEach(([k, m]) => { const p = h[k] && h[k] !== '-' ? resolvePlayer(h[k], yr) : null; if (p) push(ctx[m], p, yr); });
-      const stars = [h.Star1, h.Star2, h.Star3].filter(x => x && x !== '-').map(x => {
-        const r = String(x).match(/\((\d+)\)\s*$/);
-        return { p: resolvePlayer(String(x).replace(/\s*\(\d+\)\s*$/, '').trim(), yr), rating: r ? Number(r[1]) : null };
-      });
-      if (!stars.length) return;
-      const coStars = stars.length > 1 && stars[0].rating !== null && stars[1].rating !== null && stars[0].rating - stars[1].rating <= w.coStarGap;
-      stars.forEach((st, i) => {
-        if (!st.p) return;
-        const role = stars.length === 1 ? ['roleSingle', 'single core'] : coStars && i < 2 ? ['roleCoStar', 'co-star'] : i === 0 ? ['roleFranchise', 'franchise player'] : i === 1 ? ['roleSecond', 'second star'] : ['roleCore', 'core'];
-        push(ctx.roles, st.p, { yr, key: role[0], label: role[1] });
-      });
+      // Champion and runner-up stars get roles the same way: one listed star is a single core,
+      // top two within the rating gap are co-stars, otherwise franchise / second / core
+      const assign = (list, map, keys) => {
+        const stars = list.filter(x => x && x !== '-').map(x => {
+          const r = String(x).match(/\((\d+)\)\s*$/);
+          return { p: resolvePlayer(String(x).replace(/\s*\(\d+\)\s*$/, '').trim(), yr), rating: r ? Number(r[1]) : null };
+        });
+        if (!stars.length) return;
+        const coStars = stars.length > 1 && stars[0].rating !== null && stars[1].rating !== null && stars[0].rating - stars[1].rating <= w.coStarGap;
+        stars.forEach((st, i) => {
+          if (!st.p) return;
+          const k = stars.length === 1 ? 0 : coStars && i < 2 ? 2 : i === 0 ? 1 : i === 1 ? 3 : 4;
+          push(map, st.p, { yr, key: keys[k], label: ['single core', 'franchise player', 'co-star', 'second star', 'core'][k] });
+        });
+      };
+      assign([h.Star1, h.Star2, h.Star3], ctx.roles, ['roleSingle', 'roleFranchise', 'roleCoStar', 'roleSecond', 'roleCore']);
+      assign([h.RU1, h.RU2, h.RU3], ctx.ruRoles, ['ruSingle', 'ruFranchise', 'ruCoStar', 'ruSecond', 'ruCore']);
     });
     [['PtsLeader', 'ptsTitle'], ['RebLeader', 'rebTitle'], ['AstLeader', 'astTitle'], ['StlLeader', 'stlTitle'], ['BlkLeader', 'blkTitle']].forEach(([k, key]) =>
       DB.statLeaders.forEach(r => { const p = r[k] ? resolvePlayer(r[k], r.Season) : null; if (p) { const t = (ctx.titles[p.Player] = ctx.titles[p.Player] || {}); t[key] = (t[key] || 0) + 1; } }));
@@ -4634,6 +4739,8 @@ function legacy(p) {
     // estimated from career level; any other title counts as a rotation player's
     const roles = ctx.roles[p.Player] || [];
     const unlisted = Math.max(0, n('Champions') - roles.length);
+    const ruRoles = ctx.ruRoles[p.Player] || [];
+    const unlistedLosses = Math.max(0, n('Finals App') - n('Champions') - ruRoles.length);
     const span = careerSpan(p.Season);
     const preHistoryRole = n('MVP') > 0 ? w.roleFranchise : (n('1st Team') > 0 || n('All Stars') >= 5) ? w.roleCore : w.roleRotation;
     const unlistedEach = span && span[0] < ctx.firstHistory ? preHistoryRole : w.roleRotation;
@@ -4642,6 +4749,8 @@ function legacy(p) {
       mvp: decayedPoints(w.mvp, n('MVP'), w.mvpStep, w.mvpFloor, ctx.mvp[p.Player], true),
       fmvp: decayedPoints(w.fmvp, n('FMVP'), w.fmvpStep, w.fmvpFloor, ctx.fmvp[p.Player], true),
       titles: roles.reduce((a, r) => a + w[r.key], 0) + unlisted * unlistedEach,
+      // Finals losses: listed runner-up stars by role, every other loss as a rotation player
+      finals: ruRoles.reduce((a, r) => a + w[r.key], 0) + unlistedLosses * w.ruRotation,
       teams: teamPicks.sort((a, b) => b - a).reduce((a, v, k) => a + v * Math.max(w.teamFloor, 1 - w.teamStep * k), 0),
       allStar: decayedPoints(w.allStar, n('All Stars'), w.allStarStep, w.allStarFloor),
       dpoy: decayedPoints(w.dpoy, n('DPOY'), w.dpoyStep, w.dpoyFloor),
@@ -4656,7 +4765,7 @@ function legacy(p) {
     return { total, parts };
   });
 }
-const LEGACY_PARTS = [['mvp', 'MVP'], ['fmvp', 'Finals MVP'], ['titles', 'Title roles'], ['teams', 'All-NBA / Def / Rookie'], ['allStar', 'All-Star'], ['dpoy', 'DPOY'], ['statTitles', 'Stat titles'], ['other', 'ROY / 6MOY / MIP'], ['production', 'Production']];
+const LEGACY_PARTS = [['mvp', 'MVP'], ['fmvp', 'Finals MVP'], ['titles', 'Title roles'], ['finals', 'Conference titles'], ['teams', 'All-NBA / Def / Rookie'], ['allStar', 'All-Star'], ['dpoy', 'DPOY'], ['statTitles', 'Stat titles'], ['other', 'ROY / 6MOY / MIP'], ['production', 'Production']];
 function legacyRatio() {
   try { const v = localStorage.getItem('nba2k17-legacy-ratio'); return v === null || isNaN(Number(v)) ? 50 : Math.min(100, Math.max(0, Number(v))); } catch (e) { return 50; }
 }
@@ -4677,6 +4786,9 @@ function legacyRanking() {
   return cached('legacyRanking', () => withRanks(everyPlayer().map(p => ({ p, score: legacy(p).total })).sort((a, b) => b.score - a.score), r => Math.round(r.score)));
 }
 const legacyRankOf = p => legacyRanking().find(r => r.p === p)?.rank;
+// Legacy score and rank for any list row (Top 20 and position sheets hold copies of the player)
+const legacyRow = row => { const p = everyPlayer().includes(row) ? row : resolvePlayer(row.Player); return p ? { p, score: legacy(p).total, rank: legacyRankOf(p) } : null; };
+const legacyCell = row => { const l = legacyRow(row); return l ? `<span title="${Math.round(l.score).toLocaleString()} legacy points">#${l.rank}</span>` : '<span class="muted">—</span>'; };
 
 // Closest statistical matches: distance between standardized per-game profiles
 const SIM_KEYS = [
@@ -4827,6 +4939,161 @@ function legendsHtml(team) {
 }
 </script>
 <script>
+// 2K17 NBA Stats Database · Finals page (every Finals head to head, upsets, matchups, rivalries)
+// and the Finals card on player pages. Built from NBA History: Finals, Champion Stars, Runner-Up Stars.
+
+// One entry per Finals: both teams and their listed stars ("Name (rating)")
+function finalsData() {
+  return cached('finalsData', () => DB.history.map(h => {
+    const yr = Number(h.Season), { champ, ru } = finalsTeams(yr);
+    if (isNaN(yr) || !champ || !ru) return null;
+    const stars = list => list.filter(x => x && x !== '-').map(x => {
+      const m = String(x).match(/^(.*?)\s*\((\d+)\)\s*$/), name = (m ? m[1] : String(x)).trim();
+      const p = resolvePlayer(name, yr);
+      return { name, key: p ? p.Player : name, p, r: m ? Number(m[2]) : null };
+    });
+    const cs = stars([h.Star1, h.Star2, h.Star3]), rs = stars([h.RU1, h.RU2, h.RU3]);
+    const top = s => s.length && s[0].r !== null ? Math.max(...s.filter(x => x.r !== null).map(x => x.r)) : null;
+    const ct = top(cs), rt = top(rs);
+    // An upset: the runner-up's best star was rated higher than the champion's best star
+    const upset = ct !== null && rt !== null && rt > ct ? rt - ct : 0;
+    return { yr, h, champ, ru, score: finalsScore(h), cs, rs, ct, rt, upset, fmvp: h.FMVP && h.FMVP !== '-' ? h.FMVP : null };
+  }).filter(Boolean).sort((a, b) => b.yr - a.yr));
+}
+// Star duels: each team's top listed star against the other's, met in two or more Finals
+function finalsRivalries() {
+  return cached('finalsRivalries', () => {
+    const pairs = {};
+    const best = s => [...s].sort((a, b) => (b.r ?? 0) - (a.r ?? 0)).slice(0, 1);
+    finalsData().forEach(f => best(f.cs).forEach(a => best(f.rs).forEach(b => {
+      const [x, y] = [a.key, b.key].sort(), k = x + '|' + y;
+      const e = (pairs[k] = pairs[k] || { x, y, n: 0, wins: { [x]: 0, [y]: 0 }, yrs: [] });
+      e.n++; e.wins[a.key]++; e.yrs.push(f.yr);
+    })));
+    return Object.values(pairs).filter(e => e.n >= 2).sort((a, b) => b.n - a.n || Math.max(...b.yrs) - Math.max(...a.yrs));
+  });
+}
+// Franchise pairs that met in the Finals more than once
+function finalsMatchups() {
+  return cached('finalsMatchups', () => {
+    const m = {};
+    finalsData().forEach(f => {
+      const [x, y] = [f.champ, f.ru].sort(), k = x + '|' + y;
+      const e = (m[k] = m[k] || { x, y, n: 0, wins: { [x]: 0, [y]: 0 }, yrs: [] });
+      e.n++; e.wins[f.champ]++; e.yrs.push(f.yr);
+    });
+    return Object.values(m).filter(e => e.n >= 2).sort((a, b) => b.n - a.n || Math.max(...b.yrs) - Math.max(...a.yrs));
+  });
+}
+// Finals won and lost by each franchise
+function finalsByFranchise() {
+  return cached('finalsByFranchise', () => {
+    const t = {};
+    finalsData().forEach(f => { (t[f.champ] = t[f.champ] || { w: 0, l: 0 }).w++; (t[f.ru] = t[f.ru] || { w: 0, l: 0 }).l++; });
+    return Object.entries(t).map(([team, r]) => ({ team, ...r })).sort((a, b) => (b.w + b.l) - (a.w + a.l) || b.w - a.w);
+  });
+}
+
+const finalsState = { filter: 'all', q: '', shown: 20 };
+function setFinalsFilter(f) { finalsState.filter = f; finalsState.shown = 20; renderFinals(); }
+function onFinalsSearch(v) { finalsState.q = v.toLowerCase(); finalsState.shown = 20; renderFinalsList(); }
+function moreFinals() { finalsState.shown += 30; renderFinalsList(); }
+
+// Star chips for one side of a Finals, each with the role the legacy score gives it
+function finalsStars(list, yr, roleMap) {
+  if (!list.length) return '<span class="muted">No stars listed</span>';
+  return list.map(s => {
+    const role = s.p && (legacyContext()[roleMap][s.p.Player] || []).find(r => r.yr === yr);
+    return `<span class="fx-star">${nameLink(s.name, { season: yr })}${s.r !== null ? ` <b>${s.r}</b>` : ''}${role ? `<i>${role.label}</i>` : ''}</span>`;
+  }).join('');
+}
+function finalsCard(f) {
+  return `<div class="fx-card${f.upset ? ' fx-upset' : ''}">
+    <div class="fx-head"><span class="fx-season">${seasonLink(f.yr)}</span>${f.upset ? `<span class="fx-badge" title="The runner-up's best star was rated ${f.upset} higher">Upset</span>` : ''}<span class="fx-score">${f.h.Finals || ''}</span></div>
+    <div class="fx-sides">
+      <div class="fx-side fx-win"><div class="fx-team">${icon('trophy', 'ic-champ')} ${teamIn(f.champ, f.yr)}</div><div class="fx-stars">${finalsStars(f.cs, f.yr, 'roles')}</div>
+        ${f.fmvp ? `<div class="fx-fmvp">Finals MVP · ${nameLink(f.fmvp, { season: f.yr })}</div>` : ''}</div>
+      <div class="fx-side fx-lose"><div class="fx-team">${icon('trophy', 'ic-silver')} ${teamIn(f.ru, f.yr)}</div><div class="fx-stars">${finalsStars(f.rs, f.yr, 'ruRoles')}</div></div>
+    </div></div>`;
+}
+function finalsMatches(f) {
+  const q = finalsState.q;
+  if (finalsState.filter === 'upsets' && !f.upset) return false;
+  if (!q) return true;
+  return String(f.yr).includes(q) || seasonLabel(f.yr).includes(q) || [f.champ, f.ru].some(t => t.toLowerCase().includes(q)) ||
+    [...f.cs, ...f.rs].some(s => s.name.toLowerCase().includes(q)) || String(f.h.Finals || '').toLowerCase().includes(q);
+}
+function renderFinalsList() {
+  const list = finalsData().filter(finalsMatches), shown = list.slice(0, finalsState.shown);
+  document.getElementById('finalsCount').textContent = `${list.length} Finals`;
+  document.getElementById('finalsList').innerHTML = shown.map(finalsCard).join('') +
+    (list.length > shown.length ? `<button class="icon-btn fx-more" onclick="moreFinals()">Show more (${list.length - shown.length} left)</button>` : '') +
+    (list.length ? '' : '<p class="muted">No Finals match.</p>');
+}
+function renderFinals() {
+  const all = finalsData();
+  if (!all.length) { document.getElementById('finalsContent').innerHTML = '<p class="muted">No Finals in NBA History yet.</p>'; return; }
+  const upsets = all.filter(f => f.upset), riv = finalsRivalries(), mu = finalsMatchups(), fr = finalsByFranchise();
+  const hasRu = all.some(f => f.rs.length);
+  const tile = (label, value, sub) => `<div class="stat-card"><div class="label">${label}</div><div class="value value-name">${value}</div><div class="sub">${sub || '&nbsp;'}</div></div>`;
+  const biggest = [...upsets].sort((a, b) => b.upset - a.upset || b.yr - a.yr)[0];
+  const rivRow = e => { const [a, b] = [e.x, e.y]; return `<div class="rb-row"><span class="rb-rank">${e.n}</span><span class="rb-main">${nameLink(a)} <span class="muted">vs</span> ${nameLink(b)}</span>
+    <span class="rb-val">${e.wins[a]}–${e.wins[b]}</span><span class="rb-sub">${e.yrs.slice().sort((p, q) => p - q).map(y => seasonLink(y)).join(', ')}</span></div>`; };
+  const muRow = e => `<div class="rb-row"><span class="rb-rank">${e.n}</span><span class="rb-main">${teamLink(e.x, teamCode(e.x))} <span class="muted">vs</span> ${teamLink(e.y, teamCode(e.y))}</span>
+    <span class="rb-val">${e.wins[e.x]}–${e.wins[e.y]}</span><span class="rb-sub">last met ${seasonLabel(Math.max(...e.yrs))}</span></div>`;
+  document.getElementById('finalsContent').innerHTML = `
+    <div class="stats-cards">
+      ${tile('Finals played', all.length, `${seasonLabel(all[all.length - 1].yr)} to ${seasonLabel(all[0].yr)}`)}
+      ${hasRu ? tile('Upsets', upsets.length, biggest ? `biggest: ${seasonLabel(biggest.yr)}, ${teamCode(biggest.champ)} (+${biggest.upset})` : '') : ''}
+      ${mu[0] ? tile('Most common Finals', `${teamCode(mu[0].x)} vs ${teamCode(mu[0].y)}`, `${mu[0].n} times`) : ''}
+      ${riv[0] ? (() => { const sx = riv[0].x.split(' ').pop(), sy = riv[0].y.split(' ').pop(), same = sx === sy;
+        return tile('Top Finals rivalry', same ? `${riv[0].x} vs ${riv[0].y}` : `${sx} vs ${sy}`, `${riv[0].n} Finals, ${riv[0].wins[riv[0].x]}–${riv[0].wins[riv[0].y]}`); })() : ''}
+    </div>
+    <div class="player-grid fx-grid">
+      <div>
+        <div class="toolbar fx-toolbar"><div class="search-wrap"><span class="icon"><svg class="ic"><use href="#i-search"/></svg></span><input type="text" placeholder="Search season, team, player..." value="${finalsState.q}" oninput="onFinalsSearch(this.value)" aria-label="Search Finals"></div>
+          <div class="seg">${[['all', 'All Finals'], ['upsets', 'Upsets']].map(([k, l]) => `<button class="${finalsState.filter === k ? 'active' : ''}" onclick="setFinalsFilter('${k}')">${l}</button>`).join('')}</div></div>
+        <div class="muted fx-count" id="finalsCount"></div>
+        <div id="finalsList" class="fx-list"></div>
+      </div>
+      <div>
+        ${hasRu ? `<div class="chart-card rb-card"><div class="chart-title">${icon('people')} Finals Rivalries</div>
+          <p class="muted fx-note">Each team's top star against the other's, met in two or more Finals, with each one's wins.</p>
+          ${riv.length ? riv.slice(0, 15).map(rivRow).join('') : '<p class="muted">No two stars have met twice yet.</p>'}</div>` : ''}
+        <div class="chart-card rb-card"><div class="chart-title">${icon('trophy', 'ic-champ')} Most Common Finals</div>
+          ${mu.slice(0, 10).map(muRow).join('') || '<p class="muted">No repeat matchups yet.</p>'}</div>
+        <div class="chart-card rb-card"><div class="chart-title">${icon('list')} Finals Record by Franchise</div>
+          ${fr.slice(0, 15).map((r, i) => `<div class="rb-row"><span class="rb-rank">${i + 1}</span><span class="rb-main">${teamLink(r.team)}</span><span class="rb-val">${r.w}–${r.l}</span><span class="rb-sub">${r.w + r.l} Finals</span></div>`).join('')}</div>
+        ${hasRu ? `<p class="muted fx-note">Upset: the runner-up's best star was rated higher than the champion's best star.</p>` : ''}
+      </div>
+    </div>`;
+  renderFinalsList();
+}
+
+// Player page: every Finals the player was a listed star in (or Finals MVP), with the opponents
+function playerFinalsHtml(p) {
+  const rows = [];
+  finalsData().forEach(f => {
+    const won = f.cs.some(s => s.p === p) || (f.fmvp && resolvePlayer(f.fmvp, f.yr) === p), lost = f.rs.some(s => s.p === p);
+    if (won) rows.push({ f, won: true, opp: f.ru, oppStars: f.rs });
+    else if (lost) rows.push({ f, won: false, opp: f.champ, oppStars: f.cs });
+  });
+  if (!rows.length) return '';
+  const w = rows.filter(r => r.won).length, l = rows.length - w;
+  // Who they met most: opposing listed stars across their Finals
+  const met = {};
+  rows.forEach(r => r.oppStars.forEach(s => { const e = (met[s.key] = met[s.key] || { name: s.name, n: 0, w: 0 }); e.n++; if (r.won) e.w++; }));
+  const rivals = Object.values(met).filter(e => e.n >= 2).sort((a, b) => b.n - a.n).slice(0, 3);
+  return `<div class="chart-card"><div class="chart-title">${icon('trophy', 'ic-champ')} Finals <span class="muted">${w}–${l}</span></div>
+    <div class="pf-list">${rows.sort((a, b) => a.f.yr - b.f.yr).map(r => `<div class="pf-row">
+      <span class="pf-season">${seasonLink(r.f.yr)}</span><span class="pf-res ${r.won ? 'pf-w' : 'pf-l'}">${r.won ? 'Won' : 'Lost'}</span>
+      <span class="pf-opp">${r.won ? 'over' : 'to'} ${teamIn(r.opp, r.f.yr)}${r.oppStars.length ? ` <span class="muted">· ${r.oppStars.map(s => nameLink(s.name, { season: r.f.yr })).join(', ')}</span>` : ''}</span>
+      <span class="muted pf-score">${r.f.score}</span></div>`).join('')}</div>
+    ${rivals.length ? `<div class="lg-roles"><b>Finals rivals:</b> ${rivals.map(e => `${nameLink(e.name)} <span class="muted">(${e.n} Finals, ${e.w}–${e.n - e.w})</span>`).join(' · ')}</div>` : ''}
+    <p class="muted fx-note">Finals where the player is listed as a champion or runner-up star, or was Finals MVP.</p></div>`;
+}
+</script>
+<script>
 // 2K17 NBA Stats Database · Settings, Data Check, phone card lists and the installable app.
 // Loaded in order by index.html; all files share one global scope.
 
@@ -4888,9 +5155,14 @@ function runDataCheck() {
     const base = DB.allPlayers.find(x => x.Player === r.Player);
     if (!base) { add('warn', sheet, 'B' + r._row, `"${r.Player}" isn't in All Players.`); return; }
     if (POSITIONS.includes(sheet) && base.Position !== sheet) add('warn', sheet, 'B' + r._row, `${r.Player} is on the ${sheet} sheet, but All Players lists ${base.Position}.`);
-    const diffs = (list.headers || []).filter(k => k in base && !['Rank','Position','Rookie Team','RookieTeam','_row'].includes(k))
+    // Retired numbers are compared as a set: the same numbers in another order are fine
+    const retKeys = (list.headers || []).filter(k => /^# Retired/.test(k) && k in base);
+    const retSet = o => retKeys.map(k => String(o[k] ?? '').trim()).filter(Boolean).sort().join('|');
+    const diffs = (list.headers || []).filter(k => k in base && !retKeys.includes(k) && !['Rank','Position','Rookie Team','RookieTeam','_row'].includes(k))
       .filter(k => { const a = r[k], b = base[k]; return !((a ?? '') === (b ?? '') || (typeof a === 'number' && typeof b === 'number' && Math.abs(a - b) < 0.05)); });
-    if (diffs.length) add('warn', sheet, 'row ' + r._row, `${r.Player} differs from All Players row ${base._row} in ${diffs.slice(0, 4).map(k => `${k} (${r[k] ?? 'blank'} vs ${base[k] ?? 'blank'})`).join(', ')}${diffs.length > 4 ? ` and ${diffs.length - 4} more` : ''}.`);
+    const parts = diffs.map(k => `${k} ${r[k] ?? 'blank'} here, ${base[k] ?? 'blank'} in All Players`);
+    if (retKeys.length && retSet(r) !== retSet(base)) parts.push(`retired numbers ${retKeys.map(k => r[k]).filter(Boolean).join(', ') || 'none'} here, ${retKeys.map(k => base[k]).filter(Boolean).join(', ') || 'none'} in All Players`);
+    if (parts.length) add('warn', sheet, 'row ' + r._row, `${r.Player}'s ${sheet} row doesn't match All Players row ${base._row}: ${parts.slice(0, 4).join('; ')}${parts.length > 4 ? ` and ${parts.length - 4} more` : ''}.`);
   }));
   // 5. Award counts vs NBA History, for careers that History fully covers
   const firstHist = Math.min(...DB.history.map(h => Number(h.Season)).filter(y => !isNaN(y)));
@@ -4923,28 +5195,11 @@ function runDataCheck() {
     const p = resolvePlayer(clean, season);
     if (p && p.Player !== clean && !seen.has(sheet + clean)) { seen.add(sheet + clean); add('info', sheet, cell, `"${clean}" is spelled differently from "${p.Player}" in the player sheets.`); }
   };
-  const hc = { ...(DB.historyCols || {}) }; (DB.historyStarCols || []).forEach((c, i) => { hc['Star' + (i + 1)] = c; });
+  const hc = { ...(DB.historyCols || {}) }; (DB.historyStarCols || []).forEach((c, i) => { hc['Star' + (i + 1)] = c; }); (DB.historyRuCols || []).forEach((c, i) => { hc['RU' + (i + 1)] = c; });
   DB.history.forEach(h => Object.entries(hc).forEach(([k, c]) => coNames(h[k]).forEach(n => nameCheck('NBA History', XLSX.utils.encode_col(c) + h._row, n, h.Season))));
   [...DB.awardRecords, ...DB.allTimeStats].forEach(cat => cat.entries.forEach(e => nameCheck('NBA All-Time Record', `${cat.name} list`, e.player)));
   DB.decades.forEach(d => [...d.starter, ...d.subs].forEach(n => nameCheck('Decade NBA Team', d.decade, n)));
-  // 9. Players named in other sheets who have no row in All Players or Current Player
-  //    (their names can't link to a player page until they're added)
-  const missing = new Map();
-  const note = (raw, season, where) => {
-    if (!raw || raw === '-') return;
-    const clean = String(raw).replace(/\s*\(\d+\)\s*$/, '').trim();
-    if (!clean || resolvePlayer(clean, season)) return;
-    const k = normName(clean);
-    if (!missing.has(k)) missing.set(k, { name: clean, where: [] });
-    missing.get(k).where.push(where);
-  };
-  DB.allNbaSeasons.forEach(s => s.teams.forEach(t => t.slots.forEach(sl => note(sl.player, s.season, `All NBA Team ${seasonLabel(s.season)} (${['1st','2nd','3rd'][t.team - 1] || t.team} Team)`))));
-  DB.history.forEach(h => [['MVP', 'MVP'], ['FMVP', 'Finals MVP'], ['DPOY', 'DPOY'], ['ROTY', 'ROTY'], ['Star1', 'champion star'], ['Star2', 'champion star'], ['Star3', 'champion star']]
-    .forEach(([k, l]) => coNames(h[k]).forEach(n => note(n, h.Season, `NBA History ${seasonLabel(h.Season)} (${l})`))));
-  DB.statLeaders.forEach(r => STAT_LEADER_KEYS.forEach(k => note(r[k], r.Season, `Season Stat Leader ${seasonLabel(r.Season)}`)));
-  DB.decades.forEach(d => [...d.starter, ...d.subs].forEach(n => note(n, null, `Decade NBA Team ${d.decade}`)));
-  [...missing.values()].sort((a, b) => b.where.length - a.where.length || a.name.localeCompare(b.name)).forEach(m =>
-    add('info', 'All Players', '', `"${m.name}" isn't in All Players or Current Player, so the name can't link to a player page. Named in ${m.where.slice(0, 3).join('; ')}${m.where.length > 3 ? ` and ${m.where.length - 3} more` : ''}.`));
+  // (Names with no All Players or Current Player row are fine: not every player is worth a row)
   // 10. Team History: every season's wins and losses must balance, and its Finals
   //     column must agree with NBA History
   const thName = 'Team History BC';
@@ -5001,6 +5256,13 @@ function runDataCheck() {
       if (yr && covered.has(yr)) add('warn', 'All Players', cellOf(p, 'ROTY'), `${p.Player} is marked Rookie of the Year, but NBA History names someone else for ${seasonLabel(yr)}.`);
     });
   }
+  // 13. Runner-Up Stars: a player can't be listed for more Finals losses than Finals App − Champions
+  const ruSeen = {};
+  DB.history.forEach(h => [h.RU1, h.RU2, h.RU3].forEach(x => { const m = String(x || '').match(/^(.*?)\s*\(\d+\)\s*$/); const p = m && resolvePlayer(m[1].trim(), h.Season); if (p) (ruSeen[p.Player] = ruSeen[p.Player] || { p, yrs: [] }).yrs.push(Number(h.Season)); }));
+  Object.values(ruSeen).forEach(({ p, yrs }) => {
+    const n = k => { const v = getNum(p[k]); return v === -Infinity ? 0 : Math.round(v); }, losses = n('Finals App') - n('Champions');
+    if (yrs.length > losses) add('warn', isActive(p) ? 'Current Player' : 'All Players', cellOf(p, 'Finals App'), `${p.Player}: listed in Runner-Up Stars for ${yrs.length} Finals (${yrs.sort((a, b) => a - b).map(seasonLabel).join(', ')}), but Finals App − Champions = ${losses}.`);
+  });
   // 8. Gaps the user is still filling in
   const missingLeaders = DB.statLeaders.filter(r => !statRowEntered(r)).map(r => r.Season);
   if (missingLeaders.length) add('info', 'Season Stat Leader', '', `${missingLeaders.length} seasons have no leaders entered yet.`);
@@ -5086,7 +5348,7 @@ function playerCard(row, rank, mode, active) {
     <div class="pc-body">
       <div class="pc-top"><span class="pc-name">${row.Player}</span>${posBadge(row.Position)}</div>
       <div class="pc-meta">${row.Season || ''}${active ? '' : ' · ' + [...new Set(['Team','Team2','Team3'].map(k => row[k]).filter(Boolean))].join(', ')}</div>
-      <div class="pc-stats">${statsLine}</div>
+      <div class="pc-stats">${statsLine}${(() => { const l = legacyRow(row); return l ? `<span><b>#${l.rank}</b> legacy</span>` : ''; })()}</div>
       ${honors.length ? `<div class="pc-honors">${honors.join(' · ')}</div>` : ''}
     </div>
   </div>`;

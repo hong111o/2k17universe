@@ -743,3 +743,5 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
 .pf-w{background:var(--champ-tint);color:var(--champ-ink);} .pf-l{background:var(--silver-tint);color:var(--ink-2);}
 .pf-opp{min-width:0;}
 @media (max-width:640px){.pf-row{grid-template-columns:70px 44px 1fr;}.pf-score{display:none;}}
+.fx-power{color:var(--ink-3);font-size:12px;white-space:nowrap;}
+@media (max-width:640px){.fx-head{flex-wrap:wrap;}.fx-power{order:3;width:100%;}}
