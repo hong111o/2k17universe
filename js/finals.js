@@ -147,11 +147,14 @@ function playerFinalsHtml(p) {
   const met = {};
   rows.forEach(r => r.oppStars.forEach(s => { const e = (met[s.key] = met[s.key] || { name: s.name, n: 0, w: 0 }); e.n++; if (r.won) e.w++; }));
   const rivals = Object.values(met).filter(e => e.n >= 2).sort((a, b) => b.n - a.n).slice(0, 3);
-  return `<div class="chart-card"><div class="chart-title">${icon('trophy', 'ic-champ')} Finals <span class="muted">${w}–${l}</span></div>
-    <div class="pf-list">${rows.sort((a, b) => a.f.yr - b.f.yr).map(r => `<div class="pf-row">
-      <span class="pf-season">${seasonLink(r.f.yr)}</span><span class="pf-res ${r.won ? 'pf-w' : 'pf-l'}">${r.won ? 'Won' : 'Lost'}</span>
-      <span class="pf-opp">${r.won ? 'over' : 'to'} ${teamIn(r.opp, r.f.yr)}${r.oppStars.length ? ` <span class="muted">· ${r.oppStars.map(s => nameLink(s.name, { season: r.f.yr })).join(', ')}</span>` : ''}</span>
-      <span class="muted pf-score">${r.f.score}</span></div>`).join('')}</div>
-    ${rivals.length ? `<div class="lg-roles"><b>Finals rivals:</b> ${rivals.map(e => `${nameLink(e.name)} <span class="muted">(${e.n} Finals, ${e.w}–${e.n - e.w})</span>`).join(' · ')}</div>` : ''}
-    <p class="muted fx-note">Finals where the player is listed as a champion or runner-up star, or was Finals MVP.</p></div>`;
+  // Score from the player's side: a 4-2 loss reads 2–4
+  const score = r => { const m = String(r.f.score).match(/(\d+)\D+(\d+)/); return m ? (r.won ? `${m[1]}–${m[2]}` : `${m[2]}–${m[1]}`) : ''; };
+  return `<div class="chart-card pf-card"><div class="chart-title" title="Finals where the player is listed as a champion or runner-up star, or was Finals MVP">${icon('trophy', 'ic-champ')} Finals</div>
+    <div class="pf-sum fold-keep"><span class="pf-tally"><b class="pf-wn">${w}</b> won</span><span class="pf-tally"><b>${l}</b> lost</span></div>
+    <div class="pf-list">${rows.sort((a, b) => b.f.yr - a.f.yr).map(r => `<div class="pf-row">
+      <span class="pf-season">${seasonLink(r.f.yr)}</span>
+      <span class="pf-res ${r.won ? 'pf-w' : 'pf-l'}">${r.won ? 'W' : 'L'}</span>
+      <span class="pf-opp"><span class="pf-team">${r.won ? 'over' : 'to'} ${teamIn(r.opp, r.f.yr, teamCode(r.opp))}</span>${r.oppStars.length ? `<span class="pf-stars">${r.oppStars.slice(0, 2).map(s => s.name).join(', ')}${r.oppStars.length > 2 ? ' …' : ''}</span>` : ''}</span>
+      <span class="pf-score">${score(r)}</span></div>`).join('')}</div>
+    ${rivals.length ? `<div class="pf-rivals"><span>Most-met</span> ${rivals.map(e => `${nameLink(e.name)} <span class="muted">${e.w}–${e.n - e.w}</span>`).join(' · ')}</div>` : ''}</div>`;
 }

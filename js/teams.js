@@ -229,7 +229,7 @@ function renderTeamPage() {
 // tapping the title opens or closes them, and the choice is remembered
 // =====================================================================
 const TEAM_FOLDS = { 'Finals Rivalries': false, 'Season by Season': false, 'Best Runs': false, 'Started Here': false, 'Active Players Here': false };
-const PLAYER_FOLDS = { 'Percentile Ranks': false, 'Advanced Stats': false, 'Similar Players': false, 'Legacy Score': false };
+const PLAYER_FOLDS = { 'Percentile Ranks': false, 'Advanced Stats': false, 'Similar Players': false, 'Legacy Score': false, 'Finals': false };
 function foldState() { return readJSON('nba2k17-folds') || {}; }
 function applyFolds(root, defaults) {
   const saved = foldState();

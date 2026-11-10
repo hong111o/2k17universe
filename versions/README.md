@@ -10,7 +10,6 @@ they are still in the git history if ever needed.
 |---|---|---|
 | `v20.html` | v20: phone app, custom icon, locked table headers | player pages, compare v2, draft, legacy ranking, search, data check |
 | `v22.html` | v22: player pages, compare v2, draft, simple legacy formula, search, data check | points-system legacy formula |
-| `v55.html` | v55: ROTY table with overall draft pick | Pick column removed (most rookies have no draft code) |
 | `v56.html` | v56: ROTY table without Pick | "LeBron James Jr." read as Bronny James |
 | `v57.html` | v57: "LeBron James Jr." = Bronny | Runner-Up Stars: roles and Finals-loss points in the legacy score |
 | `v58.html` | v58: Runner-Up Stars in the legacy score | silver "Conference Title" trophy on player timelines |
@@ -20,6 +19,7 @@ they are still in the git history if ever needed.
 | `v62.html` | v62: no "not in All Players" notes | Legacy column and sort on every player list |
 | `v63.html` | v63: Legacy column and sort on player lists | Finals page (head to head, upsets, matchups, rivalries), Finals card on player pages |
 | `v64.html` | v64: Finals page, Finals card on player pages | upsets judged by star power (all listed stars), shown on each Finals card |
+| `v65.html` | v65: upsets by star power | cleaner Finals card on player pages, closed by default |
 
 Online: https://hong111o.github.io/2k17universe/versions/v20.html and .../versions/v22.html
 
