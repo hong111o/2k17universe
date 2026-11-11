@@ -111,7 +111,13 @@ main{max-width:1320px;margin:0 auto;padding-block:24px 48px;padding-left:max(16p
 .name-plain{color:var(--ink);cursor:default;}
 /* A name never breaks across two lines; lists wrap between names instead */
 .player-link,.name-plain,.team-link,.season-link,.star-link,.nm{white-space:nowrap;}
-.hero-title .team-link{white-space:normal;}
+/* Big-text boxes (Home hero, stat tiles) are too narrow for a long name on one line: let those wrap */
+.hero-title .team-link,.stat-card .sub .team-link,.chart-title .team-link{white-space:normal;}
+/* Big award names stay on one line; fitNames() shrinks the text until it fits the box */
+.ha-name,.value-name{white-space:nowrap;overflow:hidden;}
+/* Standings: a long team name is cut with "…" rather than split or pushing the table wide */
+.standings-table td.st-team{max-width:0;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.draft-pick > div{min-width:0;}
 .team-tag{color:var(--ink-3);font-size:12px;font-weight:600;letter-spacing:.3px;}
 .team-tag .team-link{font-weight:600;}
 
@@ -492,8 +498,8 @@ tr.row-playoff .st-rank{color:var(--ink);}
 .sim-line{font-size:12px;color:var(--ink-3);}
 .sim .card-link{align-self:flex-start;padding:0;margin-top:4px;}
 /* DRAFT, LEGACY, LEGENDS, SETTINGS */
-.draft-class{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px;}
-.draft-pick{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:10px 12px;cursor:pointer;}
+.draft-class{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr));gap:8px;}
+.draft-pick{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:10px;align-items:center;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:10px 12px;cursor:pointer;}
 .draft-pick:hover{border-color:var(--link);}
 .dp-slot{font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--ink-3);text-align:center;}
 .dp-name{font-weight:700;color:var(--link);display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
@@ -757,3 +763,8 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
 .pf-rivals > span:first-child{color:var(--ink-3);font-size:12px;font-weight:600;margin-right:4px;}
 .fx-power{color:var(--ink-3);font-size:12px;white-space:nowrap;}
 @media (max-width:640px){.fx-head{flex-wrap:wrap;}.fx-power{order:3;width:100%;}}
+.ha-name.fit-wrap,.value-name.fit-wrap{white-space:normal;}
+.ha-name.fit-wrap .player-link,.ha-name.fit-wrap .team-link,.ha-name.fit-wrap .name-plain,.value-name.fit-wrap .player-link,.value-name.fit-wrap .team-link,.value-name.fit-wrap .name-plain{white-space:normal;}
+.hero-award .ha-rec{font-family:var(--font-display);font-weight:700;font-size:20px;line-height:1.15;color:var(--on-brand);}
+/* Narrowest phones (iPhone SE): one award box per row so names keep their size */
+@media (max-width:359px){.hero-awards{grid-template-columns:1fr !important;}}

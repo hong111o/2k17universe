@@ -48,7 +48,7 @@ function buildStandingsTable(teamsArr, season, champFull, ruFull, topN, showConf
     const rowCls = [isChamp ? 'row-champ' : isRU ? 'row-ru' : madePlayoffs ? 'row-playoff' : '', !hist && i + 1 === topN ? 'cut' : ''].join(' ');
     return `<tr class="${rowCls}">
       <td class="st-rank">${i + 1}</td>
-      <td>${teamLink(t.Team, rec.label || t.Team)}</td>
+      <td class="st-team">${teamLink(t.Team, rec.label || t.Team)}</td>
       ${showConf ? `<td><span class="conf-badge">${rec.conf || t.Conference}</span></td>` : ''}
       <td class="num ${recClass(rec.w, rec.l)}">${rec.w}-${rec.l}</td>
       <td class="num">${pct}</td>
@@ -237,7 +237,7 @@ function renderHome() {
       <div class="hero-award"><div class="ha-label">MVP</div><div class="ha-name">${h.MVPTeam ? teamLogo(h.MVPTeam) : ''}${award(h.MVP)}</div></div>
       <div class="hero-award"><div class="ha-label">DPOY</div><div class="ha-name">${h.DPOYTeam ? teamLogo(h.DPOYTeam) : ''}${award(h.DPOY)}</div></div>
       ${h.ROTY && h.ROTY !== '-' ? `<div class="hero-award"><div class="ha-label">ROTY</div><div class="ha-name">${h.ROTYTeam ? teamLogo(h.ROTYTeam) : ''}${award(h.ROTY)}</div></div>` : ''}
-      ${best ? `<div class="hero-award"><div class="ha-label">Best Record</div><div class="ha-name">${teamLink(best.team)} <span class="nowrap">${best.w}-${best.l}</span></div></div>` : ''}
+      ${best ? `<div class="hero-award"><div class="ha-label">Best Record</div><div class="ha-name">${teamLink(best.team)}</div><div class="ha-rec">${best.w}-${best.l}</div></div>` : ''}
     </div>
   </section>`);
 
@@ -248,7 +248,7 @@ function renderHome() {
       const top = rows[0];
       return `<div><div class="conf-title">${conf === 'EAST' ? 'East' : 'West'}</div>
         <table class="standings-table mini-standings"><thead><tr><th>#</th><th>Team</th><th class="num">W-L</th><th class="num">GB</th></tr></thead>
-        <tbody>${rows.map((r, i) => `<tr><td class="st-rank">${i+1}</td><td>${teamLink(r.team)}${r.team === champ ? ' ' + icon('trophy', 'ic-champ') : r.team === ru ? ' ' + icon('trophy', 'ic-silver') : ''}</td>
+        <tbody>${rows.map((r, i) => `<tr><td class="st-rank">${i+1}</td><td class="st-team">${teamLink(r.team)}${r.team === champ ? ' ' + icon('trophy', 'ic-champ') : r.team === ru ? ' ' + icon('trophy', 'ic-silver') : ''}</td>
           <td class="num ${recClass(r.w, r.l)}">${r.w}-${r.l}</td><td class="num">${i ? top.w - r.w : '—'}</td></tr>`).join('')}</tbody></table></div>`;
     };
     cards.push(`<div class="chart-card span-8"><div class="card-head"><div class="chart-title">Final Standings · Top 8</div>

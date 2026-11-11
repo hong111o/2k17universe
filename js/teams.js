@@ -344,7 +344,7 @@ function renderWinChart() {
   const data = win ? all.filter(s => s.yr >= win.from && s.yr <= win.to) : all;
   if (!data.length) { el.innerHTML = ''; return; }
   const W = Math.max(el.clientWidth, 280), H = 210;
-  const m = { l: 30, r: 48, t: 12, b: 24 };
+  const m = { l: 30, r: 58, t: 12, b: 24 };
   const pw = W - m.l - m.r, ph = H - m.t - m.b;
   const y0 = data[0].yr, y1 = data[data.length-1].yr;
   const x = yr => m.l + (yr - y0) / Math.max(y1 - y0, 1) * pw;
@@ -375,7 +375,7 @@ function renderWinChart() {
   // Hover layer
   svg += `<line class="wc-cross" y1="${m.t}" y2="${m.t+ph}" visibility="hidden"/><circle class="wc-focus wc-mark" r="4.5" fill="var(--link)" visibility="hidden"/>`;
 
-  el.innerHTML = `<svg width="${W}" height="${H}" tabindex="0" role="img"
+  el.innerHTML = `<svg width="100%" viewBox="0 0 ${W} ${H}" style="max-width:${W}px" tabindex="0" role="img"
       aria-label="${winChartData.team.Team} wins per season, ${seasonLabel(y0)} to ${seasonLabel(y1)}. Use left and right arrow keys to step through seasons.">${svg}</svg>
     <div class="wc-tip" hidden></div>`;
 
@@ -399,7 +399,7 @@ function renderWinChart() {
   };
   const hide = () => { cur = -1; tip.hidden = true; cross.setAttribute('visibility', 'hidden'); focus.setAttribute('visibility', 'hidden'); };
   const nearest = px => data.reduce((bi, s, i) => Math.abs(x(s.yr) - px) < Math.abs(x(data[bi].yr) - px) ? i : bi, 0);
-  svgEl.addEventListener('mousemove', e => show(nearest(e.clientX - svgEl.getBoundingClientRect().left)));
+  svgEl.addEventListener('mousemove', e => { const r = svgEl.getBoundingClientRect(); show(nearest((e.clientX - r.left) * W / r.width)); });
   svgEl.addEventListener('mouseleave', hide);
   svgEl.addEventListener('focus', () => show(data.length - 1));
   svgEl.addEventListener('blur', hide);

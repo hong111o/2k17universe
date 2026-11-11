@@ -41,3 +41,21 @@ getSavedWorkbook().then(saved => {
     renderSavedInfo();
   }
 });
+
+// Big award names (Home hero, Season Hub tiles) stay on one line: shrink the text until it fits
+function fitNames() {
+  document.querySelectorAll('.ha-name, .value-name').forEach(el => {
+    if (!el.offsetWidth) return;
+    el.style.fontSize = '';
+    let size = parseFloat(getComputedStyle(el).fontSize);
+    el.classList.remove('fit-wrap');
+    while (el.scrollWidth > el.clientWidth + 1 && size > 14) { size -= 1; el.style.fontSize = size + 'px'; }
+    // Still too long at the smallest size: wrap between words rather than cut the name off
+    if (el.scrollWidth > el.clientWidth + 1) el.classList.add('fit-wrap');
+  });
+}
+let fitFrame = 0;
+const fitSoon = () => { cancelAnimationFrame(fitFrame); fitFrame = requestAnimationFrame(fitNames); };
+new MutationObserver(fitSoon).observe(document.body, { childList: true, subtree: true });
+window.addEventListener('resize', fitSoon);
+if (document.fonts) { document.fonts.ready.then(fitSoon); document.fonts.addEventListener('loadingdone', fitSoon); }
