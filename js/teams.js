@@ -101,6 +101,29 @@ function retiredFromPlayers(teamName) {
   });
   return out;
 }
+// Trophy cabinet: awards won by the franchise's players while with it (NBA History logos,
+// Season Stat Leader teams), grouped by player with the seasons
+function trophyCabinet(teamName, titles, finals) {
+  const groups = [];
+  const collect = (label, entries) => {
+    const by = new Map();
+    entries.forEach(({ name, yr }) => { const k = playerKey(name, yr); if (!by.has(k)) by.set(k, { name, yrs: [] }); by.get(k).yrs.push(yr); });
+    const list = [...by.values()].sort((a, b) => b.yrs.length - a.yrs.length || Math.max(...b.yrs) - Math.max(...a.yrs));
+    if (entries.length) groups.push({ label, n: entries.length, list });
+  };
+  const hist = k => DB.history.filter(h => h[k] && h[k] !== '-' && h[k + 'Team'] === teamName).flatMap(h => coNames(h[k]).map(name => ({ name, yr: Number(h.Season) })));
+  collect('MVP', hist('MVP')); collect('Finals MVP', hist('FMVP')); collect('DPOY', hist('DPOY')); collect('Rookie of the Year', hist('ROTY'));
+  [['Pts', 'Scoring title'], ['Reb', 'Rebounding title'], ['Ast', 'Assists title'], ['Stl', 'Steals title'], ['Blk', 'Blocks title']].forEach(([k, l]) =>
+    collect(l, DB.statLeaders.filter(r => r[k + 'Leader'] && teamByCode(r[k + 'Team'])?.Team === teamName).map(r => ({ name: r[k + 'Leader'], yr: Number(r.Season) }))));
+  if (!groups.length && !finals) return '';
+  const tiles = [['Titles', titles], ['Finals', finals], ...groups.filter(g => !/title$/.test(g.label)).map(g => [g.label === 'Rookie of the Year' ? 'ROTY' : g.label, g.n]),
+    ['Stat titles', groups.filter(g => /title$/.test(g.label)).reduce((a, g) => a + g.n, 0)]].filter(([, v]) => v > 0);
+  return `<div class="chart-card tc-card"><div class="chart-title">${icon('trophy', 'ic-champ')} Trophy Cabinet</div>
+    <div class="tc-tiles fold-keep">${tiles.map(([l, v]) => `<div class="tc-tile"><b>${v}</b><span>${l}</span></div>`).join('')}</div>
+    ${groups.map(g => `<div class="tc-group"><div class="tc-label">${g.n > 1 ? (g.label === 'Rookie of the Year' ? 'Rookies of the Year' : g.label + 's') : g.label} <span class="muted">${g.n}</span></div>
+      <div class="tc-list">${g.list.map(x => `<span class="tc-item">${nameLink(x.name, { season: x.yrs[0] })}${x.yrs.length > 1 ? ` <b>×${x.yrs.length}</b>` : ''} <span class="muted">${x.yrs.sort((a, b) => a - b).map(y => seasonLabel(y)).join(', ')}</span></span>`).join('')}</div></div>`).join('')}
+  </div>`;
+}
 function renderTeamPage() {
   const teamName = teamState.t, t = DB.teams.find(x => x.Team === teamName);
   if (!t) return;
@@ -176,7 +199,9 @@ function renderTeamPage() {
         <td>${resultMark(si.isChamp, si.isRU, true) || (si.madePlayoffs ? '<span class="muted">Playoffs</span>' : '')}</td></tr>`).join('')}</tbody>
     </table></div></div>`);
 
-  // Side column: best run, best and worst seasons, retired numbers, active players
+  // Side column: trophy cabinet, best run, best and worst seasons, retired numbers, active players
+  const cabinet = trophyCabinet(teamName, won.length, won.length + lost.length);
+  if (cabinet) side.push(cabinet);
   const runs = [3, 5, 10].map(len => ({ len, r: teamWindows(len).find(x => x.team === teamName) })).filter(x => x.r);
   if (runs.length) side.push(`<div class="chart-card rb-card"><div class="chart-title">${icon('star')} Best Runs</div>
     ${runs.map(({ len, r }) => `<div class="rb-row"><span class="rb-rank"></span><span class="rb-main">${len} seasons</span><span class="rb-val">${r.titles} title${r.titles > 1 ? 's' : ''}</span>
@@ -228,7 +253,7 @@ function renderTeamPage() {
 // FOLDING CARDS: secondary cards on the team and player pages start closed;
 // tapping the title opens or closes them, and the choice is remembered
 // =====================================================================
-const TEAM_FOLDS = { 'Finals Rivalries': false, 'Season by Season': false, 'Best Runs': false, 'Started Here': false, 'Active Players Here': false };
+const TEAM_FOLDS = { 'Trophy Cabinet': false, 'Finals Rivalries': false, 'Season by Season': false, 'Best Runs': false, 'Started Here': false, 'Active Players Here': false };
 const PLAYER_FOLDS = { 'Percentile Ranks': false, 'Advanced Stats': false, 'Similar Players': false, 'Legacy Score': false, 'Finals': false };
 function foldState() { return readJSON('nba2k17-folds') || {}; }
 function applyFolds(root, defaults) {

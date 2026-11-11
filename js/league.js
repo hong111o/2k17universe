@@ -581,6 +581,33 @@ function renderRecords() {
     ]);
   }
 
+  // ----- Turnarounds: one-season jumps and drops (by win %, scaled to 82 games), and worst to first
+  if (yrs.length > 1) {
+    const pct = r => r.w / Math.max(1, r.w + r.l);
+    const swings = yrs.slice(1).flatMap(yr => { const prev = Object.fromEntries(seasonStandings(yr - 1).map(r => [r.team, r]));
+      return seasonStandings(yr).filter(r => prev[r.team]).map(r => ({ ...r, yr, prev: prev[r.team], gain: Math.round((pct(r) - pct(prev[r.team])) * 82) })); });
+    const swingRow = r => ({ main: teamIn(r.team, r.yr), val: `${r.gain > 0 ? '+' : ''}${r.gain}`, sub: `${r.prev.w}-${r.prev.l} → ${r.w}-${r.l} · ${seasonLink(r.yr)}${resultIcon(r.team, r.yr)}` });
+    const ups = withRanks(swings.filter(r => r.gain > 0).sort((a, b) => b.gain - a.gain || b.yr - a.yr).slice(0, 10), r => r.gain).map(r => ({ ...swingRow(r), rank: r.rank }));
+    const downs = withRanks(swings.filter(r => r.gain < 0).sort((a, b) => a.gain - b.gain || b.yr - a.yr).slice(0, 10), r => r.gain).map(r => ({ ...swingRow(r), rank: r.rank }));
+    // Worst to first: a team with one of the league's three worst records won the title within five seasons
+    const w2f = [], usedBad = new Set();
+    [...finals].sort((a, b) => a.yr - b.yr).forEach(f => {
+      for (let back = 1; back <= 5; back++) {
+        const st = seasonStandings(f.yr - back); if (!st.length) continue;
+        const me = st.find(r => r.team === f.champ); if (!me || me.leagueRk < st.length - 2) continue;
+        // Each bad season counts once, for the first title that followed it
+        const k = f.champ + '|' + (f.yr - back); if (usedBad.has(k)) break; usedBad.add(k);
+        w2f.push({ f, back, me, n: st.length }); break;
+      }
+    });
+    section('Turnarounds', 'Change in wins from one season to the next (by win %, scaled to 82 games)', [
+      recordCard('Biggest Turnarounds', ups, '', 'No turnarounds yet.'),
+      recordCard('Biggest Collapses', downs, '', 'No collapses yet.'),
+      recordCard(`Worst to First · ${w2f.length}`, w2f.sort((a, b) => b.f.yr - a.f.yr).map(x => ({ main: teamIn(x.f.champ, x.f.yr), val: `${x.back} yr${x.back > 1 ? 's' : ''}`,
+        sub: `${x.me.leagueRk === x.n ? 'worst' : x.me.leagueRk === x.n - 1 ? '2nd-worst' : '3rd-worst'} record in ${seasonLink(x.f.yr - x.back)} (${x.me.w}-${x.me.l}), champion ${seasonLink(x.f.yr)}` })), 'Bottom three in the league, then a title within five seasons', 'No worst-to-first champions yet.'),
+    ]);
+  }
+
   // ----- Streaks
   const runCard = (title, runs, minLen, n, mainOf, note, unit) => {
     const best = runs.filter(r => r.len >= minLen).sort((a,b) => b.len - a.len || b.end - a.end).slice(0, n);
@@ -617,6 +644,26 @@ function renderRecords() {
     recordCard(`Sweeps (4-0) · ${sweeps.length}`, sweeps),
     recordCard(`Went to Game 7 (4-3) · ${sevens.length}`, sevens),
   ]);
+
+  // ----- Heartbreak: Finals lost, and greats without a ring
+  {
+    const n = (p, k) => { const v = getNum(p[k]); return v === -Infinity ? 0 : Math.round(v); };
+    const ps = everyPlayer().map(p => ({ p, app: n(p, 'Finals App'), won: n(p, 'Champions') })).map(x => ({ ...x, lost: Math.max(0, x.app - x.won) }));
+    const mostLost = withRanks(ps.filter(x => x.lost > 0).sort((a, b) => b.lost - a.lost || a.won - b.won).slice(0, 10), x => x.lost)
+      .map(x => ({ rank: x.rank, main: nameLink(x.p.Player), val: `${x.lost}`, sub: `${x.app} Finals · ${x.won} title${x.won === 1 ? '' : 's'}` }));
+    const noRing = ps.filter(x => x.won === 0).map(x => ({ ...x, rk: legacyRankOf(x.p) })).filter(x => x.rk).sort((a, b) => a.rk - b.rk).slice(0, 10)
+      .map((x, i) => ({ rank: i + 1, main: nameLink(x.p.Player), val: `#${x.rk}`, sub: `${x.app ? `${x.app} Finals, no title` : 'never reached the Finals'}${isActive(x.p) ? ' · <span class="rb-active">active</span>' : ''}` }));
+    const confNoRing = withRanks(ps.filter(x => x.won === 0 && x.app > 0).sort((a, b) => b.app - a.app || (legacyRankOf(a.p) || 999) - (legacyRankOf(b.p) || 999)).slice(0, 10), x => x.app)
+      .map(x => ({ rank: x.rank, main: nameLink(x.p.Player), val: `${x.app}`, sub: `conference title${x.app > 1 ? 's' : ''}, never won the Finals` }));
+    const teamLost = withRanks(Object.entries(appear).filter(([, v]) => v.l > 0).map(([t, v]) => ({ t, v })).sort((a, b) => b.v.l - a.v.l || a.v.w - b.v.w).slice(0, 10), r => r.v.l)
+      .map(r => ({ rank: r.rank, main: teamLink(r.t), val: `${r.v.l}`, sub: `${r.v.w + r.v.l} Finals · ${r.v.w} won` }));
+    section('Heartbreak', 'Finals lost (Finals App − Champions on each player row) and the best players without a title', [
+      recordCard('Most Finals Lost', mostLost, '', 'No Finals losses recorded.'),
+      recordCard('Best Players Without a Title', noRing, 'Ranked by legacy score'),
+      recordCard('Most Conference Titles, No Ring', confNoRing, '', 'Everyone who reached the Finals won one.'),
+      recordCard('Franchises: Most Finals Lost', teamLost),
+    ]);
+  }
 
   // ----- Dynasties
   const runRows = (len, minTitles) => withRanks(teamWindows(len).filter(r => r.titles >= minTitles).slice(0, 8), r => r.titles * 100 + r.finals)

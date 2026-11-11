@@ -770,3 +770,40 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
 @media (max-width:359px){.hero-awards{grid-template-columns:1fr !important;}}
 .hero-award .ha-jump{white-space:nowrap;} .hero-award .ha-was{color:var(--on-brand-2);font-weight:600;}
 .hero-award .ha-gain{font-size:12px;color:var(--on-brand-2);margin-top:2px;}
+/* Team page trophy cabinet */
+.tc-tiles{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px;}
+.tc-tile{background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:6px 10px;min-width:64px;}
+.tc-tile b{display:block;font-family:var(--font-display);font-size:22px;font-weight:800;line-height:1;}
+.tc-tile span{font-size:11px;color:var(--ink-3);}
+.tc-group{padding:8px 0;border-top:1px solid var(--line);}
+.tc-label{font-size:13px;font-weight:700;color:var(--ink-2);margin-bottom:4px;}
+.tc-list{display:flex;flex-direction:column;gap:3px;font-size:13px;}
+.tc-item .muted{font-size:12px;}
+/* Ring of Honor */
+.ring-toolbar{margin-bottom:0;flex-wrap:wrap;}
+.ring-count{margin:6px 0 10px;font-size:13px;}
+.ring-list{display:grid;gap:12px;}
+.ring-team{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;}
+.ring-team-head{font-weight:700;margin-bottom:8px;}
+.ring-items{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(220px,100%),1fr));gap:6px 14px;}
+.ring-item{display:flex;gap:10px;align-items:baseline;font-size:13px;min-width:0;}
+.ring-num{font-family:var(--font-display);font-weight:800;font-size:20px;min-width:30px;text-align:right;color:var(--ink);}
+.ring-who{min-width:0;display:flex;flex-direction:column;}
+.ring-years{font-size:12px;color:var(--ink-3);}
+/* Legacy Race: categorical slots in fixed order (validated light on #fff, dark on #121a29) */
+:root{--race-1:#2a78d6;--race-2:#eb6834;--race-3:#1baf7a;--race-4:#eda100;--race-5:#e87ba4;--race-6:#008300;}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--race-1:#3987e5;--race-2:#d95926;--race-3:#199e70;--race-4:#c98500;--race-5:#d55181;--race-6:#008300;}}
+:root[data-theme="dark"]{--race-1:#3987e5;--race-2:#d95926;--race-3:#199e70;--race-4:#c98500;--race-5:#d55181;--race-6:#008300;}
+.race-legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--ink-2);margin-bottom:6px;}
+.race-key{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+.race-key i,.race-tip i{display:inline-block;width:10px;height:10px;border-radius:2px;}
+.race-chart{position:relative;}
+.race-chart svg{display:block;outline:none;}
+.race-grid{stroke:var(--line);stroke-width:1;}
+.race-axis{fill:var(--ink-3);font-size:11px;}
+.race-end{fill:var(--ink-2);font-size:11px;font-weight:600;}
+.race-cross{stroke:var(--ink-3);stroke-width:1;stroke-dasharray:3 3;}
+.race-tip{position:absolute;top:4px;background:var(--surface);border:1px solid var(--line-strong);border-radius:6px;padding:6px 8px;font-size:12px;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.15);min-width:150px;}
+.race-tip div{display:flex;align-items:center;gap:6px;color:var(--ink-2);}
+.race-tip div span{margin-left:auto;padding-left:10px;color:var(--ink);font-variant-numeric:tabular-nums;}
+.race-pick{margin-left:auto;}

@@ -95,6 +95,7 @@
     <button data-sec="compare" data-group="players" onclick="showSection('compare')">Compare</button>
     <button data-sec="player" data-group="players" class="nav-ghost" tabindex="-1" aria-hidden="true">Player</button>
     <button data-sec="teams" data-group="teams" onclick="showSection('teams')">Franchises</button>
+    <button data-sec="ring" data-group="teams" onclick="showSection('ring')">Ring of Honor</button>
     <button data-sec="team" data-group="teams" class="nav-ghost" tabindex="-1" aria-hidden="true">Team</button>
     <button data-sec="season" data-group="seasons" onclick="openSeason()">Season Hub</button>
     <button data-sec="history" data-group="seasons" onclick="showSection('history')">League History</button>
@@ -131,6 +132,13 @@
     <div class="atr-tabs" id="statTabs"></div>
     <div id="statContent"></div>
   </div>
+</div>
+
+<!-- RING OF HONOR -->
+<div id="sec-ring" class="section">
+  <div class="section-title">Ring of Honor</div>
+  <div class="section-sub">Every retired number in the league, from the Retired # tab and the player sheets</div>
+  <div id="ringContent"></div>
 </div>
 
 <!-- FINALS -->
@@ -464,6 +472,7 @@
 <script src="js/player.js"></script>
 <script src="js/engine.js"></script>
 <script src="js/finals.js"></script>
+<script src="js/ring.js"></script>
 <script src="js/settings.js"></script>
 <script src="js/main.js"></script>
 </body>

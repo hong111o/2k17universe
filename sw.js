@@ -2,14 +2,14 @@
 // The page itself is fetched from the network first so updates show up on the next open;
 // the cached copy is used only when offline. Libraries and fonts never change, so they
 // come from the cache first.
-const VERSION = 'v70';
+const VERSION = 'v71';
 const CACHE = '2k17-stats-' + VERSION;
 const APP_SHELL = [
   './',
   './index.html',
   './css/app.css',
   './js/data.js', './js/helpers.js', './js/nav-players.js', './js/teams.js', './js/league.js',
-  './js/player.js', './js/engine.js', './js/finals.js', './js/settings.js', './js/main.js',
+  './js/player.js', './js/engine.js', './js/finals.js', './js/ring.js', './js/settings.js', './js/main.js',
   './manifest.webmanifest?v=2',
   './icons/icon-192.png?v=2',
   './icons/icon-512.png?v=2',
