@@ -112,7 +112,7 @@ main{max-width:1320px;margin:0 auto;padding-block:24px 48px;padding-left:max(16p
 /* A name never breaks across two lines; lists wrap between names instead */
 .player-link,.name-plain,.team-link,.season-link,.star-link,.nm{white-space:nowrap;}
 /* Big-text boxes (Home hero, stat tiles) are too narrow for a long name on one line: let those wrap */
-.hero-title .team-link,.stat-card .sub .team-link,.chart-title .team-link{white-space:normal;}
+.hero-title .team-link,.chart-title .team-link{white-space:normal;}
 /* Big award names stay on one line; fitNames() shrinks the text until it fits the box */
 .ha-name,.value-name{white-space:nowrap;overflow:hidden;}
 /* Standings: a long team name is cut with "…" rather than split or pushing the table wide */
@@ -768,3 +768,5 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
 .hero-award .ha-rec{font-family:var(--font-display);font-weight:700;font-size:20px;line-height:1.15;color:var(--on-brand);}
 /* Narrowest phones (iPhone SE): one award box per row so names keep their size */
 @media (max-width:359px){.hero-awards{grid-template-columns:1fr !important;}}
+.hero-award .ha-jump{white-space:nowrap;} .hero-award .ha-was{color:var(--on-brand-2);font-weight:600;}
+.hero-award .ha-gain{font-size:12px;color:var(--on-brand-2);margin-top:2px;}

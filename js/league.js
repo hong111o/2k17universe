@@ -169,6 +169,16 @@ let standingsCache = {};
 // Playoffs = top 8 in conference (the 2K17 format; the sheet doesn't store it).
 // Older seasons (Team History) carry their own conference and playoff note; playoffs there are
 // only known when the sheet says so (null otherwise), since formats changed many times.
+// Nickname for tight spots next to a logo: "Minnesota Timberwolves" -> "Timberwolves"
+const shortTeam = name => { const s = String(name || ''); const m = s.match(/(Trail Blazers|Red Sox)$/); return m ? m[1] : s.split(' ').pop(); };
+function teamShortIn(team, yr) { const t = DB.teams.find(x => x.Team === team), era = t && t.seasonRecords?.[yr]?.label; return teamLink(team, shortTeam(era || team)); }
+// Team with the biggest jump in wins from the season before (by win %, so shorter seasons compare fairly)
+function mostImproved(yr) {
+  const prev = Object.fromEntries(seasonStandings(yr - 1).map(r => [r.team, r]));
+  const pct = r => r.w / Math.max(1, r.w + r.l);
+  return seasonStandings(yr).filter(r => prev[r.team]).map(r => ({ ...r, prev: prev[r.team], gain: Math.round((pct(r) - pct(prev[r.team])) * 82) }))
+    .filter(r => r.gain > 0).sort((a, b) => b.gain - a.gain || b.w - a.w)[0] || null;
+}
 function seasonStandings(yr) {
   if (standingsCache[yr]) return standingsCache[yr];
   const teams = DB.teams.filter(t => t.seasonRecords?.[yr]);
@@ -237,7 +247,9 @@ function renderHome() {
       <div class="hero-award"><div class="ha-label">MVP</div><div class="ha-name">${h.MVPTeam ? teamLogo(h.MVPTeam) : ''}${award(h.MVP)}</div></div>
       <div class="hero-award"><div class="ha-label">DPOY</div><div class="ha-name">${h.DPOYTeam ? teamLogo(h.DPOYTeam) : ''}${award(h.DPOY)}</div></div>
       ${h.ROTY && h.ROTY !== '-' ? `<div class="hero-award"><div class="ha-label">ROTY</div><div class="ha-name">${h.ROTYTeam ? teamLogo(h.ROTYTeam) : ''}${award(h.ROTY)}</div></div>` : ''}
-      ${best ? `<div class="hero-award"><div class="ha-label">Best Record</div><div class="ha-name">${teamLink(best.team)}</div><div class="ha-rec">${best.w}-${best.l}</div></div>` : ''}
+      ${best ? `<div class="hero-award"><div class="ha-label">Best Record</div><div class="ha-name">${teamShortIn(best.team, yr)}</div><div class="ha-rec">${best.w}-${best.l}</div></div>` : ''}
+      ${(() => { const mi = mostImproved(yr); return mi ? `<div class="hero-award"><div class="ha-label">Most Improved</div><div class="ha-name">${teamShortIn(mi.team, yr)}</div>
+        <div class="ha-rec ha-jump"><span class="ha-was">${mi.prev.w}-${mi.prev.l}</span> → ${mi.w}-${mi.l}</div><div class="ha-gain">+${mi.gain} wins on last season</div></div>` : ''; })()}
     </div>
   </section>`);
 
@@ -465,8 +477,9 @@ function renderSeason() {
   sections.push(`<div class="stats-cards sh-awards">
     ${tile(icon('trophy','ic-champ') + ' Champion', champ ? teamIn(champ, yr) : '<span class="muted">—</span>',
       ru ? `beat ${teamIn(ru, yr)} ${finalsScore}${champRow ? ` · ${champRow.w}-${champRow.l} season` : ''}` : '')}
-    ${['FMVP', 'MVP', 'DPOY', 'ROTY'].filter(k => k !== 'ROTY' || (h?.ROTY && h.ROTY !== '-')).map(k => tile(k === 'FMVP' ? 'Finals MVP' : k, award(h?.[k]), h?.[k + 'Team'] && h[k] && h[k] !== '-' ? teamIn(h[k + 'Team'], yr) : '')).join('')}
+    ${['FMVP', 'MVP', 'DPOY', 'ROTY'].filter(k => k !== 'ROTY' || (h?.ROTY && h.ROTY !== '-')).map(k => tile(k === 'FMVP' ? 'Finals MVP' : k, award(h?.[k]), h?.[k + 'Team'] && h[k] && h[k] !== '-' ? teamShortIn(h[k + 'Team'], yr) : '')).join('')}
     ${best ? tile('Best Record', teamIn(best.team, yr), `${best.w}-${best.l}`) : ''}
+    ${(() => { const mi = mostImproved(yr); return mi ? tile('Most Improved', teamIn(mi.team, yr), `${mi.prev.w}-${mi.prev.l} → ${mi.w}-${mi.l} (+${mi.gain} wins)`) : ''; })()}
   </div>`);
 
   // Champion and runner-up stars, each with the role the legacy score gives them

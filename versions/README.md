@@ -10,7 +10,6 @@ they are still in the git history if ever needed.
 |---|---|---|
 | `v20.html` | v20: phone app, custom icon, locked table headers | player pages, compare v2, draft, legacy ranking, search, data check |
 | `v22.html` | v22: player pages, compare v2, draft, simple legacy formula, search, data check | points-system legacy formula |
-| `v59.html` | v59: silver Conference Title on timelines | conference titles on Team Journey stops |
 | `v60.html` | v60: conference titles on Team Journey | Top 20 / position check ignores retired-number order, clearer wording |
 | `v61.html` | v61: retired numbers compared as a set | Data Check no longer lists names without a player row |
 | `v62.html` | v62: no "not in All Players" notes | Legacy column and sort on every player list |
@@ -20,6 +19,7 @@ they are still in the git history if ever needed.
 | `v66.html` | v66: cleaner Finals card, closed by default | all opposing stars named in the Finals card |
 | `v67.html` | v67: all opposing stars named | names never split across two lines |
 | `v68.html` | v68: names never split | Home award boxes, standings, draft list and wins chart fit small phones again |
+| `v69.html` | v69: names fit their boxes on phones | Most Improved team on Home and Season Hub |
 
 Online: https://hong111o.github.io/2k17universe/versions/v20.html and .../versions/v22.html
 
