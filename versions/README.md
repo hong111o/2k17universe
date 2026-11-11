@@ -10,7 +10,6 @@ they are still in the git history if ever needed.
 |---|---|---|
 | `v20.html` | v20: phone app, custom icon, locked table headers | player pages, compare v2, draft, legacy ranking, search, data check |
 | `v22.html` | v22: player pages, compare v2, draft, simple legacy formula, search, data check | points-system legacy formula |
-| `v61.html` | v61: retired numbers compared as a set | Data Check no longer lists names without a player row |
 | `v62.html` | v62: no "not in All Players" notes | Legacy column and sort on every player list |
 | `v63.html` | v63: Legacy column and sort on player lists | Finals page (head to head, upsets, matchups, rivalries), Finals card on player pages |
 | `v64.html` | v64: Finals page, Finals card on player pages | upsets judged by star power (all listed stars), shown on each Finals card |
@@ -20,6 +19,7 @@ they are still in the git history if ever needed.
 | `v68.html` | v68: names never split | Home award boxes, standings, draft list and wins chart fit small phones again |
 | `v69.html` | v69: names fit their boxes on phones | Most Improved team on Home and Season Hub |
 | `v70.html` | v70: Most Improved team | Turnarounds and Heartbreak records, team Trophy Cabinet, Ring of Honor |
+| `v71.html` | v71: Turnarounds, Heartbreak, Trophy Cabinet, Ring of Honor | Trophy Cabinet without titles, Finals and Finals MVPs |
 
 Online: https://hong111o.github.io/2k17universe/versions/v20.html and .../versions/v22.html
 

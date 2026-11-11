@@ -130,6 +130,15 @@ main{max-width:1320px;margin:0 auto;padding-block:24px 48px;padding-left:max(16p
 .player-link,.team-link,.season-link,.star-link{cursor:pointer;color:var(--link);font-weight:600;text-decoration:none;}
 .player-link:hover,.team-link:hover,.season-link:hover,.star-link:hover{color:var(--link-hover);text-decoration:underline;}
 .name-plain{color:var(--ink);cursor:default;}
+/* A name never breaks across two lines; lists wrap between names instead */
+.player-link,.name-plain,.team-link,.season-link,.star-link,.nm{white-space:nowrap;}
+/* Big-text boxes (Home hero, stat tiles) are too narrow for a long name on one line: let those wrap */
+.hero-title .team-link,.chart-title .team-link{white-space:normal;}
+/* Big award names stay on one line; fitNames() shrinks the text until it fits the box */
+.ha-name,.value-name{white-space:nowrap;overflow:hidden;}
+/* Standings: a long team name is cut with "…" rather than split or pushing the table wide */
+.standings-table td.st-team{max-width:0;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.draft-pick > div{min-width:0;}
 .team-tag{color:var(--ink-3);font-size:12px;font-weight:600;letter-spacing:.3px;}
 .team-tag .team-link{font-weight:600;}
 
@@ -510,8 +519,8 @@ tr.row-playoff .st-rank{color:var(--ink);}
 .sim-line{font-size:12px;color:var(--ink-3);}
 .sim .card-link{align-self:flex-start;padding:0;margin-top:4px;}
 /* DRAFT, LEGACY, LEGENDS, SETTINGS */
-.draft-class{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px;}
-.draft-pick{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:10px 12px;cursor:pointer;}
+.draft-class{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr));gap:8px;}
+.draft-pick{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:10px;align-items:center;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:10px 12px;cursor:pointer;}
 .draft-pick:hover{border-color:var(--link);}
 .dp-slot{font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--ink-3);text-align:center;}
 .dp-name{font-weight:700;color:var(--link);display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
@@ -734,6 +743,91 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
 .wc-range{margin:4px 0 10px;max-width:100%;overflow-x:auto;scrollbar-width:none;}
 .wc-range button{flex:none;}
 .journey-years{display:block;font-size:12px;color:var(--ink-3);margin-top:2px;}
+
+/* Finals page */
+.fx-list{display:grid;gap:12px;}
+.fx-card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;}
+.fx-card.fx-upset{border-color:color-mix(in srgb,var(--champ) 55%,var(--line));}
+.fx-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.fx-season{font-weight:700;font-size:16px;}
+.fx-score{margin-left:auto;color:var(--ink-3);font-size:13px;white-space:nowrap;}
+.fx-badge{background:var(--champ-tint);color:var(--champ-ink);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 8px;border-radius:999px;}
+.fx-sides{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.fx-side{min-width:0;}
+.fx-team{font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.fx-lose .fx-team{color:var(--ink-2);}
+.fx-stars{display:flex;flex-direction:column;gap:4px;font-size:13px;}
+.fx-star b{font-weight:700;color:var(--ink-2);margin-left:2px;}
+.fx-star i{font-style:normal;color:var(--ink-3);font-size:12px;margin-left:6px;}
+.fx-fmvp{margin-top:6px;font-size:12px;color:var(--champ-ink);}
+.fx-more{justify-self:center;}
+.fx-count{margin:6px 0 10px;font-size:13px;}
+.fx-note{font-size:12px;margin:4px 0 8px;}
+.fx-toolbar{margin-bottom:0;}
+.fx-grid > div:last-child .chart-card{margin-bottom:14px;}
+@media (max-width:640px){.fx-sides{grid-template-columns:1fr;gap:10px;}.fx-lose{border-top:1px solid var(--line);padding-top:8px;}}
+/* Player page Finals card */
+.pf-sum{display:flex;gap:16px;margin-bottom:10px;}
+.pf-tally{color:var(--ink-3);font-size:13px;}
+.pf-tally b{font-family:var(--font-display);font-size:26px;font-weight:800;color:var(--ink);margin-right:4px;}
+.pf-tally b.pf-wn{color:var(--champ-ink);}
+.pf-list{display:grid;}
+.pf-row{display:grid;grid-template-columns:64px 22px 1fr auto;gap:10px;align-items:center;padding:7px 0;border-top:1px solid var(--line);font-size:13px;}
+.pf-row:first-child{border-top:0;}
+.pf-res{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:11px;}
+.pf-w{background:var(--champ-tint);color:var(--champ-ink);} .pf-l{background:var(--silver-tint);color:var(--ink-3);}
+.pf-opp{min-width:0;display:flex;flex-direction:column;line-height:1.3;}
+.pf-team{color:var(--ink-3);white-space:nowrap;} .pf-team .team-link{font-weight:600;}
+.pf-stars{color:var(--ink-3);font-size:12px;}
+.pf-score{color:var(--ink-2);font-variant-numeric:tabular-nums;font-weight:600;}
+.pf-rivals{margin-top:8px;padding-top:8px;border-top:1px solid var(--line);font-size:13px;}
+.pf-rivals > span:first-child{color:var(--ink-3);font-size:12px;font-weight:600;margin-right:4px;}
+.fx-power{color:var(--ink-3);font-size:12px;white-space:nowrap;}
+@media (max-width:640px){.fx-head{flex-wrap:wrap;}.fx-power{order:3;width:100%;}}
+.ha-name.fit-wrap,.value-name.fit-wrap{white-space:normal;}
+.ha-name.fit-wrap .player-link,.ha-name.fit-wrap .team-link,.ha-name.fit-wrap .name-plain,.value-name.fit-wrap .player-link,.value-name.fit-wrap .team-link,.value-name.fit-wrap .name-plain{white-space:normal;}
+.hero-award .ha-rec{font-family:var(--font-display);font-weight:700;font-size:20px;line-height:1.15;color:var(--on-brand);}
+/* Narrowest phones (iPhone SE): one award box per row so names keep their size */
+@media (max-width:359px){.hero-awards{grid-template-columns:1fr !important;}}
+.hero-award .ha-jump{white-space:nowrap;} .hero-award .ha-was{color:var(--on-brand-2);font-weight:600;}
+.hero-award .ha-gain{font-size:12px;color:var(--on-brand-2);margin-top:2px;}
+/* Team page trophy cabinet */
+.tc-tiles{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px;}
+.tc-tile{background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:6px 10px;min-width:64px;}
+.tc-tile b{display:block;font-family:var(--font-display);font-size:22px;font-weight:800;line-height:1;}
+.tc-tile span{font-size:11px;color:var(--ink-3);}
+.tc-group{padding:8px 0;border-top:1px solid var(--line);}
+.tc-label{font-size:13px;font-weight:700;color:var(--ink-2);margin-bottom:4px;}
+.tc-list{display:flex;flex-direction:column;gap:3px;font-size:13px;}
+.tc-item .muted{font-size:12px;}
+/* Ring of Honor */
+.ring-toolbar{margin-bottom:0;flex-wrap:wrap;}
+.ring-count{margin:6px 0 10px;font-size:13px;}
+.ring-list{display:grid;gap:12px;}
+.ring-team{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;}
+.ring-team-head{font-weight:700;margin-bottom:8px;}
+.ring-items{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(220px,100%),1fr));gap:6px 14px;}
+.ring-item{display:flex;gap:10px;align-items:baseline;font-size:13px;min-width:0;}
+.ring-num{font-family:var(--font-display);font-weight:800;font-size:20px;min-width:30px;text-align:right;color:var(--ink);}
+.ring-who{min-width:0;display:flex;flex-direction:column;}
+.ring-years{font-size:12px;color:var(--ink-3);}
+/* Legacy Race: categorical slots in fixed order (validated light on #fff, dark on #121a29) */
+:root{--race-1:#2a78d6;--race-2:#eb6834;--race-3:#1baf7a;--race-4:#eda100;--race-5:#e87ba4;--race-6:#008300;}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--race-1:#3987e5;--race-2:#d95926;--race-3:#199e70;--race-4:#c98500;--race-5:#d55181;--race-6:#008300;}}
+:root[data-theme="dark"]{--race-1:#3987e5;--race-2:#d95926;--race-3:#199e70;--race-4:#c98500;--race-5:#d55181;--race-6:#008300;}
+.race-legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--ink-2);margin-bottom:6px;}
+.race-key{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+.race-key i,.race-tip i{display:inline-block;width:10px;height:10px;border-radius:2px;}
+.race-chart{position:relative;}
+.race-chart svg{display:block;outline:none;}
+.race-grid{stroke:var(--line);stroke-width:1;}
+.race-axis{fill:var(--ink-3);font-size:11px;}
+.race-end{fill:var(--ink-2);font-size:11px;font-weight:600;}
+.race-cross{stroke:var(--ink-3);stroke-width:1;stroke-dasharray:3 3;}
+.race-tip{position:absolute;top:4px;background:var(--surface);border:1px solid var(--line-strong);border-radius:6px;padding:6px 8px;font-size:12px;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.15);min-width:150px;}
+.race-tip div{display:flex;align-items:center;gap:6px;color:var(--ink-2);}
+.race-tip div span{margin-left:auto;padding-left:10px;color:var(--ink);font-variant-numeric:tabular-nums;}
+.race-pick{margin-left:auto;}
 </style>
 </head>
 <body>
@@ -811,9 +905,11 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
     <button data-sec="compare" data-group="players" onclick="showSection('compare')">Compare</button>
     <button data-sec="player" data-group="players" class="nav-ghost" tabindex="-1" aria-hidden="true">Player</button>
     <button data-sec="teams" data-group="teams" onclick="showSection('teams')">Franchises</button>
+    <button data-sec="ring" data-group="teams" onclick="showSection('ring')">Ring of Honor</button>
     <button data-sec="team" data-group="teams" class="nav-ghost" tabindex="-1" aria-hidden="true">Team</button>
     <button data-sec="season" data-group="seasons" onclick="openSeason()">Season Hub</button>
     <button data-sec="history" data-group="seasons" onclick="showSection('history')">League History</button>
+    <button data-sec="finals" data-group="seasons" onclick="showSection('finals')">Finals</button>
     <button data-sec="awards" data-group="seasons" onclick="showSection('awards')">Awards</button>
     <button data-sec="statleaders" data-group="seasons" onclick="showSection('statleaders')">Stat Leaders</button>
     <button data-sec="allnba" data-group="seasons" onclick="showSection('allnba')">All-NBA Teams</button>
@@ -846,6 +942,20 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
     <div class="atr-tabs" id="statTabs"></div>
     <div id="statContent"></div>
   </div>
+</div>
+
+<!-- RING OF HONOR -->
+<div id="sec-ring" class="section">
+  <div class="section-title">Ring of Honor</div>
+  <div class="section-sub">Every retired number in the league, from the Retired # tab and the player sheets</div>
+  <div id="ringContent"></div>
+</div>
+
+<!-- FINALS -->
+<div id="sec-finals" class="section">
+  <div class="section-title">Finals</div>
+  <div class="section-sub">Every Finals head to head: both teams' stars, upsets, repeat matchups and rivalries</div>
+  <div id="finalsContent"></div>
 </div>
 
 <!-- AWARDS -->
@@ -916,7 +1026,7 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
       <option value="1st Team:1">All-NBA 1st Team</option><option value="ROY">Rookie of the Year</option></select>
     <button class="icon-btn" id="playersModeBtn" onclick="toggleMode('players')">AVERAGES</button>
     <button class="icon-btn" id="playersExpandBtn" onclick="toggleExpand('players')">+ MORE COLS</button>
-    <select class="m-sort" aria-label="Sort by" onchange="mobileSort('players', this.value)"><option value="">Sort: default</option><option value="PTS">Points</option><option value="REB">Rebounds</option><option value="AST">Assists</option><option value="STL">Steals</option><option value="BLK">Blocks</option><option value="GP">Games</option><option value="Champions">Titles</option><option value="MVP">MVPs</option><option value="FMVP">Finals MVPs</option><option value="DPOY">DPOY</option><option value="All Stars">All-Stars</option><option value="All NBA Team">All-NBA</option></select>
+    <select class="m-sort" aria-label="Sort by" onchange="mobileSort('players', this.value)"><option value="">Sort: default</option><option value="Legacy">Legacy score</option><option value="PTS">Points</option><option value="REB">Rebounds</option><option value="AST">Assists</option><option value="STL">Steals</option><option value="BLK">Blocks</option><option value="GP">Games</option><option value="Champions">Titles</option><option value="MVP">MVPs</option><option value="FMVP">Finals MVPs</option><option value="DPOY">DPOY</option><option value="All Stars">All-Stars</option><option value="All NBA Team">All-NBA</option></select>
     <button class="icon-btn m-sort m-dir" id="playersSortDir" type="button" onclick="flipSortDir('players')" aria-label="Sort direction">↓ High first</button>
     <span class="results-count" id="playerCount"></span>
   </div>
@@ -934,7 +1044,7 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
     <select id="top20PosFilter" onchange="filterTop20()"><option value="">All Positions</option><option>PG</option><option>SG</option><option>SF</option><option>PF</option><option>C</option></select>
     <button class="icon-btn" id="top20ModeBtn" onclick="toggleMode('top20')">TOTALS</button>
     <button class="icon-btn" id="top20ExpandBtn" onclick="toggleExpand('top20')">+ MORE COLS</button>
-    <select class="m-sort" aria-label="Sort by" onchange="mobileSort('top20', this.value)"><option value="">Sort: rank</option><option value="PTS">Points</option><option value="REB">Rebounds</option><option value="AST">Assists</option><option value="STL">Steals</option><option value="BLK">Blocks</option><option value="GP">Games</option><option value="Champions">Titles</option><option value="MVP">MVPs</option><option value="FMVP">Finals MVPs</option><option value="DPOY">DPOY</option><option value="All Stars">All-Stars</option><option value="All NBA Team">All-NBA</option></select>
+    <select class="m-sort" aria-label="Sort by" onchange="mobileSort('top20', this.value)"><option value="">Sort: rank</option><option value="Legacy">Legacy score</option><option value="PTS">Points</option><option value="REB">Rebounds</option><option value="AST">Assists</option><option value="STL">Steals</option><option value="BLK">Blocks</option><option value="GP">Games</option><option value="Champions">Titles</option><option value="MVP">MVPs</option><option value="FMVP">Finals MVPs</option><option value="DPOY">DPOY</option><option value="All Stars">All-Stars</option><option value="All NBA Team">All-NBA</option></select>
     <button class="icon-btn m-sort m-dir" id="top20SortDir" type="button" onclick="flipSortDir('top20')" aria-label="Sort direction">↓ High first</button>
     <span class="results-count" id="top20Count"></span>
   </div>
@@ -958,7 +1068,7 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
     <div class="search-wrap"><span class="icon"><svg class="ic"><use href="#i-search"/></svg></span><input type="text" id="posSearch" placeholder="Search players..." oninput="filterPos()"></div>
     <button class="icon-btn" id="posModeBtn" onclick="toggleMode('pos')">AVERAGES</button>
     <button class="icon-btn" id="posExpandBtn" onclick="toggleExpand('pos')">+ MORE COLS</button>
-    <select class="m-sort" aria-label="Sort by" onchange="mobileSort('pos', this.value)"><option value="">Sort: rank</option><option value="PTS">Points</option><option value="REB">Rebounds</option><option value="AST">Assists</option><option value="STL">Steals</option><option value="BLK">Blocks</option><option value="GP">Games</option><option value="Champions">Titles</option><option value="MVP">MVPs</option><option value="FMVP">Finals MVPs</option><option value="DPOY">DPOY</option><option value="All Stars">All-Stars</option><option value="All NBA Team">All-NBA</option></select>
+    <select class="m-sort" aria-label="Sort by" onchange="mobileSort('pos', this.value)"><option value="">Sort: rank</option><option value="Legacy">Legacy score</option><option value="PTS">Points</option><option value="REB">Rebounds</option><option value="AST">Assists</option><option value="STL">Steals</option><option value="BLK">Blocks</option><option value="GP">Games</option><option value="Champions">Titles</option><option value="MVP">MVPs</option><option value="FMVP">Finals MVPs</option><option value="DPOY">DPOY</option><option value="All Stars">All-Stars</option><option value="All NBA Team">All-NBA</option></select>
     <button class="icon-btn m-sort m-dir" id="posSortDir" type="button" onclick="flipSortDir('pos')" aria-label="Sort direction">↓ High first</button>
   </div>
   <div class="table-wrap"><table><thead><tr id="posHead"></tr></thead><tbody id="posBody"></tbody></table></div>
@@ -1067,7 +1177,7 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
   <div class="toolbar">
     <div class="search-wrap"><span class="icon"><svg class="ic"><use href="#i-search"/></svg></span><input type="text" id="curSearch" placeholder="Search players..." oninput="filterCurrent()"></div>
     <select id="curPosFilter" onchange="filterCurrent()"><option value="">All Positions</option><option>PG</option><option>SG</option><option>SF</option><option>PF</option><option>C</option></select>
-    <select class="m-sort" aria-label="Sort by" onchange="mobileSort('cur', this.value)"><option value="">Sort: newest</option><option value="Champions">Titles</option><option value="MVP">MVPs</option><option value="FMVP">Finals MVPs</option><option value="DPOY">DPOY</option><option value="All Stars">All-Stars</option><option value="All NBA Team">All-NBA</option><option value="Exp">Experience</option></select>
+    <select class="m-sort" aria-label="Sort by" onchange="mobileSort('cur', this.value)"><option value="">Sort: newest</option><option value="Legacy">Legacy score</option><option value="Champions">Titles</option><option value="MVP">MVPs</option><option value="FMVP">Finals MVPs</option><option value="DPOY">DPOY</option><option value="All Stars">All-Stars</option><option value="All NBA Team">All-NBA</option><option value="Exp">Experience</option></select>
     <button class="icon-btn m-sort m-dir" id="curSortDir" type="button" onclick="flipSortDir('cur')" aria-label="Sort direction">↓ High first</button>
     <span class="results-count" id="curCount"></span>
   </div>
@@ -2221,6 +2331,7 @@ function buildPlayerHead(tblKey, mode, extraCols) {
     ${th('DTeam','D-Team')}
     ${exp ? th('1st D Team','1st-D')+th('2nd D Team','2nd-D') : ''}
     ${th('DPOY','DPOY')}
+    ${th('Legacy','Legacy')}
     <th>Retired#</th><th>Teams</th>`;
 }
 // Combined All-Defensive selections; a blank cell counts as 0
@@ -2261,6 +2372,7 @@ function buildPlayerRow(row, tblKey, mode, rank, showPos) {
     <td class="num">${dTeamTotal(row)}</td>
     ${exp ? `<td class="num">${row['1st D Team']||0}</td><td class="num">${row['2nd D Team']||0}</td>` : ''}
     <td class="num">${row.DPOY||0}</td>
+    <td class="num">${legacyCell(row)}</td>
     <td class="retired">${retiredNums(row).join(' · ')||'—'}</td>
     <td>${teamTags(row)}</td>
   </tr>`;
@@ -2276,6 +2388,7 @@ function sortedByMode(arr, key, mode) {
       if (av !== null && bv !== null) return (av - bv) * dir;
     }
     if (col === 'DTeam') return (dTeamTotal(a) - dTeamTotal(b)) * dir;
+    if (col === 'Legacy') return ((legacyRow(a)?.score ?? -1) - (legacyRow(b)?.score ?? -1)) * dir;
     // Season column: sort by the numeric year part (e.g. "2004-24" -> 2004)
     if (col === 'Season') {
       const ay = parseInt(String(a[col]||'0').split('-')[0]) || 0;
@@ -2297,7 +2410,7 @@ function onSort(key, col) {
 // =====================================================================
 // SECTION NAVIGATION
 // =====================================================================
-const SECTIONS = ['overview','players','top20','bypos','current','draft','compare','player','legacy','settings','teams','team','awards','season','history','statleaders','allnba','decades','records','leaders'];
+const SECTIONS = ['overview','players','top20','bypos','current','draft','compare','player','legacy','settings','teams','team','awards','finals','ring','season','history','statleaders','allnba','decades','records','leaders'];
 function showSection(id) {
   if (!SECTIONS.includes(id)) id = 'overview';
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -2326,6 +2439,8 @@ function showSection(id) {
   if (location.hash.slice(1) !== hash) history.replaceState(null, '', '#' + hash);
   if (id === 'draft') renderDraft();
   if (id === 'awards') renderAwards();
+  if (id === 'finals') renderFinals();
+  if (id === 'ring') renderRing();
   if (id === 'legacy') renderLegacy();
   if (id === 'settings') { renderSettings(); markDataProblemsSeen(); }
   if (id !== 'player' && id !== 'team') { try { localStorage.setItem('nba2k17-tab', id); } catch(e) {} }
@@ -2698,6 +2813,29 @@ function retiredFromPlayers(teamName) {
   });
   return out;
 }
+// Trophy cabinet: awards won by the franchise's players while with it (NBA History logos,
+// Season Stat Leader teams), grouped by player with the seasons
+function trophyCabinet(teamName, titles, finals) {
+  const groups = [];
+  const collect = (label, entries) => {
+    const by = new Map();
+    entries.forEach(({ name, yr }) => { const k = playerKey(name, yr); if (!by.has(k)) by.set(k, { name, yrs: [] }); by.get(k).yrs.push(yr); });
+    const list = [...by.values()].sort((a, b) => b.yrs.length - a.yrs.length || Math.max(...b.yrs) - Math.max(...a.yrs));
+    if (entries.length) groups.push({ label, n: entries.length, list });
+  };
+  const hist = k => DB.history.filter(h => h[k] && h[k] !== '-' && h[k + 'Team'] === teamName).flatMap(h => coNames(h[k]).map(name => ({ name, yr: Number(h.Season) })));
+  collect('MVP', hist('MVP')); collect('Finals MVP', hist('FMVP')); collect('DPOY', hist('DPOY')); collect('Rookie of the Year', hist('ROTY'));
+  [['Pts', 'Scoring title'], ['Reb', 'Rebounding title'], ['Ast', 'Assists title'], ['Stl', 'Steals title'], ['Blk', 'Blocks title']].forEach(([k, l]) =>
+    collect(l, DB.statLeaders.filter(r => r[k + 'Leader'] && teamByCode(r[k + 'Team'])?.Team === teamName).map(r => ({ name: r[k + 'Leader'], yr: Number(r.Season) }))));
+  if (!groups.length && !finals) return '';
+  const tiles = [['Titles', titles], ['Finals', finals], ...groups.filter(g => !/title$/.test(g.label)).map(g => [g.label === 'Rookie of the Year' ? 'ROTY' : g.label, g.n]),
+    ['Stat titles', groups.filter(g => /title$/.test(g.label)).reduce((a, g) => a + g.n, 0)]].filter(([, v]) => v > 0);
+  return `<div class="chart-card tc-card"><div class="chart-title">${icon('trophy', 'ic-champ')} Trophy Cabinet</div>
+    <div class="tc-tiles fold-keep">${tiles.map(([l, v]) => `<div class="tc-tile"><b>${v}</b><span>${l}</span></div>`).join('')}</div>
+    ${groups.map(g => `<div class="tc-group"><div class="tc-label">${g.n > 1 ? (g.label === 'Rookie of the Year' ? 'Rookies of the Year' : g.label + 's') : g.label} <span class="muted">${g.n}</span></div>
+      <div class="tc-list">${g.list.map(x => `<span class="tc-item">${nameLink(x.name, { season: x.yrs[0] })}${x.yrs.length > 1 ? ` <b>×${x.yrs.length}</b>` : ''} <span class="muted">${x.yrs.sort((a, b) => a - b).map(y => seasonLabel(y)).join(', ')}</span></span>`).join('')}</div></div>`).join('')}
+  </div>`;
+}
 function renderTeamPage() {
   const teamName = teamState.t, t = DB.teams.find(x => x.Team === teamName);
   if (!t) return;
@@ -2773,7 +2911,9 @@ function renderTeamPage() {
         <td>${resultMark(si.isChamp, si.isRU, true) || (si.madePlayoffs ? '<span class="muted">Playoffs</span>' : '')}</td></tr>`).join('')}</tbody>
     </table></div></div>`);
 
-  // Side column: best run, best and worst seasons, retired numbers, active players
+  // Side column: trophy cabinet, best run, best and worst seasons, retired numbers, active players
+  const cabinet = trophyCabinet(teamName, won.length, won.length + lost.length);
+  if (cabinet) side.push(cabinet);
   const runs = [3, 5, 10].map(len => ({ len, r: teamWindows(len).find(x => x.team === teamName) })).filter(x => x.r);
   if (runs.length) side.push(`<div class="chart-card rb-card"><div class="chart-title">${icon('star')} Best Runs</div>
     ${runs.map(({ len, r }) => `<div class="rb-row"><span class="rb-rank"></span><span class="rb-main">${len} seasons</span><span class="rb-val">${r.titles} title${r.titles > 1 ? 's' : ''}</span>
@@ -2825,8 +2965,8 @@ function renderTeamPage() {
 // FOLDING CARDS: secondary cards on the team and player pages start closed;
 // tapping the title opens or closes them, and the choice is remembered
 // =====================================================================
-const TEAM_FOLDS = { 'Finals Rivalries': false, 'Season by Season': false, 'Best Runs': false, 'Started Here': false, 'Active Players Here': false };
-const PLAYER_FOLDS = { 'Percentile Ranks': false, 'Advanced Stats': false, 'Similar Players': false, 'Legacy Score': false };
+const TEAM_FOLDS = { 'Trophy Cabinet': false, 'Finals Rivalries': false, 'Season by Season': false, 'Best Runs': false, 'Started Here': false, 'Active Players Here': false };
+const PLAYER_FOLDS = { 'Percentile Ranks': false, 'Advanced Stats': false, 'Similar Players': false, 'Legacy Score': false, 'Finals': false };
 function foldState() { return readJSON('nba2k17-folds') || {}; }
 function applyFolds(root, defaults) {
   const saved = foldState();
@@ -2941,7 +3081,7 @@ function renderWinChart() {
   const data = win ? all.filter(s => s.yr >= win.from && s.yr <= win.to) : all;
   if (!data.length) { el.innerHTML = ''; return; }
   const W = Math.max(el.clientWidth, 280), H = 210;
-  const m = { l: 30, r: 48, t: 12, b: 24 };
+  const m = { l: 30, r: 58, t: 12, b: 24 };
   const pw = W - m.l - m.r, ph = H - m.t - m.b;
   const y0 = data[0].yr, y1 = data[data.length-1].yr;
   const x = yr => m.l + (yr - y0) / Math.max(y1 - y0, 1) * pw;
@@ -2972,7 +3112,7 @@ function renderWinChart() {
   // Hover layer
   svg += `<line class="wc-cross" y1="${m.t}" y2="${m.t+ph}" visibility="hidden"/><circle class="wc-focus wc-mark" r="4.5" fill="var(--link)" visibility="hidden"/>`;
 
-  el.innerHTML = `<svg width="${W}" height="${H}" tabindex="0" role="img"
+  el.innerHTML = `<svg width="100%" viewBox="0 0 ${W} ${H}" style="max-width:${W}px" tabindex="0" role="img"
       aria-label="${winChartData.team.Team} wins per season, ${seasonLabel(y0)} to ${seasonLabel(y1)}. Use left and right arrow keys to step through seasons.">${svg}</svg>
     <div class="wc-tip" hidden></div>`;
 
@@ -2996,7 +3136,7 @@ function renderWinChart() {
   };
   const hide = () => { cur = -1; tip.hidden = true; cross.setAttribute('visibility', 'hidden'); focus.setAttribute('visibility', 'hidden'); };
   const nearest = px => data.reduce((bi, s, i) => Math.abs(x(s.yr) - px) < Math.abs(x(data[bi].yr) - px) ? i : bi, 0);
-  svgEl.addEventListener('mousemove', e => show(nearest(e.clientX - svgEl.getBoundingClientRect().left)));
+  svgEl.addEventListener('mousemove', e => { const r = svgEl.getBoundingClientRect(); show(nearest((e.clientX - r.left) * W / r.width)); });
   svgEl.addEventListener('mouseleave', hide);
   svgEl.addEventListener('focus', () => show(data.length - 1));
   svgEl.addEventListener('blur', hide);
@@ -3057,7 +3197,7 @@ function buildStandingsTable(teamsArr, season, champFull, ruFull, topN, showConf
     const rowCls = [isChamp ? 'row-champ' : isRU ? 'row-ru' : madePlayoffs ? 'row-playoff' : '', !hist && i + 1 === topN ? 'cut' : ''].join(' ');
     return `<tr class="${rowCls}">
       <td class="st-rank">${i + 1}</td>
-      <td>${teamLink(t.Team, rec.label || t.Team)}</td>
+      <td class="st-team">${teamLink(t.Team, rec.label || t.Team)}</td>
       ${showConf ? `<td><span class="conf-badge">${rec.conf || t.Conference}</span></td>` : ''}
       <td class="num ${recClass(rec.w, rec.l)}">${rec.w}-${rec.l}</td>
       <td class="num">${pct}</td>
@@ -3178,6 +3318,16 @@ let standingsCache = {};
 // Playoffs = top 8 in conference (the 2K17 format; the sheet doesn't store it).
 // Older seasons (Team History) carry their own conference and playoff note; playoffs there are
 // only known when the sheet says so (null otherwise), since formats changed many times.
+// Nickname for tight spots next to a logo: "Minnesota Timberwolves" -> "Timberwolves"
+const shortTeam = name => { const s = String(name || ''); const m = s.match(/(Trail Blazers|Red Sox)$/); return m ? m[1] : s.split(' ').pop(); };
+function teamShortIn(team, yr) { const t = DB.teams.find(x => x.Team === team), era = t && t.seasonRecords?.[yr]?.label; return teamLink(team, shortTeam(era || team)); }
+// Team with the biggest jump in wins from the season before (by win %, so shorter seasons compare fairly)
+function mostImproved(yr) {
+  const prev = Object.fromEntries(seasonStandings(yr - 1).map(r => [r.team, r]));
+  const pct = r => r.w / Math.max(1, r.w + r.l);
+  return seasonStandings(yr).filter(r => prev[r.team]).map(r => ({ ...r, prev: prev[r.team], gain: Math.round((pct(r) - pct(prev[r.team])) * 82) }))
+    .filter(r => r.gain > 0).sort((a, b) => b.gain - a.gain || b.w - a.w)[0] || null;
+}
 function seasonStandings(yr) {
   if (standingsCache[yr]) return standingsCache[yr];
   const teams = DB.teams.filter(t => t.seasonRecords?.[yr]);
@@ -3246,7 +3396,9 @@ function renderHome() {
       <div class="hero-award"><div class="ha-label">MVP</div><div class="ha-name">${h.MVPTeam ? teamLogo(h.MVPTeam) : ''}${award(h.MVP)}</div></div>
       <div class="hero-award"><div class="ha-label">DPOY</div><div class="ha-name">${h.DPOYTeam ? teamLogo(h.DPOYTeam) : ''}${award(h.DPOY)}</div></div>
       ${h.ROTY && h.ROTY !== '-' ? `<div class="hero-award"><div class="ha-label">ROTY</div><div class="ha-name">${h.ROTYTeam ? teamLogo(h.ROTYTeam) : ''}${award(h.ROTY)}</div></div>` : ''}
-      ${best ? `<div class="hero-award"><div class="ha-label">Best Record</div><div class="ha-name">${teamLink(best.team)} <span class="nowrap">${best.w}-${best.l}</span></div></div>` : ''}
+      ${best ? `<div class="hero-award"><div class="ha-label">Best Record</div><div class="ha-name">${teamShortIn(best.team, yr)}</div><div class="ha-rec">${best.w}-${best.l}</div></div>` : ''}
+      ${(() => { const mi = mostImproved(yr); return mi ? `<div class="hero-award"><div class="ha-label">Most Improved</div><div class="ha-name">${teamShortIn(mi.team, yr)}</div>
+        <div class="ha-rec ha-jump"><span class="ha-was">${mi.prev.w}-${mi.prev.l}</span> → ${mi.w}-${mi.l}</div><div class="ha-gain">+${mi.gain} wins on last season</div></div>` : ''; })()}
     </div>
   </section>`);
 
@@ -3257,7 +3409,7 @@ function renderHome() {
       const top = rows[0];
       return `<div><div class="conf-title">${conf === 'EAST' ? 'East' : 'West'}</div>
         <table class="standings-table mini-standings"><thead><tr><th>#</th><th>Team</th><th class="num">W-L</th><th class="num">GB</th></tr></thead>
-        <tbody>${rows.map((r, i) => `<tr><td class="st-rank">${i+1}</td><td>${teamLink(r.team)}${r.team === champ ? ' ' + icon('trophy', 'ic-champ') : r.team === ru ? ' ' + icon('trophy', 'ic-silver') : ''}</td>
+        <tbody>${rows.map((r, i) => `<tr><td class="st-rank">${i+1}</td><td class="st-team">${teamLink(r.team)}${r.team === champ ? ' ' + icon('trophy', 'ic-champ') : r.team === ru ? ' ' + icon('trophy', 'ic-silver') : ''}</td>
           <td class="num ${recClass(r.w, r.l)}">${r.w}-${r.l}</td><td class="num">${i ? top.w - r.w : '—'}</td></tr>`).join('')}</tbody></table></div>`;
     };
     cards.push(`<div class="chart-card span-8"><div class="card-head"><div class="chart-title">Final Standings · Top 8</div>
@@ -3474,8 +3626,9 @@ function renderSeason() {
   sections.push(`<div class="stats-cards sh-awards">
     ${tile(icon('trophy','ic-champ') + ' Champion', champ ? teamIn(champ, yr) : '<span class="muted">—</span>',
       ru ? `beat ${teamIn(ru, yr)} ${finalsScore}${champRow ? ` · ${champRow.w}-${champRow.l} season` : ''}` : '')}
-    ${['FMVP', 'MVP', 'DPOY', 'ROTY'].filter(k => k !== 'ROTY' || (h?.ROTY && h.ROTY !== '-')).map(k => tile(k === 'FMVP' ? 'Finals MVP' : k, award(h?.[k]), h?.[k + 'Team'] && h[k] && h[k] !== '-' ? teamIn(h[k + 'Team'], yr) : '')).join('')}
+    ${['FMVP', 'MVP', 'DPOY', 'ROTY'].filter(k => k !== 'ROTY' || (h?.ROTY && h.ROTY !== '-')).map(k => tile(k === 'FMVP' ? 'Finals MVP' : k, award(h?.[k]), h?.[k + 'Team'] && h[k] && h[k] !== '-' ? teamShortIn(h[k + 'Team'], yr) : '')).join('')}
     ${best ? tile('Best Record', teamIn(best.team, yr), `${best.w}-${best.l}`) : ''}
+    ${(() => { const mi = mostImproved(yr); return mi ? tile('Most Improved', teamIn(mi.team, yr), `${mi.prev.w}-${mi.prev.l} → ${mi.w}-${mi.l} (+${mi.gain} wins)`) : ''; })()}
   </div>`);
 
   // Champion and runner-up stars, each with the role the legacy score gives them
@@ -3577,6 +3730,33 @@ function renderRecords() {
     ]);
   }
 
+  // ----- Turnarounds: one-season jumps and drops (by win %, scaled to 82 games), and worst to first
+  if (yrs.length > 1) {
+    const pct = r => r.w / Math.max(1, r.w + r.l);
+    const swings = yrs.slice(1).flatMap(yr => { const prev = Object.fromEntries(seasonStandings(yr - 1).map(r => [r.team, r]));
+      return seasonStandings(yr).filter(r => prev[r.team]).map(r => ({ ...r, yr, prev: prev[r.team], gain: Math.round((pct(r) - pct(prev[r.team])) * 82) })); });
+    const swingRow = r => ({ main: teamIn(r.team, r.yr), val: `${r.gain > 0 ? '+' : ''}${r.gain}`, sub: `${r.prev.w}-${r.prev.l} → ${r.w}-${r.l} · ${seasonLink(r.yr)}${resultIcon(r.team, r.yr)}` });
+    const ups = withRanks(swings.filter(r => r.gain > 0).sort((a, b) => b.gain - a.gain || b.yr - a.yr).slice(0, 10), r => r.gain).map(r => ({ ...swingRow(r), rank: r.rank }));
+    const downs = withRanks(swings.filter(r => r.gain < 0).sort((a, b) => a.gain - b.gain || b.yr - a.yr).slice(0, 10), r => r.gain).map(r => ({ ...swingRow(r), rank: r.rank }));
+    // Worst to first: a team with one of the league's three worst records won the title within five seasons
+    const w2f = [], usedBad = new Set();
+    [...finals].sort((a, b) => a.yr - b.yr).forEach(f => {
+      for (let back = 1; back <= 5; back++) {
+        const st = seasonStandings(f.yr - back); if (!st.length) continue;
+        const me = st.find(r => r.team === f.champ); if (!me || me.leagueRk < st.length - 2) continue;
+        // Each bad season counts once, for the first title that followed it
+        const k = f.champ + '|' + (f.yr - back); if (usedBad.has(k)) break; usedBad.add(k);
+        w2f.push({ f, back, me, n: st.length }); break;
+      }
+    });
+    section('Turnarounds', 'Change in wins from one season to the next (by win %, scaled to 82 games)', [
+      recordCard('Biggest Turnarounds', ups, '', 'No turnarounds yet.'),
+      recordCard('Biggest Collapses', downs, '', 'No collapses yet.'),
+      recordCard(`Worst to First · ${w2f.length}`, w2f.sort((a, b) => b.f.yr - a.f.yr).map(x => ({ main: teamIn(x.f.champ, x.f.yr), val: `${x.back} yr${x.back > 1 ? 's' : ''}`,
+        sub: `${x.me.leagueRk === x.n ? 'worst' : x.me.leagueRk === x.n - 1 ? '2nd-worst' : '3rd-worst'} record in ${seasonLink(x.f.yr - x.back)} (${x.me.w}-${x.me.l}), champion ${seasonLink(x.f.yr)}` })), 'Bottom three in the league, then a title within five seasons', 'No worst-to-first champions yet.'),
+    ]);
+  }
+
   // ----- Streaks
   const runCard = (title, runs, minLen, n, mainOf, note, unit) => {
     const best = runs.filter(r => r.len >= minLen).sort((a,b) => b.len - a.len || b.end - a.end).slice(0, n);
@@ -3613,6 +3793,26 @@ function renderRecords() {
     recordCard(`Sweeps (4-0) · ${sweeps.length}`, sweeps),
     recordCard(`Went to Game 7 (4-3) · ${sevens.length}`, sevens),
   ]);
+
+  // ----- Heartbreak: Finals lost, and greats without a ring
+  {
+    const n = (p, k) => { const v = getNum(p[k]); return v === -Infinity ? 0 : Math.round(v); };
+    const ps = everyPlayer().map(p => ({ p, app: n(p, 'Finals App'), won: n(p, 'Champions') })).map(x => ({ ...x, lost: Math.max(0, x.app - x.won) }));
+    const mostLost = withRanks(ps.filter(x => x.lost > 0).sort((a, b) => b.lost - a.lost || a.won - b.won).slice(0, 10), x => x.lost)
+      .map(x => ({ rank: x.rank, main: nameLink(x.p.Player), val: `${x.lost}`, sub: `${x.app} Finals · ${x.won} title${x.won === 1 ? '' : 's'}` }));
+    const noRing = ps.filter(x => x.won === 0).map(x => ({ ...x, rk: legacyRankOf(x.p) })).filter(x => x.rk).sort((a, b) => a.rk - b.rk).slice(0, 10)
+      .map((x, i) => ({ rank: i + 1, main: nameLink(x.p.Player), val: `#${x.rk}`, sub: `${x.app ? `${x.app} Finals, no title` : 'never reached the Finals'}${isActive(x.p) ? ' · <span class="rb-active">active</span>' : ''}` }));
+    const confNoRing = withRanks(ps.filter(x => x.won === 0 && x.app > 0).sort((a, b) => b.app - a.app || (legacyRankOf(a.p) || 999) - (legacyRankOf(b.p) || 999)).slice(0, 10), x => x.app)
+      .map(x => ({ rank: x.rank, main: nameLink(x.p.Player), val: `${x.app}`, sub: `conference title${x.app > 1 ? 's' : ''}, never won the Finals` }));
+    const teamLost = withRanks(Object.entries(appear).filter(([, v]) => v.l > 0).map(([t, v]) => ({ t, v })).sort((a, b) => b.v.l - a.v.l || a.v.w - b.v.w).slice(0, 10), r => r.v.l)
+      .map(r => ({ rank: r.rank, main: teamLink(r.t), val: `${r.v.l}`, sub: `${r.v.w + r.v.l} Finals · ${r.v.w} won` }));
+    section('Heartbreak', 'Finals lost (Finals App − Champions on each player row) and the best players without a title', [
+      recordCard('Most Finals Lost', mostLost, '', 'No Finals losses recorded.'),
+      recordCard('Best Players Without a Title', noRing, 'Ranked by legacy score'),
+      recordCard('Most Conference Titles, No Ring', confNoRing, '', 'Everyone who reached the Finals won one.'),
+      recordCard('Franchises: Most Finals Lost', teamLost),
+    ]);
+  }
 
   // ----- Dynasties
   const runRows = (len, minTitles) => withRanks(teamWindows(len).filter(r => r.titles >= minTitles).slice(0, 8), r => r.titles * 100 + r.finals)
@@ -3770,12 +3970,14 @@ function renderCurrent() {
     <th class="num" onclick="onSortCur('1st D Team')">1st-D${curSI('1st D Team')}</th>
     <th class="num" onclick="onSortCur('2nd D Team')">2nd-D${curSI('2nd D Team')}</th>
     <th class="num" onclick="onSortCur('DPOY')">DPOY${curSI('DPOY')}</th>
+    <th class="num" onclick="onSortCur('Legacy')">Legacy${curSI('Legacy')}</th>
     <th>ROTY</th>
     <th onclick="onSortCur('Other Award')">Other${curSI('Other Award')}</th>
     <th>Teams</th>`;
   // Sort current players
   const curS = sortStates.cur || {col:'Season', dir:1};
   const curSorted = [...curState.filtered].sort((a,b) => {
+    if (curS.col === 'Legacy') return ((legacyRow(a)?.score ?? -1) - (legacyRow(b)?.score ?? -1)) * curS.dir;
     const av = a[curS.col], bv = b[curS.col];
     const an = parseFloat(av), bn = parseFloat(bv);
     if (!isNaN(an) && !isNaN(bn)) return (an - bn) * curS.dir;
@@ -3804,6 +4006,7 @@ function renderCurrent() {
       <td class="num">${p['1st D Team']||0}</td>
       <td class="num">${p['2nd D Team']||0}</td>
       <td class="num">${p.DPOY||0}</td>
+      <td class="num">${legacyCell(p)}</td>
       <td>${roty?'Yes':'<span class="muted">—</span>'}</td>
       <td class="muted">${other&&other!=='/'&&other!==0?other:'—'}</td>
       <td>${[...new Set(teams)].map(t=>`<span class="team-tag">${teamLink(t)}</span>`).join(' ')}</td>
@@ -4146,6 +4349,10 @@ function renderPlayerPage() {
         ${yearsOf[i] ? `<span class="journey-years">${yearsOf[i]}</span>` : ''}
         <span class="journey-tags">${titles ? `<em class="tag-gold">${icon('trophy')} ${label}</em>` : ''}${conf ? `<em class="tag-silver">${icon('trophy')} ${confLabel}</em>` : ''}${ret.map(r => `<em class="tag-ret">#${r.num} retired</em>`).join('')}</span></div>`;
     }).join('')}</div></div>`);
+
+  // Finals the player played in as a listed star
+  const finalsHtml = playerFinalsHtml(p);
+  if (finalsHtml) parts.push(finalsHtml);
 
   // Career numbers
   if (hasStats) {
@@ -4737,6 +4944,9 @@ function legacyRanking() {
   return cached('legacyRanking', () => withRanks(everyPlayer().map(p => ({ p, score: legacy(p).total })).sort((a, b) => b.score - a.score), r => Math.round(r.score)));
 }
 const legacyRankOf = p => legacyRanking().find(r => r.p === p)?.rank;
+// Legacy score and rank for any list row (Top 20 and position sheets hold copies of the player)
+const legacyRow = row => { const p = everyPlayer().includes(row) ? row : resolvePlayer(row.Player); return p ? { p, score: legacy(p).total, rank: legacyRankOf(p) } : null; };
+const legacyCell = row => { const l = legacyRow(row); return l ? `<span title="${Math.round(l.score).toLocaleString()} legacy points">#${l.rank}</span>` : '<span class="muted">—</span>'; };
 
 // Closest statistical matches: distance between standardized per-game profiles
 const SIM_KEYS = [
@@ -4887,6 +5097,238 @@ function legendsHtml(team) {
 }
 </script>
 <script>
+// 2K17 NBA Stats Database · Finals page (every Finals head to head, upsets, matchups, rivalries)
+// and the Finals card on player pages. Built from NBA History: Finals, Champion Stars, Runner-Up Stars.
+
+// One entry per Finals: both teams and their listed stars ("Name (rating)")
+const UPSET_GAP = 5;
+function finalsData() {
+  return cached('finalsData', () => DB.history.map(h => {
+    const yr = Number(h.Season), { champ, ru } = finalsTeams(yr);
+    if (isNaN(yr) || !champ || !ru) return null;
+    const stars = list => list.filter(x => x && x !== '-').map(x => {
+      const m = String(x).match(/^(.*?)\s*\((\d+)\)\s*$/), name = (m ? m[1] : String(x)).trim();
+      const p = resolvePlayer(name, yr);
+      return { name, key: p ? p.Player : name, p, r: m ? Number(m[2]) : null };
+    });
+    const cs = stars([h.Star1, h.Star2, h.Star3]), rs = stars([h.RU1, h.RU2, h.RU3]);
+    const top = s => s.length && s[0].r !== null ? Math.max(...s.filter(x => x.r !== null).map(x => x.r)) : null;
+    const ct = top(cs), rt = top(rs);
+    // Star power: every listed star adds the points they are rated above 80, so depth counts
+    // (three 95s = 45 beat a 97 + 88 = 25). An upset: the runner-up's star power was 5+ higher
+    const power = s => s.reduce((a, x) => a + Math.max(0, (x.r ?? 80) - 80), 0);
+    const cp = power(cs), rp = power(rs);
+    const upset = cs.length && rs.length && rp - cp >= UPSET_GAP ? rp - cp : 0;
+    return { yr, h, champ, ru, score: finalsScore(h), cs, rs, ct, rt, cp, rp, upset, fmvp: h.FMVP && h.FMVP !== '-' ? h.FMVP : null };
+  }).filter(Boolean).sort((a, b) => b.yr - a.yr));
+}
+// Star duels: each team's top listed star against the other's, met in two or more Finals
+function finalsRivalries() {
+  return cached('finalsRivalries', () => {
+    const pairs = {};
+    const best = s => [...s].sort((a, b) => (b.r ?? 0) - (a.r ?? 0)).slice(0, 1);
+    finalsData().forEach(f => best(f.cs).forEach(a => best(f.rs).forEach(b => {
+      const [x, y] = [a.key, b.key].sort(), k = x + '|' + y;
+      const e = (pairs[k] = pairs[k] || { x, y, n: 0, wins: { [x]: 0, [y]: 0 }, yrs: [] });
+      e.n++; e.wins[a.key]++; e.yrs.push(f.yr);
+    })));
+    return Object.values(pairs).filter(e => e.n >= 2).sort((a, b) => b.n - a.n || Math.max(...b.yrs) - Math.max(...a.yrs));
+  });
+}
+// Franchise pairs that met in the Finals more than once
+function finalsMatchups() {
+  return cached('finalsMatchups', () => {
+    const m = {};
+    finalsData().forEach(f => {
+      const [x, y] = [f.champ, f.ru].sort(), k = x + '|' + y;
+      const e = (m[k] = m[k] || { x, y, n: 0, wins: { [x]: 0, [y]: 0 }, yrs: [] });
+      e.n++; e.wins[f.champ]++; e.yrs.push(f.yr);
+    });
+    return Object.values(m).filter(e => e.n >= 2).sort((a, b) => b.n - a.n || Math.max(...b.yrs) - Math.max(...a.yrs));
+  });
+}
+// Finals won and lost by each franchise
+function finalsByFranchise() {
+  return cached('finalsByFranchise', () => {
+    const t = {};
+    finalsData().forEach(f => { (t[f.champ] = t[f.champ] || { w: 0, l: 0 }).w++; (t[f.ru] = t[f.ru] || { w: 0, l: 0 }).l++; });
+    return Object.entries(t).map(([team, r]) => ({ team, ...r })).sort((a, b) => (b.w + b.l) - (a.w + a.l) || b.w - a.w);
+  });
+}
+
+const finalsState = { filter: 'all', q: '', shown: 20 };
+function setFinalsFilter(f) { finalsState.filter = f; finalsState.shown = 20; renderFinals(); }
+function onFinalsSearch(v) { finalsState.q = v.toLowerCase(); finalsState.shown = 20; renderFinalsList(); }
+function moreFinals() { finalsState.shown += 30; renderFinalsList(); }
+
+// Star chips for one side of a Finals, each with the role the legacy score gives it
+function finalsStars(list, yr, roleMap) {
+  if (!list.length) return '<span class="muted">No stars listed</span>';
+  return list.map(s => {
+    const role = s.p && (legacyContext()[roleMap][s.p.Player] || []).find(r => r.yr === yr);
+    return `<span class="fx-star">${nameLink(s.name, { season: yr })}${s.r !== null ? ` <b>${s.r}</b>` : ''}${role ? `<i>${role.label}</i>` : ''}</span>`;
+  }).join('');
+}
+function finalsCard(f) {
+  return `<div class="fx-card${f.upset ? ' fx-upset' : ''}">
+    <div class="fx-head"><span class="fx-season">${seasonLink(f.yr)}</span>${f.upset ? `<span class="fx-badge" title="The runner-up's star power was ${f.upset} higher">Upset</span>` : ''}${f.cs.length && f.rs.length ? `<span class="fx-power" title="Star power: each listed star adds their rating above 80">star power ${f.cp} vs ${f.rp}</span>` : ''}<span class="fx-score">${f.h.Finals || ''}</span></div>
+    <div class="fx-sides">
+      <div class="fx-side fx-win"><div class="fx-team">${icon('trophy', 'ic-champ')} ${teamIn(f.champ, f.yr)}</div><div class="fx-stars">${finalsStars(f.cs, f.yr, 'roles')}</div>
+        ${f.fmvp ? `<div class="fx-fmvp">Finals MVP · ${nameLink(f.fmvp, { season: f.yr })}</div>` : ''}</div>
+      <div class="fx-side fx-lose"><div class="fx-team">${icon('trophy', 'ic-silver')} ${teamIn(f.ru, f.yr)}</div><div class="fx-stars">${finalsStars(f.rs, f.yr, 'ruRoles')}</div></div>
+    </div></div>`;
+}
+function finalsMatches(f) {
+  const q = finalsState.q;
+  if (finalsState.filter === 'upsets' && !f.upset) return false;
+  if (!q) return true;
+  return String(f.yr).includes(q) || seasonLabel(f.yr).includes(q) || [f.champ, f.ru].some(t => t.toLowerCase().includes(q)) ||
+    [...f.cs, ...f.rs].some(s => s.name.toLowerCase().includes(q)) || String(f.h.Finals || '').toLowerCase().includes(q);
+}
+function renderFinalsList() {
+  const list = finalsData().filter(finalsMatches), shown = list.slice(0, finalsState.shown);
+  document.getElementById('finalsCount').textContent = `${list.length} Finals`;
+  document.getElementById('finalsList').innerHTML = shown.map(finalsCard).join('') +
+    (list.length > shown.length ? `<button class="icon-btn fx-more" onclick="moreFinals()">Show more (${list.length - shown.length} left)</button>` : '') +
+    (list.length ? '' : '<p class="muted">No Finals match.</p>');
+}
+function renderFinals() {
+  const all = finalsData();
+  if (!all.length) { document.getElementById('finalsContent').innerHTML = '<p class="muted">No Finals in NBA History yet.</p>'; return; }
+  const upsets = all.filter(f => f.upset), riv = finalsRivalries(), mu = finalsMatchups(), fr = finalsByFranchise();
+  const hasRu = all.some(f => f.rs.length);
+  const tile = (label, value, sub) => `<div class="stat-card"><div class="label">${label}</div><div class="value value-name">${value}</div><div class="sub">${sub || '&nbsp;'}</div></div>`;
+  const biggest = [...upsets].sort((a, b) => b.upset - a.upset || b.yr - a.yr)[0];
+  const rivRow = e => { const [a, b] = [e.x, e.y]; return `<div class="rb-row"><span class="rb-rank">${e.n}</span><span class="rb-main">${nameLink(a)} <span class="muted">vs</span> ${nameLink(b)}</span>
+    <span class="rb-val">${e.wins[a]}–${e.wins[b]}</span><span class="rb-sub">${e.yrs.slice().sort((p, q) => p - q).map(y => seasonLink(y)).join(', ')}</span></div>`; };
+  const muRow = e => `<div class="rb-row"><span class="rb-rank">${e.n}</span><span class="rb-main">${teamLink(e.x, teamCode(e.x))} <span class="muted">vs</span> ${teamLink(e.y, teamCode(e.y))}</span>
+    <span class="rb-val">${e.wins[e.x]}–${e.wins[e.y]}</span><span class="rb-sub">last met ${seasonLabel(Math.max(...e.yrs))}</span></div>`;
+  document.getElementById('finalsContent').innerHTML = `
+    <div class="stats-cards">
+      ${tile('Finals played', all.length, `${seasonLabel(all[all.length - 1].yr)} to ${seasonLabel(all[0].yr)}`)}
+      ${hasRu ? tile('Upsets', upsets.length, biggest ? `biggest: ${seasonLabel(biggest.yr)}, ${teamCode(biggest.champ)} over ${teamCode(biggest.ru)} (${biggest.cp} vs ${biggest.rp} star power)` : '') : ''}
+      ${mu[0] ? tile('Most common Finals', `${teamCode(mu[0].x)} vs ${teamCode(mu[0].y)}`, `${mu[0].n} times`) : ''}
+      ${riv[0] ? (() => { const sx = riv[0].x.split(' ').pop(), sy = riv[0].y.split(' ').pop(), same = sx === sy;
+        return tile('Top Finals rivalry', same ? `${riv[0].x} vs ${riv[0].y}` : `${sx} vs ${sy}`, `${riv[0].n} Finals, ${riv[0].wins[riv[0].x]}–${riv[0].wins[riv[0].y]}`); })() : ''}
+    </div>
+    <div class="player-grid fx-grid">
+      <div>
+        <div class="toolbar fx-toolbar"><div class="search-wrap"><span class="icon"><svg class="ic"><use href="#i-search"/></svg></span><input type="text" placeholder="Search season, team, player..." value="${finalsState.q}" oninput="onFinalsSearch(this.value)" aria-label="Search Finals"></div>
+          <div class="seg">${[['all', 'All Finals'], ['upsets', 'Upsets']].map(([k, l]) => `<button class="${finalsState.filter === k ? 'active' : ''}" onclick="setFinalsFilter('${k}')">${l}</button>`).join('')}</div></div>
+        <div class="muted fx-count" id="finalsCount"></div>
+        <div id="finalsList" class="fx-list"></div>
+      </div>
+      <div>
+        ${hasRu ? `<div class="chart-card rb-card"><div class="chart-title">${icon('people')} Finals Rivalries</div>
+          <p class="muted fx-note">Each team's top star against the other's, met in two or more Finals, with each one's wins.</p>
+          ${riv.length ? riv.slice(0, 15).map(rivRow).join('') : '<p class="muted">No two stars have met twice yet.</p>'}</div>` : ''}
+        <div class="chart-card rb-card"><div class="chart-title">${icon('trophy', 'ic-champ')} Most Common Finals</div>
+          ${mu.slice(0, 10).map(muRow).join('') || '<p class="muted">No repeat matchups yet.</p>'}</div>
+        <div class="chart-card rb-card"><div class="chart-title">${icon('list')} Finals Record by Franchise</div>
+          ${fr.slice(0, 15).map((r, i) => `<div class="rb-row"><span class="rb-rank">${i + 1}</span><span class="rb-main">${teamLink(r.team)}</span><span class="rb-val">${r.w}–${r.l}</span><span class="rb-sub">${r.w + r.l} Finals</span></div>`).join('')}</div>
+        ${hasRu ? `<p class="muted fx-note">Star power: each listed star adds the points they're rated above 80 (a 95 adds 15). Upset: the runner-up's star power was ${UPSET_GAP} or more higher than the champion's.</p>` : ''}
+      </div>
+    </div>`;
+  renderFinalsList();
+}
+
+// Player page: every Finals the player was a listed star in (or Finals MVP), with the opponents
+function playerFinalsHtml(p) {
+  const rows = [];
+  finalsData().forEach(f => {
+    const won = f.cs.some(s => s.p === p) || (f.fmvp && resolvePlayer(f.fmvp, f.yr) === p), lost = f.rs.some(s => s.p === p);
+    if (won) rows.push({ f, won: true, opp: f.ru, oppStars: f.rs });
+    else if (lost) rows.push({ f, won: false, opp: f.champ, oppStars: f.cs });
+  });
+  if (!rows.length) return '';
+  const w = rows.filter(r => r.won).length, l = rows.length - w;
+  // Who they met most: opposing listed stars across their Finals
+  const met = {};
+  rows.forEach(r => r.oppStars.forEach(s => { const e = (met[s.key] = met[s.key] || { name: s.name, n: 0, w: 0 }); e.n++; if (r.won) e.w++; }));
+  const rivals = Object.values(met).filter(e => e.n >= 2).sort((a, b) => b.n - a.n).slice(0, 3);
+  // Score from the player's side: a 4-2 loss reads 2–4
+  const score = r => { const m = String(r.f.score).match(/(\d+)\D+(\d+)/); return m ? (r.won ? `${m[1]}–${m[2]}` : `${m[2]}–${m[1]}`) : ''; };
+  return `<div class="chart-card pf-card"><div class="chart-title" title="Finals where the player is listed as a champion or runner-up star, or was Finals MVP">${icon('trophy', 'ic-champ')} Finals</div>
+    <div class="pf-sum fold-keep"><span class="pf-tally"><b class="pf-wn">${w}</b> won</span><span class="pf-tally"><b>${l}</b> lost</span></div>
+    <div class="pf-list">${rows.sort((a, b) => b.f.yr - a.f.yr).map(r => `<div class="pf-row">
+      <span class="pf-season">${seasonLink(r.f.yr)}</span>
+      <span class="pf-res ${r.won ? 'pf-w' : 'pf-l'}">${r.won ? 'W' : 'L'}</span>
+      <span class="pf-opp"><span class="pf-team">${r.won ? 'over' : 'to'} ${teamIn(r.opp, r.f.yr, teamCode(r.opp))}</span>${r.oppStars.length ? `<span class="pf-stars">${r.oppStars.map(s => `<span class="nm">${s.name}</span>`).join(', ')}</span>` : ''}</span>
+      <span class="pf-score">${score(r)}</span></div>`).join('')}</div>
+    ${rivals.length ? `<div class="pf-rivals"><span>Most-met</span> ${rivals.map(e => `${nameLink(e.name)} <span class="muted">${e.w}–${e.n - e.w}</span>`).join(' · ')}</div>` : ''}</div>`;
+}
+</script>
+<script>
+// 2K17 NBA Stats Database · Ring of Honor: every retired number in the league in one place
+// (Retired # tab merged with the # Retired columns of All Players, as on each team page).
+
+function ringData() {
+  return cached('ringData', () => DB.teams.filter(t => !t.defunct).flatMap(t => retiredForTeam(t.Team).map(r => ({ ...r, team: t.Team, numKey: String(r.num).trim() }))));
+}
+const ringState = { q: '', team: '', kind: 'players' };
+function setRingKind(k) { ringState.kind = k; renderRingList(); document.querySelectorAll('#ringKind button').forEach(b => b.classList.toggle('active', b.dataset.k === k)); }
+function renderRing() {
+  const all = ringData(), players = all.filter(r => r.type === 'Player');
+  const el = document.getElementById('ringContent');
+  if (!all.length) { el.innerHTML = '<p class="muted">No retired numbers recorded yet.</p>'; return; }
+  // Players honored by two or more franchises
+  const byPlayer = {};
+  players.forEach(r => (byPlayer[r.player] = byPlayer[r.player] || []).push(r));
+  const multi = Object.entries(byPlayer).map(([player, rs]) => ({ player, rs, teams: new Set(rs.map(r => r.team)).size })).filter(x => x.teams >= 2)
+    .sort((a, b) => b.teams - a.teams || a.player.localeCompare(b.player));
+  // Franchises by count, and the most-retired jersey numbers
+  const byTeam = {};
+  all.forEach(r => { const e = (byTeam[r.team] = byTeam[r.team] || { players: 0, all: 0 }); e.all++; if (r.type === 'Player') e.players++; });
+  const teams = Object.entries(byTeam).sort((a, b) => b[1].players - a[1].players || b[1].all - a[1].all);
+  const byNum = {};
+  players.filter(r => /^\d+$/.test(r.numKey)).forEach(r => (byNum[r.numKey] = byNum[r.numKey] || []).push(r));
+  const nums = Object.entries(byNum).sort((a, b) => b[1].length - a[1].length || Number(a[0]) - Number(b[0]));
+  const gameEra = players.filter(r => { const y = String(r.years || '').match(/\d{4}/g); return y && y.some(v => Number(v) > 2016); }).length;
+  const tile = (label, value, sub) => `<div class="stat-card"><div class="label">${label}</div><div class="value">${value}</div><div class="sub">${sub || '&nbsp;'}</div></div>`;
+  el.innerHTML = `
+    <div class="stats-cards">
+      ${tile('Retired numbers', players.length, `${all.length - players.length} more honors for coaches and others`)}
+      ${tile('Honored by 2+ teams', multi.length, multi[0] ? `e.g. ${multi.slice(0, 2).map(m => m.player).join(', ')}` : '')}
+      ${teams[0] ? tile('Most by a franchise', teams[0][1].players, teamCode(teams[0][0]) + ' players') : ''}
+      ${nums[0] ? tile('Most-retired number', '#' + nums[0][0], `${nums[0][1].length} times`) : ''}
+    </div>
+    <div class="player-grid ring-grid">
+      <div>
+        <div class="toolbar ring-toolbar"><div class="search-wrap"><span class="icon"><svg class="ic"><use href="#i-search"/></svg></span><input type="text" placeholder="Search player, number..." oninput="ringState.q=this.value.toLowerCase();renderRingList()" aria-label="Search retired numbers"></div>
+          <select onchange="ringState.team=this.value;renderRingList()" aria-label="Team"><option value="">All franchises</option>${teams.map(([t]) => t).sort().map(t => `<option value="${t}">${t}</option>`).join('')}</select>
+          <div class="seg" id="ringKind">${[['players', 'Players'], ['all', 'Everyone'], ['game', 'Game era']].map(([k, l]) => `<button data-k="${k}" class="${ringState.kind === k ? 'active' : ''}" onclick="setRingKind('${k}')">${l}</button>`).join('')}</div></div>
+        <div class="muted ring-count" id="ringCount"></div>
+        <div id="ringList" class="ring-list"></div>
+      </div>
+      <div>
+        <div class="chart-card rb-card"><div class="chart-title">${icon('people')} Honored by 2+ Teams</div>
+          ${multi.length ? multi.map(m => `<div class="rb-row"><span class="rb-rank">${m.teams}</span><span class="rb-main">${m.rs.some(r => r.linked) ? nameLink(m.player) : `<span class="name-plain">${m.player}</span>`}</span><span class="rb-val"></span>
+            <span class="rb-sub">${m.rs.map(r => `#${r.num} ${teamLink(r.team, teamCode(r.team))}`).join(' · ')}</span></div>`).join('') : '<p class="muted">No player is honored by two teams yet.</p>'}</div>
+        <div class="chart-card rb-card"><div class="chart-title">${icon('jersey')} Most Retired Numbers</div>
+          ${teams.slice(0, 10).map(([t, v], i) => `<div class="rb-row"><span class="rb-rank">${i + 1}</span><span class="rb-main">${teamLink(t)}</span><span class="rb-val">${v.players}</span>${v.all > v.players ? `<span class="rb-sub">+${v.all - v.players} coaches and others</span>` : ''}</div>`).join('')}</div>
+        <div class="chart-card rb-card"><div class="chart-title">${icon('jersey')} Most-Retired Jersey Numbers</div>
+          ${nums.slice(0, 10).map(([n, rs], i) => `<div class="rb-row"><span class="rb-rank">${i + 1}</span><span class="rb-main">#${n}</span><span class="rb-val">${rs.length}</span>
+            <span class="rb-sub">${rs.slice(0, 4).map(r => r.player).join(', ')}${rs.length > 4 ? ` and ${rs.length - 4} more` : ''}</span></div>`).join('')}</div>
+        ${gameEra ? `<p class="muted fx-note">${gameEra} of the ${players.length} player numbers were earned in the game era (after 2016).</p>` : ''}
+      </div>
+    </div>`;
+  renderRingList();
+}
+function renderRingList() {
+  const q = ringState.q, isGame = r => { const y = String(r.years || '').match(/\d{4}/g); return !!y && y.some(v => Number(v) > 2016); };
+  const list = ringData().filter(r => (ringState.kind === 'all' || r.type === 'Player') && (ringState.kind !== 'game' || isGame(r)) && (!ringState.team || r.team === ringState.team) &&
+    (!q || String(r.player).toLowerCase().includes(q) || ('#' + r.num).includes(q) || String(r.num) === q || r.team.toLowerCase().includes(q)));
+  const groups = {};
+  list.forEach(r => (groups[r.team] = groups[r.team] || []).push(r));
+  document.getElementById('ringCount').textContent = `${list.length} honored · ${Object.keys(groups).length} franchises`;
+  document.getElementById('ringList').innerHTML = Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0])).map(([t, rs]) => `<div class="ring-team">
+    <div class="ring-team-head">${teamLink(t)} <span class="muted">${rs.length}</span></div>
+    <div class="ring-items">${rs.sort((a, b) => (parseInt(a.num) || 999) - (parseInt(b.num) || 999)).map(r => `<div class="ring-item">
+      <span class="ring-num">${r.type === 'Player' ? r.num : '—'}</span>
+      <span class="ring-who">${r.linked ? nameLink(r.player) : `<span class="name-plain">${r.player}</span>`}${r.type !== 'Player' ? ` <span class="muted">${r.type}</span>` : ''}${r.years ? `<span class="ring-years">${r.years}</span>` : ''}</span></div>`).join('')}</div></div>`).join('') || '<p class="muted">Nothing matches.</p>';
+}
+</script>
+<script>
 // 2K17 NBA Stats Database · Settings, Data Check, phone card lists and the installable app.
 // Loaded in order by index.html; all files share one global scope.
 
@@ -4992,24 +5434,7 @@ function runDataCheck() {
   DB.history.forEach(h => Object.entries(hc).forEach(([k, c]) => coNames(h[k]).forEach(n => nameCheck('NBA History', XLSX.utils.encode_col(c) + h._row, n, h.Season))));
   [...DB.awardRecords, ...DB.allTimeStats].forEach(cat => cat.entries.forEach(e => nameCheck('NBA All-Time Record', `${cat.name} list`, e.player)));
   DB.decades.forEach(d => [...d.starter, ...d.subs].forEach(n => nameCheck('Decade NBA Team', d.decade, n)));
-  // 9. Players named in other sheets who have no row in All Players or Current Player
-  //    (their names can't link to a player page until they're added)
-  const missing = new Map();
-  const note = (raw, season, where) => {
-    if (!raw || raw === '-') return;
-    const clean = String(raw).replace(/\s*\(\d+\)\s*$/, '').trim();
-    if (!clean || resolvePlayer(clean, season)) return;
-    const k = normName(clean);
-    if (!missing.has(k)) missing.set(k, { name: clean, where: [] });
-    missing.get(k).where.push(where);
-  };
-  DB.allNbaSeasons.forEach(s => s.teams.forEach(t => t.slots.forEach(sl => note(sl.player, s.season, `All NBA Team ${seasonLabel(s.season)} (${['1st','2nd','3rd'][t.team - 1] || t.team} Team)`))));
-  DB.history.forEach(h => [['MVP', 'MVP'], ['FMVP', 'Finals MVP'], ['DPOY', 'DPOY'], ['ROTY', 'ROTY'], ['Star1', 'champion star'], ['Star2', 'champion star'], ['Star3', 'champion star'], ['RU1', 'runner-up star'], ['RU2', 'runner-up star'], ['RU3', 'runner-up star']]
-    .forEach(([k, l]) => coNames(h[k]).forEach(n => note(n, h.Season, `NBA History ${seasonLabel(h.Season)} (${l})`))));
-  DB.statLeaders.forEach(r => STAT_LEADER_KEYS.forEach(k => note(r[k], r.Season, `Season Stat Leader ${seasonLabel(r.Season)}`)));
-  DB.decades.forEach(d => [...d.starter, ...d.subs].forEach(n => note(n, null, `Decade NBA Team ${d.decade}`)));
-  [...missing.values()].sort((a, b) => b.where.length - a.where.length || a.name.localeCompare(b.name)).forEach(m =>
-    add('info', 'All Players', '', `"${m.name}" isn't in All Players or Current Player, so the name can't link to a player page. Named in ${m.where.slice(0, 3).join('; ')}${m.where.length > 3 ? ` and ${m.where.length - 3} more` : ''}.`));
+  // (Names with no All Players or Current Player row are fine: not every player is worth a row)
   // 10. Team History: every season's wins and losses must balance, and its Finals
   //     column must agree with NBA History
   const thName = 'Team History BC';
@@ -5158,7 +5583,7 @@ function playerCard(row, rank, mode, active) {
     <div class="pc-body">
       <div class="pc-top"><span class="pc-name">${row.Player}</span>${posBadge(row.Position)}</div>
       <div class="pc-meta">${row.Season || ''}${active ? '' : ' · ' + [...new Set(['Team','Team2','Team3'].map(k => row[k]).filter(Boolean))].join(', ')}</div>
-      <div class="pc-stats">${statsLine}</div>
+      <div class="pc-stats">${statsLine}${(() => { const l = legacyRow(row); return l ? `<span><b>#${l.rank}</b> legacy</span>` : ''; })()}</div>
       ${honors.length ? `<div class="pc-honors">${honors.join(' · ')}</div>` : ''}
     </div>
   </div>`;
@@ -5273,6 +5698,24 @@ getSavedWorkbook().then(saved => {
     renderSavedInfo();
   }
 });
+
+// Big award names (Home hero, Season Hub tiles) stay on one line: shrink the text until it fits
+function fitNames() {
+  document.querySelectorAll('.ha-name, .value-name').forEach(el => {
+    if (!el.offsetWidth) return;
+    el.style.fontSize = '';
+    let size = parseFloat(getComputedStyle(el).fontSize);
+    el.classList.remove('fit-wrap');
+    while (el.scrollWidth > el.clientWidth + 1 && size > 14) { size -= 1; el.style.fontSize = size + 'px'; }
+    // Still too long at the smallest size: wrap between words rather than cut the name off
+    if (el.scrollWidth > el.clientWidth + 1) el.classList.add('fit-wrap');
+  });
+}
+let fitFrame = 0;
+const fitSoon = () => { cancelAnimationFrame(fitFrame); fitFrame = requestAnimationFrame(fitNames); };
+new MutationObserver(fitSoon).observe(document.body, { childList: true, subtree: true });
+window.addEventListener('resize', fitSoon);
+if (document.fonts) { document.fonts.ready.then(fitSoon); document.fonts.addEventListener('loadingdone', fitSoon); }
 </script>
 </body>
 </html>

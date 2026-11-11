@@ -101,8 +101,9 @@ function retiredFromPlayers(teamName) {
   });
   return out;
 }
-// Trophy cabinet: awards won by the franchise's players while with it (NBA History logos,
-// Season Stat Leader teams), grouped by player with the seasons
+// Trophy cabinet: individual awards won by the franchise's players while with it (NBA History
+// logos, Season Stat Leader teams), grouped by player with the seasons. Titles and Finals MVPs
+// are left out: the header and Finals History already show them, and Finals MVPs match titles
 function trophyCabinet(teamName, titles, finals) {
   const groups = [];
   const collect = (label, entries) => {
@@ -112,11 +113,11 @@ function trophyCabinet(teamName, titles, finals) {
     if (entries.length) groups.push({ label, n: entries.length, list });
   };
   const hist = k => DB.history.filter(h => h[k] && h[k] !== '-' && h[k + 'Team'] === teamName).flatMap(h => coNames(h[k]).map(name => ({ name, yr: Number(h.Season) })));
-  collect('MVP', hist('MVP')); collect('Finals MVP', hist('FMVP')); collect('DPOY', hist('DPOY')); collect('Rookie of the Year', hist('ROTY'));
+  collect('MVP', hist('MVP')); collect('DPOY', hist('DPOY')); collect('Rookie of the Year', hist('ROTY'));
   [['Pts', 'Scoring title'], ['Reb', 'Rebounding title'], ['Ast', 'Assists title'], ['Stl', 'Steals title'], ['Blk', 'Blocks title']].forEach(([k, l]) =>
     collect(l, DB.statLeaders.filter(r => r[k + 'Leader'] && teamByCode(r[k + 'Team'])?.Team === teamName).map(r => ({ name: r[k + 'Leader'], yr: Number(r.Season) }))));
-  if (!groups.length && !finals) return '';
-  const tiles = [['Titles', titles], ['Finals', finals], ...groups.filter(g => !/title$/.test(g.label)).map(g => [g.label === 'Rookie of the Year' ? 'ROTY' : g.label, g.n]),
+  if (!groups.length) return '';
+  const tiles = [...groups.filter(g => !/title$/.test(g.label)).map(g => [g.label === 'Rookie of the Year' ? 'ROTY' : g.label, g.n]),
     ['Stat titles', groups.filter(g => /title$/.test(g.label)).reduce((a, g) => a + g.n, 0)]].filter(([, v]) => v > 0);
   return `<div class="chart-card tc-card"><div class="chart-title">${icon('trophy', 'ic-champ')} Trophy Cabinet</div>
     <div class="tc-tiles fold-keep">${tiles.map(([l, v]) => `<div class="tc-tile"><b>${v}</b><span>${l}</span></div>`).join('')}</div>
