@@ -23,13 +23,13 @@ function renderRing() {
   players.filter(r => /^\d+$/.test(r.numKey)).forEach(r => (byNum[r.numKey] = byNum[r.numKey] || []).push(r));
   const nums = Object.entries(byNum).sort((a, b) => b[1].length - a[1].length || Number(a[0]) - Number(b[0]));
   const gameEra = players.filter(r => { const y = String(r.years || '').match(/\d{4}/g); return y && y.some(v => Number(v) > 2016); }).length;
-  const tile = (label, value, sub) => `<div class="stat-card"><div class="label">${label}</div><div class="value">${value}</div><div class="sub">${sub || '&nbsp;'}</div></div>`;
+  const tile = (label, value) => `<div class="stat-card"><div class="label">${label}</div><div class="value">${value}</div></div>`;
   el.innerHTML = `
-    <div class="stats-cards">
-      ${tile('Retired numbers', players.length, `${all.length - players.length} more honors for coaches and others`)}
-      ${tile('Honored by 2+ teams', multi.length, multi[0] ? `e.g. ${multi.slice(0, 2).map(m => m.player).join(', ')}` : '')}
-      ${teams[0] ? tile('Most by a franchise', teams[0][1].players, teamCode(teams[0][0]) + ' players') : ''}
-      ${nums[0] ? tile('Most-retired number', '#' + nums[0][0], `${nums[0][1].length} times`) : ''}
+    <div class="stats-cards ring-tiles">
+      ${tile('Retired numbers', players.length)}
+      ${teams[0] ? tile('Most by one team', `${teams[0][1].players} <small class="ring-code">${teamCode(teams[0][0])}</small>`) : ''}
+      ${tile('Honored by 2+ teams', multi.length)}
+      ${tile('Honored by 3+ teams', multi.filter(m => m.teams >= 3).length)}
     </div>
     <div class="player-grid ring-grid">
       <div>

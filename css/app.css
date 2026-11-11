@@ -807,3 +807,6 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
 .race-tip div{display:flex;align-items:center;gap:6px;color:var(--ink-2);}
 .race-tip div span{margin-left:auto;padding-left:10px;color:var(--ink);font-variant-numeric:tabular-nums;}
 .race-pick{margin-left:auto;}
+/* Ring of Honor tiles: two per row on phones */
+@media (max-width:640px){.stats-cards.ring-tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;}.ring-tiles .stat-card{margin:0;min-width:0;}}
+.ring-code{font-size:.45em;font-weight:700;color:var(--ink-3);letter-spacing:.02em;}
