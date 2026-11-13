@@ -377,7 +377,30 @@ function readRetiredList(wb) {
 }
 // Short code for a full team name (Washington Wizards -> WAS), for compact tables
 function teamCode(full) { return Object.keys(TEAM_NAMES).find(k => TEAM_NAMES[k] === full && k.length === 3) || Object.keys(TEAM_NAMES).find(k => TEAM_NAMES[k] === full) || full; }
-// The sheet's logos are up to ~900px; drawing them once at 160px keeps memory low on phones
+// The sheet's logos are up to ~900px; drawing them once at 160px keeps memory low on phones.
+// The same pass makes their white background transparent: only white connected to the edge is
+// removed (flood fill), so white inside a logo (the 76ers' circle, the Bulls' horns) stays
+function clearLogoBackground(g, w, h) {
+  const img = g.getImageData(0, 0, w, h), d = img.data, seen = new Uint8Array(w * h), stack = [];
+  const whiteish = i => d[i * 4 + 3] < 16 || (d[i * 4] > 232 && d[i * 4 + 1] > 232 && d[i * 4 + 2] > 232);
+  for (let x = 0; x < w; x++) stack.push(x, (h - 1) * w + x);
+  for (let y = 0; y < h; y++) stack.push(y * w, y * w + w - 1);
+  while (stack.length) {
+    const i = stack.pop(); if (seen[i] || !whiteish(i)) continue;
+    seen[i] = 1; d[i * 4 + 3] = 0;
+    const x = i % w, y = (i - x) / w;
+    if (x > 0) stack.push(i - 1); if (x < w - 1) stack.push(i + 1); if (y > 0) stack.push(i - w); if (y < h - 1) stack.push(i + w);
+  }
+  // Soften the cut: edge pixels next to the removed background that are nearly white fade out
+  for (let i = 0; i < w * h; i++) {
+    if (seen[i] || d[i * 4 + 3] === 0) continue;
+    const x = i % w, near = (x > 0 && seen[i - 1]) || (x < w - 1 && seen[i + 1]) || (i >= w && seen[i - w]) || (i < w * (h - 1) && seen[i + w]);
+    if (!near) continue;
+    const m = Math.min(d[i * 4], d[i * 4 + 1], d[i * 4 + 2]);
+    if (m > 180) d[i * 4 + 3] = Math.round(d[i * 4 + 3] * (255 - m) / 75);
+  }
+  g.putImageData(img, 0, 0);
+}
 async function shrinkLogos(size = 160) {
   if (!DB.logos || typeof createImageBitmap !== 'function') return;
   const done = {};
@@ -387,10 +410,10 @@ async function shrinkLogos(size = 160) {
       const blob = await (await fetch(url)).blob();
       const bmp = await createImageBitmap(blob);
       const k = Math.min(1, size / Math.max(bmp.width, bmp.height));
-      if (k >= 1) { done[url] = url; bmp.close?.(); continue; }
       const c = document.createElement('canvas');
       c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
-      const g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.drawImage(bmp, 0, 0, c.width, c.height); bmp.close?.();
+      const g = c.getContext('2d', { willReadFrequently: true }); g.imageSmoothingQuality = 'high'; g.drawImage(bmp, 0, 0, c.width, c.height); bmp.close?.();
+      try { clearLogoBackground(g, c.width, c.height); } catch (e) {}
       const small = await new Promise(res => c.toBlob(res, 'image/png'));
       if (!small) { done[url] = url; continue; }
       const su = URL.createObjectURL(small);
@@ -399,8 +422,25 @@ async function shrinkLogos(size = 160) {
     } catch (e) { done[url] = url; }
   }
 }
+// Current official logos for the 30 NBA teams, loaded from the NBA's logo server in the browser
+// (not stored in this repository). The workbook's own logo is the fallback, and the only logo for
+// the league's game-era teams.
+const NBA_TEAM_IDS = { 'Atlanta Hawks': 1610612737, 'Boston Celtics': 1610612738, 'Cleveland Cavaliers': 1610612739, 'New Orleans Pelicans': 1610612740,
+  'Chicago Bulls': 1610612741, 'Dallas Mavericks': 1610612742, 'Denver Nuggets': 1610612743, 'Golden State Warriors': 1610612744, 'Houston Rockets': 1610612745,
+  'Los Angeles Clippers': 1610612746, 'Los Angeles Lakers': 1610612747, 'Miami Heat': 1610612748, 'Milwaukee Bucks': 1610612749, 'Minnesota Timberwolves': 1610612750,
+  'Brooklyn Nets': 1610612751, 'New York Knicks': 1610612752, 'Orlando Magic': 1610612753, 'Indiana Pacers': 1610612754, 'Philadelphia 76ers': 1610612755,
+  'Phoenix Suns': 1610612756, 'Portland Trail Blazers': 1610612757, 'Sacramento Kings': 1610612758, 'San Antonio Spurs': 1610612759, 'Oklahoma City Thunder': 1610612760,
+  'Toronto Raptors': 1610612761, 'Utah Jazz': 1610612762, 'Memphis Grizzlies': 1610612763, 'Washington Wizards': 1610612764, 'Detroit Pistons': 1610612765, 'Charlotte Hornets': 1610612766 };
+let nbaLogosOk = true; // turned off after the first failure (offline, blocked), so pages stop trying
+function logoFail(img) {
+  nbaLogosOk = false;
+  const u = DB.logos && DB.logos[img.dataset.team];
+  img.onerror = null;
+  if (u) { img.src = u; img.classList.remove('nba-logo'); } else img.remove();
+}
 function teamLogo(team, cls) {
-  const u = DB.logos && (DB.logos[fullTeamName(team)] || DB.logos[team]);
+  const full = fullTeamName(team), u = DB.logos && (DB.logos[full] || DB.logos[team]), id = NBA_TEAM_IDS[full];
+  if (id && nbaLogosOk) return `<img class="tlogo nba-logo${cls ? ' ' + cls : ''}" src="https://cdn.nba.com/logos/nba/${id}/primary/L/logo.svg" data-team="${full}" onerror="logoFail(this)" alt="" aria-hidden="true" decoding="async">`;
   return u ? `<img class="tlogo${cls ? ' ' + cls : ''}" src="${u}" alt="" aria-hidden="true" decoding="async">` : '';
 }
 // Flags which of a player's team stints are in red (aligned with playerTeams)

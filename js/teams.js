@@ -165,6 +165,9 @@ function renderTeamPage() {
     </div>
   </section>`);
 
+  // Latest season at a glance, then the franchise's numbers with their league rank
+  parts.push(teamSeasonCard(teamName));
+  parts.push(franchiseStats(teamName));
   const main = [], side = [];
   // Finals history, newest first
   const fin = [...won.map(yr => ({ yr, w: true })), ...lost.map(yr => ({ yr, w: false }))].sort((a, b) => b.yr - a.yr);
@@ -255,7 +258,7 @@ function renderTeamPage() {
 // tapping the title opens or closes them, and the choice is remembered
 // =====================================================================
 const TEAM_FOLDS = { 'Trophy Cabinet': false, 'Finals Rivalries': false, 'Season by Season': false, 'Best Runs': false, 'Started Here': false, 'Active Players Here': false };
-const PLAYER_FOLDS = { 'Percentile Ranks': false, 'Advanced Stats': false, 'Similar Players': false, 'Legacy Score': false, 'Finals': false };
+const PLAYER_FOLDS = { 'Closest Match': false, 'Percentile Ranks': false, 'Advanced Stats': false, 'Similar Players': false, 'Legacy Score': false, 'Finals': false };
 function foldState() { return readJSON('nba2k17-folds') || {}; }
 function applyFolds(root, defaults) {
   const saved = foldState();

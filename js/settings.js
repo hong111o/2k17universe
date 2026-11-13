@@ -197,6 +197,7 @@ function themeChoice() { try { return localStorage.getItem('nba2k17-theme') || '
 function setTheme(v) {
   try { v === 'system' ? localStorage.removeItem('nba2k17-theme') : localStorage.setItem('nba2k17-theme', v); } catch (e) {}
   if (v === 'system') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', v);
+  if (typeof syncThemeButton === 'function') syncThemeButton();
   renderSettings();
   if (document.getElementById('winChart')) renderWinChart();
 }

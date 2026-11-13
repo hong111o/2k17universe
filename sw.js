@@ -2,14 +2,14 @@
 // The page itself is fetched from the network first so updates show up on the next open;
 // the cached copy is used only when offline. Libraries and fonts never change, so they
 // come from the cache first.
-const VERSION = 'v73';
+const VERSION = 'v74';
 const CACHE = '2k17-stats-' + VERSION;
 const APP_SHELL = [
   './',
   './index.html',
   './css/app.css',
   './js/data.js', './js/helpers.js', './js/nav-players.js', './js/teams.js', './js/league.js',
-  './js/player.js', './js/engine.js', './js/finals.js', './js/ring.js', './js/settings.js', './js/main.js',
+  './js/player.js', './js/engine.js', './js/finals.js', './js/ring.js', './js/viz.js', './js/settings.js', './js/main.js',
   './manifest.webmanifest?v=2',
   './icons/icon-192.png?v=2',
   './icons/icon-512.png?v=2',
@@ -20,7 +20,7 @@ const APP_SHELL = [
 // Fetched on a best-effort basis: if the CDN is unreachable during install, the worker still
 // installs and picks the library up the next time the page loads it
 const OPTIONAL = ['https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'];
-const STATIC_HOSTS = ['cdnjs.cloudflare.com', 'fonts.googleapis.com', 'fonts.gstatic.com'];
+const STATIC_HOSTS = ['cdnjs.cloudflare.com', 'fonts.googleapis.com', 'fonts.gstatic.com', 'cdn.nba.com'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => Promise.all([

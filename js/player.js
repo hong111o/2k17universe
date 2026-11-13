@@ -288,6 +288,8 @@ function renderPlayerPage() {
       <div class="sim-match">${sp.match}%</div><div class="sim-name">${sp.p.Player} ${posBadge(sp.p.Position)}</div>
       <div class="sim-line">${one(perGame(sp.p, 'PTS'))} PPG · ${one(perGame(sp.p, 'REB'))} RPG · ${one(perGame(sp.p, 'AST'))} APG</div>
       <button class="card-link" onclick="event.stopPropagation();compareWith('${jsArg(p.Player)}','${jsArg(sp.p.Player)}')">Compare</button></div>`).join('')}</div></div>`);
+  // Closest match, drawn as a percentile fingerprint
+  if (sim.length) parts.push(fingerprintHtml([p, sim[0].p], ['var(--p1)', 'var(--p2)'], { title: 'Closest Match', sub: `${p.Player} vs ${sim[0].p.Player}, a ${sim[0].match}% statistical match` }));
 
   const pp = document.getElementById('playerPage');
   pp.innerHTML = parts.join('');
@@ -545,6 +547,7 @@ function renderCompare() {
       <b>${wins[i]}</b><span class="cs-label">categories led</span></div>`).join('')}</div>`;
   const head = `<thead><tr><th>Stat</th>${players.map((p, i) => `<th><i class="cmp-swatch" style="background:${colors[i]}"></i>${nameLink(p.Player)}<div class="cmp-sub">${p.Position||''} · ${p.Season||''}${isActive(p) ? ' · Active' : ''}</div></th>`).join('')}</tr></thead>`;
   out.innerHTML = `${board}
+    ${fingerprintHtml(players, colors, { title: 'Fingerprint' })}
     <div style="overflow-x:auto;margin-top:8px"><table class="cmp-table">${head}<tbody>${rows}</tbody></table></div>`;
 }
 

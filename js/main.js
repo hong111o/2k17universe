@@ -59,3 +59,6 @@ const fitSoon = () => { cancelAnimationFrame(fitFrame); fitFrame = requestAnimat
 new MutationObserver(fitSoon).observe(document.body, { childList: true, subtree: true });
 window.addEventListener('resize', fitSoon);
 if (document.fonts) { document.fonts.ready.then(fitSoon); document.fonts.addEventListener('loadingdone', fitSoon); }
+
+syncThemeButton();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncThemeButton);

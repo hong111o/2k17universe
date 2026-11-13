@@ -810,3 +810,42 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
 /* Ring of Honor tiles: two per row on phones */
 @media (max-width:640px){.stats-cards.ring-tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;}.ring-tiles .stat-card{margin:0;min-width:0;}}
 .ring-code{font-size:.45em;font-weight:700;color:var(--ink-3);letter-spacing:.02em;}
+/* Fingerprint dot chart */
+.fp-head{display:grid;grid-template-columns:minmax(0,min(40%,190px)) 1fr;gap:12px;align-items:end;margin-bottom:6px;}
+.fp-legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px;font-weight:600;}
+.fp-key{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;} .fp-key i{width:10px;height:10px;border-radius:50%;}
+.fp-scale{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3);margin:0 -4px;}
+.fp-row{display:grid;grid-template-columns:minmax(0,min(40%,190px)) 1fr;gap:12px;align-items:center;min-height:30px;}
+.fp-label{font-size:13px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.fp-track{position:relative;height:20px;margin:0 6px;}
+.fp-track::before{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:var(--line);}
+.fp-tick{position:absolute;top:5px;width:1px;height:10px;background:var(--line-strong);}
+.fp-span{position:absolute;top:50%;height:3px;margin-top:-1.5px;background:var(--ink-3);opacity:.55;border-radius:2px;}
+.fp-dot{position:absolute;top:50%;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;box-shadow:0 0 0 2px var(--surface);}
+.fp-card .fx-note:last-child{margin-top:8px;}
+/* Franchise stat tiles */
+.fs-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
+.fs-tile{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-width:0;}
+.fs-top{display:flex;justify-content:space-between;gap:6px;align-items:baseline;}
+.fs-label{font-size:12px;font-weight:700;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.fs-rank{font-size:11px;font-weight:700;color:var(--ink-3);white-space:nowrap;}
+.fs-val{font-family:var(--font-display);font-size:24px;font-weight:800;line-height:1.1;margin-top:2px;}
+.fs-bar{height:4px;border-radius:2px;background:var(--line);margin-top:6px;overflow:hidden;} .fs-bar i{display:block;height:100%;background:var(--ink-3);border-radius:2px;}
+.fs-note{font-size:12px;margin-left:auto;}
+/* Team season card */
+.ts-card{position:relative;overflow:hidden;border-radius:12px;margin-bottom:16px;padding:16px 18px 0;color:var(--on-brand);background:linear-gradient(120deg,var(--hero),var(--hero-2));}
+.ts-mark{position:absolute;right:-30px;top:50%;transform:translateY(-55%);opacity:.16;pointer-events:none;-webkit-mask-image:radial-gradient(circle at center,#000 52%,transparent 70%);mask-image:radial-gradient(circle at center,#000 52%,transparent 70%);} .ts-mark .ts-logo{width:230px;height:230px;background:none !important;padding:0 !important;border-radius:0 !important;box-shadow:none !important;}
+.ts-kicker{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--on-brand-2);}
+.ts-rec{font-family:var(--font-display);font-size:56px;font-weight:900;line-height:1;margin:4px 0;}
+.ts-sub{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--on-brand-2);}
+.ts-badge{color:var(--on-brand);}
+.ts-strip{position:relative;display:grid;grid-template-columns:repeat(4,1fr);margin:14px -18px 0;border-top:1px solid rgba(255,255,255,.14);}
+.ts-strip > div{padding:8px 18px 10px;border-left:1px solid rgba(255,255,255,.14);} .ts-strip > div:first-child{border-left:0;}
+.ts-strip span{display:block;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--on-brand-2);}
+.ts-strip b{font-family:var(--font-display);font-size:20px;font-weight:700;}
+.ts-up{color:#7ee2a8;} .ts-down{color:#ff9b9b;}
+@media (max-width:640px){.ts-rec{font-size:48px;}.ts-strip{grid-template-columns:repeat(2,1fr);}.ts-strip > div:nth-child(3){border-left:0;}.ts-strip > div:nth-child(n+3){border-top:1px solid rgba(255,255,255,.14);}
+  .fp-head,.fp-row{grid-template-columns:minmax(0,36%) 1fr;gap:8px;}.fp-label{font-size:12px;}}
+.fs-foot{display:flex;align-items:center;gap:8px;margin-top:6px;} .fs-foot .fs-bar{flex:1;margin:0;}
+.fs-label{display:block;}
+.fp-legend{margin-bottom:8px;}

@@ -25,7 +25,7 @@ const { chromium, devices } = require(process.argv[2] + '/node_modules/playwrigh
     await p.click('.hero-back'); await p.waitForTimeout(300);
     r[label + 'AfterBack'] = await p.evaluate(() => location.hash + ' ' + document.querySelector('.section.active').id);
     // search
-    if (label === 'desk') { await p.keyboard.press('/'); } else { await p.locator('.mast-icon').first().tap(); }
+    if (label === 'desk') { await p.keyboard.press('/'); } else { await p.locator('.mast-icon[onclick="openSearch()"]').tap(); }
     await p.fill('#globalSearch', 'dean'); await p.waitForTimeout(150);
     r[label + 'Search'] = (await p.locator('#searchResults').innerText()).replace(/\s+/g, ' ').slice(0, 160);
     await p.screenshot({ path: `${out}/pp-${label}-search.png` });
