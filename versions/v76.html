@@ -130,6 +130,15 @@ main{max-width:1320px;margin:0 auto;padding-block:24px 48px;padding-left:max(16p
 .player-link,.team-link,.season-link,.star-link{cursor:pointer;color:var(--link);font-weight:600;text-decoration:none;}
 .player-link:hover,.team-link:hover,.season-link:hover,.star-link:hover{color:var(--link-hover);text-decoration:underline;}
 .name-plain{color:var(--ink);cursor:default;}
+/* A name never breaks across two lines; lists wrap between names instead */
+.player-link,.name-plain,.team-link,.season-link,.star-link,.nm{white-space:nowrap;}
+/* Big-text boxes (Home hero, stat tiles) are too narrow for a long name on one line: let those wrap */
+.hero-title .team-link,.chart-title .team-link{white-space:normal;}
+/* Big award names stay on one line; fitNames() shrinks the text until it fits the box */
+.ha-name,.value-name{white-space:nowrap;overflow:hidden;}
+/* Standings: a long team name is cut with "…" rather than split or pushing the table wide */
+.standings-table td.st-team{max-width:0;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.draft-pick > div{min-width:0;}
 .team-tag{color:var(--ink-3);font-size:12px;font-weight:600;letter-spacing:.3px;}
 .team-tag .team-link{font-weight:600;}
 
@@ -510,8 +519,8 @@ tr.row-playoff .st-rank{color:var(--ink);}
 .sim-line{font-size:12px;color:var(--ink-3);}
 .sim .card-link{align-self:flex-start;padding:0;margin-top:4px;}
 /* DRAFT, LEGACY, LEGENDS, SETTINGS */
-.draft-class{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px;}
-.draft-pick{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:10px 12px;cursor:pointer;}
+.draft-class{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr));gap:8px;}
+.draft-pick{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:10px;align-items:center;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:10px 12px;cursor:pointer;}
 .draft-pick:hover{border-color:var(--link);}
 .dp-slot{font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--ink-3);text-align:center;}
 .dp-name{font-weight:700;color:var(--link);display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
@@ -769,12 +778,124 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
 .pf-w{background:var(--champ-tint);color:var(--champ-ink);} .pf-l{background:var(--silver-tint);color:var(--ink-3);}
 .pf-opp{min-width:0;display:flex;flex-direction:column;line-height:1.3;}
 .pf-team{color:var(--ink-3);white-space:nowrap;} .pf-team .team-link{font-weight:600;}
-.pf-stars{color:var(--ink-3);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pf-stars{color:var(--ink-3);font-size:12px;}
 .pf-score{color:var(--ink-2);font-variant-numeric:tabular-nums;font-weight:600;}
 .pf-rivals{margin-top:8px;padding-top:8px;border-top:1px solid var(--line);font-size:13px;}
 .pf-rivals > span:first-child{color:var(--ink-3);font-size:12px;font-weight:600;margin-right:4px;}
 .fx-power{color:var(--ink-3);font-size:12px;white-space:nowrap;}
 @media (max-width:640px){.fx-head{flex-wrap:wrap;}.fx-power{order:3;width:100%;}}
+.ha-name.fit-wrap,.value-name.fit-wrap{white-space:normal;}
+.ha-name.fit-wrap .player-link,.ha-name.fit-wrap .team-link,.ha-name.fit-wrap .name-plain,.value-name.fit-wrap .player-link,.value-name.fit-wrap .team-link,.value-name.fit-wrap .name-plain{white-space:normal;}
+.hero-award .ha-rec{font-family:var(--font-display);font-weight:700;font-size:20px;line-height:1.15;color:var(--on-brand);}
+/* Narrowest phones (iPhone SE): one award box per row so names keep their size */
+@media (max-width:359px){.hero-awards{grid-template-columns:1fr !important;}}
+.hero-award .ha-jump{white-space:nowrap;} .hero-award .ha-was{color:var(--on-brand-2);font-weight:600;}
+.hero-award .ha-gain{font-size:12px;color:var(--on-brand-2);margin-top:2px;}
+/* Team page trophy cabinet */
+.tc-tiles{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px;}
+.tc-tile{background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:6px 10px;min-width:64px;}
+.tc-tile b{display:block;font-family:var(--font-display);font-size:22px;font-weight:800;line-height:1;}
+.tc-tile span{font-size:11px;color:var(--ink-3);}
+.tc-group{padding:8px 0;border-top:1px solid var(--line);}
+.tc-label{font-size:13px;font-weight:700;color:var(--ink-2);margin-bottom:4px;}
+.tc-list{display:flex;flex-direction:column;gap:3px;font-size:13px;}
+.tc-item .muted{font-size:12px;}
+/* Ring of Honor */
+.ring-toolbar{margin-bottom:0;flex-wrap:wrap;}
+.ring-count{margin:6px 0 10px;font-size:13px;}
+.ring-list{display:grid;gap:12px;}
+.ring-team{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;}
+.ring-team-head{font-weight:700;margin-bottom:8px;}
+.ring-items{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(220px,100%),1fr));gap:6px 14px;}
+.ring-item{display:flex;gap:10px;align-items:baseline;font-size:13px;min-width:0;}
+.ring-num{font-family:var(--font-display);font-weight:800;font-size:20px;min-width:30px;text-align:right;color:var(--ink);}
+.ring-who{min-width:0;display:flex;flex-direction:column;}
+.ring-years{font-size:12px;color:var(--ink-3);}
+/* Legacy Race: categorical slots in fixed order (validated light on #fff, dark on #121a29) */
+:root{--race-1:#2a78d6;--race-2:#eb6834;--race-3:#1baf7a;--race-4:#eda100;--race-5:#e87ba4;--race-6:#008300;}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--race-1:#3987e5;--race-2:#d95926;--race-3:#199e70;--race-4:#c98500;--race-5:#d55181;--race-6:#008300;}}
+:root[data-theme="dark"]{--race-1:#3987e5;--race-2:#d95926;--race-3:#199e70;--race-4:#c98500;--race-5:#d55181;--race-6:#008300;}
+.race-legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--ink-2);margin-bottom:6px;}
+.race-key{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+.race-key i,.race-tip i{display:inline-block;width:10px;height:10px;border-radius:2px;}
+.race-chart{position:relative;}
+.race-chart svg{display:block;outline:none;}
+.race-grid{stroke:var(--line);stroke-width:1;}
+.race-axis{fill:var(--ink-3);font-size:11px;}
+.race-end{fill:var(--ink-2);font-size:11px;font-weight:600;}
+.race-cross{stroke:var(--ink-3);stroke-width:1;stroke-dasharray:3 3;}
+.race-tip{position:absolute;top:4px;background:var(--surface);border:1px solid var(--line-strong);border-radius:6px;padding:6px 8px;font-size:12px;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.15);min-width:150px;}
+.race-tip div{display:flex;align-items:center;gap:6px;color:var(--ink-2);}
+.race-tip div span{margin-left:auto;padding-left:10px;color:var(--ink);font-variant-numeric:tabular-nums;}
+.race-pick{margin-left:auto;}
+/* Ring of Honor tiles: two per row on phones */
+@media (max-width:640px){.stats-cards.ring-tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;}.ring-tiles .stat-card{margin:0;min-width:0;}}
+.ring-code{font-size:.45em;font-weight:700;color:var(--ink-3);letter-spacing:.02em;}
+/* Fingerprint dot chart */
+.fp-head{display:grid;grid-template-columns:minmax(0,min(40%,190px)) 1fr;gap:12px;align-items:end;margin-bottom:6px;}
+.fp-legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px;font-weight:600;}
+.fp-key{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;} .fp-key i{width:10px;height:10px;border-radius:50%;}
+.fp-scale{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3);margin:0 -4px;}
+.fp-row{display:grid;grid-template-columns:minmax(0,min(40%,190px)) 1fr;gap:12px;align-items:center;min-height:30px;}
+.fp-label{font-size:13px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.fp-track{position:relative;height:20px;margin:0 6px;}
+.fp-track::before{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:var(--line);}
+.fp-tick{position:absolute;top:5px;width:1px;height:10px;background:var(--line-strong);}
+.fp-span{position:absolute;top:50%;height:3px;margin-top:-1.5px;background:var(--ink-3);opacity:.55;border-radius:2px;}
+.fp-dot{position:absolute;top:50%;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;box-shadow:0 0 0 2px var(--surface);}
+.fp-card .fx-note:last-child{margin-top:8px;}
+/* Franchise stat tiles */
+.fs-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
+.fs-tile{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-width:0;}
+.fs-top{display:flex;justify-content:space-between;gap:6px;align-items:baseline;}
+.fs-label{font-size:12px;font-weight:700;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.fs-rank{font-size:11px;font-weight:700;color:var(--ink-3);white-space:nowrap;}
+.fs-val{font-family:var(--font-display);font-size:24px;font-weight:800;line-height:1.1;margin-top:2px;}
+.fs-bar{height:4px;border-radius:2px;background:var(--line);margin-top:6px;overflow:hidden;} .fs-bar i{display:block;height:100%;background:var(--ink-3);border-radius:2px;}
+.fs-note{font-size:12px;margin-left:auto;}
+/* Team season card */
+.ts-card{position:relative;overflow:hidden;border-radius:12px;margin-bottom:16px;padding:16px 18px 0;color:var(--on-brand);background:linear-gradient(120deg,var(--hero),var(--hero-2));}
+.ts-mark{position:absolute;right:-30px;top:50%;transform:translateY(-55%);opacity:.16;pointer-events:none;-webkit-mask-image:radial-gradient(circle at center,#000 52%,transparent 70%);mask-image:radial-gradient(circle at center,#000 52%,transparent 70%);} .ts-mark .ts-logo{width:230px;height:230px;background:none !important;padding:0 !important;border-radius:0 !important;box-shadow:none !important;}
+.ts-kicker{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--on-brand-2);}
+.ts-rec{font-family:var(--font-display);font-size:56px;font-weight:900;line-height:1;margin:4px 0;}
+.ts-sub{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--on-brand-2);}
+.ts-badge{color:var(--on-brand);}
+.ts-strip{position:relative;display:grid;grid-template-columns:repeat(4,1fr);margin:14px -18px 0;border-top:1px solid rgba(255,255,255,.14);}
+.ts-strip > div{padding:8px 18px 10px;border-left:1px solid rgba(255,255,255,.14);} .ts-strip > div:first-child{border-left:0;}
+.ts-strip span{display:block;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--on-brand-2);}
+.ts-strip b{font-family:var(--font-display);font-size:20px;font-weight:700;}
+.ts-up{color:#7ee2a8;} .ts-down{color:#ff9b9b;}
+@media (max-width:640px){.ts-rec{font-size:48px;}.ts-strip{grid-template-columns:repeat(2,1fr);}.ts-strip > div:nth-child(3){border-left:0;}.ts-strip > div:nth-child(n+3){border-top:1px solid rgba(255,255,255,.14);}
+  .fp-head,.fp-row{grid-template-columns:minmax(0,36%) 1fr;gap:8px;}.fp-label{font-size:12px;}}
+.fs-foot{display:flex;align-items:center;gap:8px;margin-top:6px;} .fs-foot .fs-bar{flex:1;margin:0;}
+.fs-label{display:block;}
+.fp-legend{margin-bottom:8px;}
+/* Phones: standings drop Win % (W-L says the same) and tighten spacing so full team names fit */
+@media (max-width:640px){
+  .standings-table .st-pct{display:none;}
+  .standings-table th,.standings-table td{padding-left:5px;padding-right:5px;}
+  .standings-table td.st-team .tlogo{margin-right:.25em;}
+  .standings-table td:last-child,.standings-table th.st-mark{padding-left:0;padding-right:2px;}
+}
+/* Compare table fits the phone width like the cards above it */
+.cmp-short{display:none;}
+@media (max-width:640px){
+  .cmp-table{table-layout:fixed;font-size:13px;}
+  .cmp-table th,.cmp-table th:first-child{min-width:0;padding:8px 6px;}
+  .cmp-table th{font-size:16px;}
+  .cmp-table th:first-child{width:30%;}
+  .cmp-table td{padding:7px 6px;}
+  .cmp-table td:first-child{font-size:12px;overflow-wrap:break-word;}
+  .cmp-table .section-header td{padding:8px 6px;font-size:10px;}
+  .cmp-table th .cmp-sub{font-size:11px;}
+  .cmp-table.cmp-n3 .cmp-full{display:none;} .cmp-table.cmp-n3 .cmp-short{display:inline;}
+  .cmp-table.cmp-n3 th{font-size:14px;}
+}
+@media (max-width:640px){
+  .cmp-table .cmp-name{white-space:nowrap;overflow:hidden;}
+  .cmp-table th .cmp-sub{white-space:normal;overflow-wrap:anywhere;}
+  .cmp-table td:first-child{white-space:normal;}
+}
 </style>
 </head>
 <body>
@@ -782,6 +903,8 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
 <!-- ICONS (referenced with <svg class="ic"><use href="#i-..."/></svg>) -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M7 3h10v2h3.5v3.5A4.5 4.5 0 0 1 16 13h-.4A5 5 0 0 1 13 15.8V18h3v3H8v-3h3v-2.2A5 5 0 0 1 8.4 13H8a4.5 4.5 0 0 1-4.5-4.5V5H7V3zm0 4H5.5v1.5A2.5 2.5 0 0 0 7 10.8V7zm10 0v3.8a2.5 2.5 0 0 0 1.5-2.3V7H17z"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><path d="M12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0-5h1v3h-2V2zm0 17h1v3h-2v-3zM2 11h3v2H2zm17 0h3v2h-3zM4.2 5.6l1.4-1.4 2.1 2.1-1.4 1.4zm12.1 12.1 1.4-1.4 2.1 2.1-1.4 1.4zM4.2 18.4l2.1-2.1 1.4 1.4-2.1 2.1zM16.3 6.3l2.1-2.1 1.4 1.4-2.1 2.1z"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M14.5 2.5A9.5 9.5 0 1 0 21.5 16 7.5 7.5 0 0 1 14.5 2.5z"/></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><path d="M10 3a7 7 0 0 1 5.6 11.2l4.6 4.6-1.4 1.4-4.6-4.6A7 7 0 1 1 10 3zm0 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/></symbol>
   <symbol id="i-file" viewBox="0 0 24 24"><path d="M6 2h8l6 6v14H6V2zm7 1.5V9h5.5L13 3.5zM9 13h8v2H9v-2zm0 4h8v2H9v-2z"/></symbol>
   <symbol id="i-upload" viewBox="0 0 24 24"><path d="M11 16V7.8L8.4 10.4 7 9l5-5 5 5-1.4 1.4L13 7.8V16h-2zm-6 4v-5h2v3h10v-3h2v5H5z"/></symbol>
@@ -833,6 +956,7 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
     </nav>
     <div class="masthead-tools">
       <span class="data-info" id="dataInfo"></span>
+      <button class="mast-icon" id="themeBtn" onclick="toggleThemeQuick()" aria-label="Switch theme"><svg class="ic"><use href="#i-moon"/></svg></button>
       <button class="mast-icon" onclick="openSearch()" aria-label="Search players, teams and seasons" title="Search (press /)"><svg class="ic"><use href="#i-search"/></svg></button>
       <button class="mast-icon" id="settingsBtn" onclick="showSection('settings')" aria-label="Settings and data check" title="Settings and data check"><svg class="ic"><use href="#i-gear"/></svg><span class="dc-dot" id="dcDot" hidden></span></button>
       <span class="season-badge" id="seasonBadge">LOADING...</span>
@@ -852,6 +976,7 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
     <button data-sec="compare" data-group="players" onclick="showSection('compare')">Compare</button>
     <button data-sec="player" data-group="players" class="nav-ghost" tabindex="-1" aria-hidden="true">Player</button>
     <button data-sec="teams" data-group="teams" onclick="showSection('teams')">Franchises</button>
+    <button data-sec="ring" data-group="teams" onclick="showSection('ring')">Ring of Honor</button>
     <button data-sec="team" data-group="teams" class="nav-ghost" tabindex="-1" aria-hidden="true">Team</button>
     <button data-sec="season" data-group="seasons" onclick="openSeason()">Season Hub</button>
     <button data-sec="history" data-group="seasons" onclick="showSection('history')">League History</button>
@@ -888,6 +1013,13 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
     <div class="atr-tabs" id="statTabs"></div>
     <div id="statContent"></div>
   </div>
+</div>
+
+<!-- RING OF HONOR -->
+<div id="sec-ring" class="section">
+  <div class="section-title">Ring of Honor</div>
+  <div class="section-sub">Every retired number in the league, from the Retired # tab and the player sheets</div>
+  <div id="ringContent"></div>
 </div>
 
 <!-- FINALS -->
@@ -1593,7 +1725,30 @@ function readRetiredList(wb) {
 }
 // Short code for a full team name (Washington Wizards -> WAS), for compact tables
 function teamCode(full) { return Object.keys(TEAM_NAMES).find(k => TEAM_NAMES[k] === full && k.length === 3) || Object.keys(TEAM_NAMES).find(k => TEAM_NAMES[k] === full) || full; }
-// The sheet's logos are up to ~900px; drawing them once at 160px keeps memory low on phones
+// The sheet's logos are up to ~900px; drawing them once at 160px keeps memory low on phones.
+// The same pass makes their white background transparent: only white connected to the edge is
+// removed (flood fill), so white inside a logo (the 76ers' circle, the Bulls' horns) stays
+function clearLogoBackground(g, w, h) {
+  const img = g.getImageData(0, 0, w, h), d = img.data, seen = new Uint8Array(w * h), stack = [];
+  const whiteish = i => d[i * 4 + 3] < 16 || (d[i * 4] > 232 && d[i * 4 + 1] > 232 && d[i * 4 + 2] > 232);
+  for (let x = 0; x < w; x++) stack.push(x, (h - 1) * w + x);
+  for (let y = 0; y < h; y++) stack.push(y * w, y * w + w - 1);
+  while (stack.length) {
+    const i = stack.pop(); if (seen[i] || !whiteish(i)) continue;
+    seen[i] = 1; d[i * 4 + 3] = 0;
+    const x = i % w, y = (i - x) / w;
+    if (x > 0) stack.push(i - 1); if (x < w - 1) stack.push(i + 1); if (y > 0) stack.push(i - w); if (y < h - 1) stack.push(i + w);
+  }
+  // Soften the cut: edge pixels next to the removed background that are nearly white fade out
+  for (let i = 0; i < w * h; i++) {
+    if (seen[i] || d[i * 4 + 3] === 0) continue;
+    const x = i % w, near = (x > 0 && seen[i - 1]) || (x < w - 1 && seen[i + 1]) || (i >= w && seen[i - w]) || (i < w * (h - 1) && seen[i + w]);
+    if (!near) continue;
+    const m = Math.min(d[i * 4], d[i * 4 + 1], d[i * 4 + 2]);
+    if (m > 180) d[i * 4 + 3] = Math.round(d[i * 4 + 3] * (255 - m) / 75);
+  }
+  g.putImageData(img, 0, 0);
+}
 async function shrinkLogos(size = 160) {
   if (!DB.logos || typeof createImageBitmap !== 'function') return;
   const done = {};
@@ -1603,10 +1758,10 @@ async function shrinkLogos(size = 160) {
       const blob = await (await fetch(url)).blob();
       const bmp = await createImageBitmap(blob);
       const k = Math.min(1, size / Math.max(bmp.width, bmp.height));
-      if (k >= 1) { done[url] = url; bmp.close?.(); continue; }
       const c = document.createElement('canvas');
       c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
-      const g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.drawImage(bmp, 0, 0, c.width, c.height); bmp.close?.();
+      const g = c.getContext('2d', { willReadFrequently: true }); g.imageSmoothingQuality = 'high'; g.drawImage(bmp, 0, 0, c.width, c.height); bmp.close?.();
+      try { clearLogoBackground(g, c.width, c.height); } catch (e) {}
       const small = await new Promise(res => c.toBlob(res, 'image/png'));
       if (!small) { done[url] = url; continue; }
       const su = URL.createObjectURL(small);
@@ -1615,8 +1770,25 @@ async function shrinkLogos(size = 160) {
     } catch (e) { done[url] = url; }
   }
 }
+// Current official logos for the 30 NBA teams, loaded from the NBA's logo server in the browser
+// (not stored in this repository). The workbook's own logo is the fallback, and the only logo for
+// the league's game-era teams.
+const NBA_TEAM_IDS = { 'Atlanta Hawks': 1610612737, 'Boston Celtics': 1610612738, 'Cleveland Cavaliers': 1610612739, 'New Orleans Pelicans': 1610612740,
+  'Chicago Bulls': 1610612741, 'Dallas Mavericks': 1610612742, 'Denver Nuggets': 1610612743, 'Golden State Warriors': 1610612744, 'Houston Rockets': 1610612745,
+  'Los Angeles Clippers': 1610612746, 'Los Angeles Lakers': 1610612747, 'Miami Heat': 1610612748, 'Milwaukee Bucks': 1610612749, 'Minnesota Timberwolves': 1610612750,
+  'Brooklyn Nets': 1610612751, 'New York Knicks': 1610612752, 'Orlando Magic': 1610612753, 'Indiana Pacers': 1610612754, 'Philadelphia 76ers': 1610612755,
+  'Phoenix Suns': 1610612756, 'Portland Trail Blazers': 1610612757, 'Sacramento Kings': 1610612758, 'San Antonio Spurs': 1610612759, 'Oklahoma City Thunder': 1610612760,
+  'Toronto Raptors': 1610612761, 'Utah Jazz': 1610612762, 'Memphis Grizzlies': 1610612763, 'Washington Wizards': 1610612764, 'Detroit Pistons': 1610612765, 'Charlotte Hornets': 1610612766 };
+let nbaLogosOk = true; // turned off after the first failure (offline, blocked), so pages stop trying
+function logoFail(img) {
+  nbaLogosOk = false;
+  const u = DB.logos && DB.logos[img.dataset.team];
+  img.onerror = null;
+  if (u) { img.src = u; img.classList.remove('nba-logo'); } else img.remove();
+}
 function teamLogo(team, cls) {
-  const u = DB.logos && (DB.logos[fullTeamName(team)] || DB.logos[team]);
+  const full = fullTeamName(team), u = DB.logos && (DB.logos[full] || DB.logos[team]), id = NBA_TEAM_IDS[full];
+  if (id && nbaLogosOk) return `<img class="tlogo nba-logo${cls ? ' ' + cls : ''}" src="https://cdn.nba.com/logos/nba/${id}/primary/L/logo.svg" data-team="${full}" onerror="logoFail(this)" alt="" aria-hidden="true" decoding="async">`;
   return u ? `<img class="tlogo${cls ? ' ' + cls : ''}" src="${u}" alt="" aria-hidden="true" decoding="async">` : '';
 }
 // Flags which of a player's team stints are in red (aligned with playerTeams)
@@ -2349,7 +2521,7 @@ function onSort(key, col) {
 // =====================================================================
 // SECTION NAVIGATION
 // =====================================================================
-const SECTIONS = ['overview','players','top20','bypos','current','draft','compare','player','legacy','settings','teams','team','awards','finals','season','history','statleaders','allnba','decades','records','leaders'];
+const SECTIONS = ['overview','players','top20','bypos','current','draft','compare','player','legacy','settings','teams','team','awards','finals','ring','season','history','statleaders','allnba','decades','records','leaders'];
 function showSection(id) {
   if (!SECTIONS.includes(id)) id = 'overview';
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -2379,6 +2551,7 @@ function showSection(id) {
   if (id === 'draft') renderDraft();
   if (id === 'awards') renderAwards();
   if (id === 'finals') renderFinals();
+  if (id === 'ring') renderRing();
   if (id === 'legacy') renderLegacy();
   if (id === 'settings') { renderSettings(); markDataProblemsSeen(); }
   if (id !== 'player' && id !== 'team') { try { localStorage.setItem('nba2k17-tab', id); } catch(e) {} }
@@ -2751,6 +2924,30 @@ function retiredFromPlayers(teamName) {
   });
   return out;
 }
+// Trophy cabinet: individual awards won by the franchise's players while with it (NBA History
+// logos, Season Stat Leader teams), grouped by player with the seasons. Titles and Finals MVPs
+// are left out: the header and Finals History already show them, and Finals MVPs match titles
+function trophyCabinet(teamName, titles, finals) {
+  const groups = [];
+  const collect = (label, entries) => {
+    const by = new Map();
+    entries.forEach(({ name, yr }) => { const k = playerKey(name, yr); if (!by.has(k)) by.set(k, { name, yrs: [] }); by.get(k).yrs.push(yr); });
+    const list = [...by.values()].sort((a, b) => b.yrs.length - a.yrs.length || Math.max(...b.yrs) - Math.max(...a.yrs));
+    if (entries.length) groups.push({ label, n: entries.length, list });
+  };
+  const hist = k => DB.history.filter(h => h[k] && h[k] !== '-' && h[k + 'Team'] === teamName).flatMap(h => coNames(h[k]).map(name => ({ name, yr: Number(h.Season) })));
+  collect('MVP', hist('MVP')); collect('DPOY', hist('DPOY')); collect('Rookie of the Year', hist('ROTY'));
+  [['Pts', 'Scoring title'], ['Reb', 'Rebounding title'], ['Ast', 'Assists title'], ['Stl', 'Steals title'], ['Blk', 'Blocks title']].forEach(([k, l]) =>
+    collect(l, DB.statLeaders.filter(r => r[k + 'Leader'] && teamByCode(r[k + 'Team'])?.Team === teamName).map(r => ({ name: r[k + 'Leader'], yr: Number(r.Season) }))));
+  if (!groups.length) return '';
+  const tiles = [...groups.filter(g => !/title$/.test(g.label)).map(g => [g.label === 'Rookie of the Year' ? 'ROTY' : g.label, g.n]),
+    ['Stat titles', groups.filter(g => /title$/.test(g.label)).reduce((a, g) => a + g.n, 0)]].filter(([, v]) => v > 0);
+  return `<div class="chart-card tc-card"><div class="chart-title">${icon('trophy', 'ic-champ')} Trophy Cabinet</div>
+    <div class="tc-tiles fold-keep">${tiles.map(([l, v]) => `<div class="tc-tile"><b>${v}</b><span>${l}</span></div>`).join('')}</div>
+    ${groups.map(g => `<div class="tc-group"><div class="tc-label">${g.n > 1 ? (g.label === 'Rookie of the Year' ? 'Rookies of the Year' : g.label + 's') : g.label} <span class="muted">${g.n}</span></div>
+      <div class="tc-list">${g.list.map(x => `<span class="tc-item">${nameLink(x.name, { season: x.yrs[0] })}${x.yrs.length > 1 ? ` <b>×${x.yrs.length}</b>` : ''} <span class="muted">${x.yrs.sort((a, b) => a - b).map(y => seasonLabel(y)).join(', ')}</span></span>`).join('')}</div></div>`).join('')}
+  </div>`;
+}
 function renderTeamPage() {
   const teamName = teamState.t, t = DB.teams.find(x => x.Team === teamName);
   if (!t) return;
@@ -2791,6 +2988,9 @@ function renderTeamPage() {
     </div>
   </section>`);
 
+  // Latest season at a glance, then the franchise's numbers with their league rank
+  parts.push(teamSeasonCard(teamName));
+  parts.push(franchiseStats(teamName));
   const main = [], side = [];
   // Finals history, newest first
   const fin = [...won.map(yr => ({ yr, w: true })), ...lost.map(yr => ({ yr, w: false }))].sort((a, b) => b.yr - a.yr);
@@ -2826,7 +3026,9 @@ function renderTeamPage() {
         <td>${resultMark(si.isChamp, si.isRU, true) || (si.madePlayoffs ? '<span class="muted">Playoffs</span>' : '')}</td></tr>`).join('')}</tbody>
     </table></div></div>`);
 
-  // Side column: best run, best and worst seasons, retired numbers, active players
+  // Side column: trophy cabinet, best run, best and worst seasons, retired numbers, active players
+  const cabinet = trophyCabinet(teamName, won.length, won.length + lost.length);
+  if (cabinet) side.push(cabinet);
   const runs = [3, 5, 10].map(len => ({ len, r: teamWindows(len).find(x => x.team === teamName) })).filter(x => x.r);
   if (runs.length) side.push(`<div class="chart-card rb-card"><div class="chart-title">${icon('star')} Best Runs</div>
     ${runs.map(({ len, r }) => `<div class="rb-row"><span class="rb-rank"></span><span class="rb-main">${len} seasons</span><span class="rb-val">${r.titles} title${r.titles > 1 ? 's' : ''}</span>
@@ -2878,8 +3080,8 @@ function renderTeamPage() {
 // FOLDING CARDS: secondary cards on the team and player pages start closed;
 // tapping the title opens or closes them, and the choice is remembered
 // =====================================================================
-const TEAM_FOLDS = { 'Finals Rivalries': false, 'Season by Season': false, 'Best Runs': false, 'Started Here': false, 'Active Players Here': false };
-const PLAYER_FOLDS = { 'Percentile Ranks': false, 'Advanced Stats': false, 'Similar Players': false, 'Legacy Score': false, 'Finals': false };
+const TEAM_FOLDS = { 'Trophy Cabinet': false, 'Finals Rivalries': false, 'Season by Season': false, 'Best Runs': false, 'Started Here': false, 'Active Players Here': false };
+const PLAYER_FOLDS = { 'Closest Match': false, 'Percentile Ranks': false, 'Advanced Stats': false, 'Similar Players': false, 'Legacy Score': false, 'Finals': false };
 function foldState() { return readJSON('nba2k17-folds') || {}; }
 function applyFolds(root, defaults) {
   const saved = foldState();
@@ -2994,7 +3196,7 @@ function renderWinChart() {
   const data = win ? all.filter(s => s.yr >= win.from && s.yr <= win.to) : all;
   if (!data.length) { el.innerHTML = ''; return; }
   const W = Math.max(el.clientWidth, 280), H = 210;
-  const m = { l: 30, r: 48, t: 12, b: 24 };
+  const m = { l: 30, r: 58, t: 12, b: 24 };
   const pw = W - m.l - m.r, ph = H - m.t - m.b;
   const y0 = data[0].yr, y1 = data[data.length-1].yr;
   const x = yr => m.l + (yr - y0) / Math.max(y1 - y0, 1) * pw;
@@ -3025,7 +3227,7 @@ function renderWinChart() {
   // Hover layer
   svg += `<line class="wc-cross" y1="${m.t}" y2="${m.t+ph}" visibility="hidden"/><circle class="wc-focus wc-mark" r="4.5" fill="var(--link)" visibility="hidden"/>`;
 
-  el.innerHTML = `<svg width="${W}" height="${H}" tabindex="0" role="img"
+  el.innerHTML = `<svg width="100%" viewBox="0 0 ${W} ${H}" style="max-width:${W}px" tabindex="0" role="img"
       aria-label="${winChartData.team.Team} wins per season, ${seasonLabel(y0)} to ${seasonLabel(y1)}. Use left and right arrow keys to step through seasons.">${svg}</svg>
     <div class="wc-tip" hidden></div>`;
 
@@ -3049,7 +3251,7 @@ function renderWinChart() {
   };
   const hide = () => { cur = -1; tip.hidden = true; cross.setAttribute('visibility', 'hidden'); focus.setAttribute('visibility', 'hidden'); };
   const nearest = px => data.reduce((bi, s, i) => Math.abs(x(s.yr) - px) < Math.abs(x(data[bi].yr) - px) ? i : bi, 0);
-  svgEl.addEventListener('mousemove', e => show(nearest(e.clientX - svgEl.getBoundingClientRect().left)));
+  svgEl.addEventListener('mousemove', e => { const r = svgEl.getBoundingClientRect(); show(nearest((e.clientX - r.left) * W / r.width)); });
   svgEl.addEventListener('mouseleave', hide);
   svgEl.addEventListener('focus', () => show(data.length - 1));
   svgEl.addEventListener('blur', hide);
@@ -3110,10 +3312,10 @@ function buildStandingsTable(teamsArr, season, champFull, ruFull, topN, showConf
     const rowCls = [isChamp ? 'row-champ' : isRU ? 'row-ru' : madePlayoffs ? 'row-playoff' : '', !hist && i + 1 === topN ? 'cut' : ''].join(' ');
     return `<tr class="${rowCls}">
       <td class="st-rank">${i + 1}</td>
-      <td>${teamLink(t.Team, rec.label || t.Team)}</td>
+      <td class="st-team">${teamLink(t.Team, rec.label || t.Team)}</td>
       ${showConf ? `<td><span class="conf-badge">${rec.conf || t.Conference}</span></td>` : ''}
       <td class="num ${recClass(rec.w, rec.l)}">${rec.w}-${rec.l}</td>
-      <td class="num">${pct}</td>
+      <td class="num st-pct">${pct}</td>
       <td class="num">${gb}</td>
       <td>${resultMark(isChamp, isRU, false)}</td>
     </tr>`;
@@ -3121,7 +3323,7 @@ function buildStandingsTable(teamsArr, season, champFull, ruFull, topN, showConf
 }
 
 function standingsHead(showConf) {
-  return `<thead><tr><th>#</th><th>Team</th>${showConf ? '<th>Conf</th>' : ''}<th class="num">W-L</th><th class="num">Win%</th><th class="num">GB</th><th></th></tr></thead>`;
+  return `<thead><tr><th>#</th><th>Team</th>${showConf ? '<th>Conf</th>' : ''}<th class="num">W-L</th><th class="num st-pct">Win%</th><th class="num">GB</th><th class="st-mark"></th></tr></thead>`;
 }
 // East and West tables side by side (stacked on phones); '' if the season has no team records
 function splitStandingsHtml(season) {
@@ -3231,6 +3433,16 @@ let standingsCache = {};
 // Playoffs = top 8 in conference (the 2K17 format; the sheet doesn't store it).
 // Older seasons (Team History) carry their own conference and playoff note; playoffs there are
 // only known when the sheet says so (null otherwise), since formats changed many times.
+// Nickname for tight spots next to a logo: "Minnesota Timberwolves" -> "Timberwolves"
+const shortTeam = name => { const s = String(name || ''); const m = s.match(/(Trail Blazers|Red Sox)$/); return m ? m[1] : s.split(' ').pop(); };
+function teamShortIn(team, yr) { const t = DB.teams.find(x => x.Team === team), era = t && t.seasonRecords?.[yr]?.label; return teamLink(team, shortTeam(era || team)); }
+// Team with the biggest jump in wins from the season before (by win %, so shorter seasons compare fairly)
+function mostImproved(yr) {
+  const prev = Object.fromEntries(seasonStandings(yr - 1).map(r => [r.team, r]));
+  const pct = r => r.w / Math.max(1, r.w + r.l);
+  return seasonStandings(yr).filter(r => prev[r.team]).map(r => ({ ...r, prev: prev[r.team], gain: Math.round((pct(r) - pct(prev[r.team])) * 82) }))
+    .filter(r => r.gain > 0).sort((a, b) => b.gain - a.gain || b.w - a.w)[0] || null;
+}
 function seasonStandings(yr) {
   if (standingsCache[yr]) return standingsCache[yr];
   const teams = DB.teams.filter(t => t.seasonRecords?.[yr]);
@@ -3299,7 +3511,9 @@ function renderHome() {
       <div class="hero-award"><div class="ha-label">MVP</div><div class="ha-name">${h.MVPTeam ? teamLogo(h.MVPTeam) : ''}${award(h.MVP)}</div></div>
       <div class="hero-award"><div class="ha-label">DPOY</div><div class="ha-name">${h.DPOYTeam ? teamLogo(h.DPOYTeam) : ''}${award(h.DPOY)}</div></div>
       ${h.ROTY && h.ROTY !== '-' ? `<div class="hero-award"><div class="ha-label">ROTY</div><div class="ha-name">${h.ROTYTeam ? teamLogo(h.ROTYTeam) : ''}${award(h.ROTY)}</div></div>` : ''}
-      ${best ? `<div class="hero-award"><div class="ha-label">Best Record</div><div class="ha-name">${teamLink(best.team)} <span class="nowrap">${best.w}-${best.l}</span></div></div>` : ''}
+      ${best ? `<div class="hero-award"><div class="ha-label">Best Record</div><div class="ha-name">${teamShortIn(best.team, yr)}</div><div class="ha-rec">${best.w}-${best.l}</div></div>` : ''}
+      ${(() => { const mi = mostImproved(yr); return mi ? `<div class="hero-award"><div class="ha-label">Most Improved</div><div class="ha-name">${teamShortIn(mi.team, yr)}</div>
+        <div class="ha-rec ha-jump"><span class="ha-was">${mi.prev.w}-${mi.prev.l}</span> → ${mi.w}-${mi.l}</div><div class="ha-gain">+${mi.gain} wins on last season</div></div>` : ''; })()}
     </div>
   </section>`);
 
@@ -3310,7 +3524,7 @@ function renderHome() {
       const top = rows[0];
       return `<div><div class="conf-title">${conf === 'EAST' ? 'East' : 'West'}</div>
         <table class="standings-table mini-standings"><thead><tr><th>#</th><th>Team</th><th class="num">W-L</th><th class="num">GB</th></tr></thead>
-        <tbody>${rows.map((r, i) => `<tr><td class="st-rank">${i+1}</td><td>${teamLink(r.team)}${r.team === champ ? ' ' + icon('trophy', 'ic-champ') : r.team === ru ? ' ' + icon('trophy', 'ic-silver') : ''}</td>
+        <tbody>${rows.map((r, i) => `<tr><td class="st-rank">${i+1}</td><td class="st-team">${teamLink(r.team)}${r.team === champ ? ' ' + icon('trophy', 'ic-champ') : r.team === ru ? ' ' + icon('trophy', 'ic-silver') : ''}</td>
           <td class="num ${recClass(r.w, r.l)}">${r.w}-${r.l}</td><td class="num">${i ? top.w - r.w : '—'}</td></tr>`).join('')}</tbody></table></div>`;
     };
     cards.push(`<div class="chart-card span-8"><div class="card-head"><div class="chart-title">Final Standings · Top 8</div>
@@ -3527,8 +3741,9 @@ function renderSeason() {
   sections.push(`<div class="stats-cards sh-awards">
     ${tile(icon('trophy','ic-champ') + ' Champion', champ ? teamIn(champ, yr) : '<span class="muted">—</span>',
       ru ? `beat ${teamIn(ru, yr)} ${finalsScore}${champRow ? ` · ${champRow.w}-${champRow.l} season` : ''}` : '')}
-    ${['FMVP', 'MVP', 'DPOY', 'ROTY'].filter(k => k !== 'ROTY' || (h?.ROTY && h.ROTY !== '-')).map(k => tile(k === 'FMVP' ? 'Finals MVP' : k, award(h?.[k]), h?.[k + 'Team'] && h[k] && h[k] !== '-' ? teamIn(h[k + 'Team'], yr) : '')).join('')}
+    ${['FMVP', 'MVP', 'DPOY', 'ROTY'].filter(k => k !== 'ROTY' || (h?.ROTY && h.ROTY !== '-')).map(k => tile(k === 'FMVP' ? 'Finals MVP' : k, award(h?.[k]), h?.[k + 'Team'] && h[k] && h[k] !== '-' ? teamShortIn(h[k + 'Team'], yr) : '')).join('')}
     ${best ? tile('Best Record', teamIn(best.team, yr), `${best.w}-${best.l}`) : ''}
+    ${(() => { const mi = mostImproved(yr); return mi ? tile('Most Improved', teamIn(mi.team, yr), `${mi.prev.w}-${mi.prev.l} → ${mi.w}-${mi.l} (+${mi.gain} wins)`) : ''; })()}
   </div>`);
 
   // Champion and runner-up stars, each with the role the legacy score gives them
@@ -3630,6 +3845,33 @@ function renderRecords() {
     ]);
   }
 
+  // ----- Turnarounds: one-season jumps and drops (by win %, scaled to 82 games), and worst to first
+  if (yrs.length > 1) {
+    const pct = r => r.w / Math.max(1, r.w + r.l);
+    const swings = yrs.slice(1).flatMap(yr => { const prev = Object.fromEntries(seasonStandings(yr - 1).map(r => [r.team, r]));
+      return seasonStandings(yr).filter(r => prev[r.team]).map(r => ({ ...r, yr, prev: prev[r.team], gain: Math.round((pct(r) - pct(prev[r.team])) * 82) })); });
+    const swingRow = r => ({ main: teamIn(r.team, r.yr), val: `${r.gain > 0 ? '+' : ''}${r.gain}`, sub: `${r.prev.w}-${r.prev.l} → ${r.w}-${r.l} · ${seasonLink(r.yr)}${resultIcon(r.team, r.yr)}` });
+    const ups = withRanks(swings.filter(r => r.gain > 0).sort((a, b) => b.gain - a.gain || b.yr - a.yr).slice(0, 10), r => r.gain).map(r => ({ ...swingRow(r), rank: r.rank }));
+    const downs = withRanks(swings.filter(r => r.gain < 0).sort((a, b) => a.gain - b.gain || b.yr - a.yr).slice(0, 10), r => r.gain).map(r => ({ ...swingRow(r), rank: r.rank }));
+    // Worst to first: a team with one of the league's three worst records won the title within five seasons
+    const w2f = [], usedBad = new Set();
+    [...finals].sort((a, b) => a.yr - b.yr).forEach(f => {
+      for (let back = 1; back <= 5; back++) {
+        const st = seasonStandings(f.yr - back); if (!st.length) continue;
+        const me = st.find(r => r.team === f.champ); if (!me || me.leagueRk < st.length - 2) continue;
+        // Each bad season counts once, for the first title that followed it
+        const k = f.champ + '|' + (f.yr - back); if (usedBad.has(k)) break; usedBad.add(k);
+        w2f.push({ f, back, me, n: st.length }); break;
+      }
+    });
+    section('Turnarounds', 'Change in wins from one season to the next (by win %, scaled to 82 games)', [
+      recordCard('Biggest Turnarounds', ups, '', 'No turnarounds yet.'),
+      recordCard('Biggest Collapses', downs, '', 'No collapses yet.'),
+      recordCard(`Worst to First · ${w2f.length}`, w2f.sort((a, b) => b.f.yr - a.f.yr).map(x => ({ main: teamIn(x.f.champ, x.f.yr), val: `${x.back} yr${x.back > 1 ? 's' : ''}`,
+        sub: `${x.me.leagueRk === x.n ? 'worst' : x.me.leagueRk === x.n - 1 ? '2nd-worst' : '3rd-worst'} record in ${seasonLink(x.f.yr - x.back)} (${x.me.w}-${x.me.l}), champion ${seasonLink(x.f.yr)}` })), 'Bottom three in the league, then a title within five seasons', 'No worst-to-first champions yet.'),
+    ]);
+  }
+
   // ----- Streaks
   const runCard = (title, runs, minLen, n, mainOf, note, unit) => {
     const best = runs.filter(r => r.len >= minLen).sort((a,b) => b.len - a.len || b.end - a.end).slice(0, n);
@@ -3666,6 +3908,26 @@ function renderRecords() {
     recordCard(`Sweeps (4-0) · ${sweeps.length}`, sweeps),
     recordCard(`Went to Game 7 (4-3) · ${sevens.length}`, sevens),
   ]);
+
+  // ----- Heartbreak: Finals lost, and greats without a ring
+  {
+    const n = (p, k) => { const v = getNum(p[k]); return v === -Infinity ? 0 : Math.round(v); };
+    const ps = everyPlayer().map(p => ({ p, app: n(p, 'Finals App'), won: n(p, 'Champions') })).map(x => ({ ...x, lost: Math.max(0, x.app - x.won) }));
+    const mostLost = withRanks(ps.filter(x => x.lost > 0).sort((a, b) => b.lost - a.lost || a.won - b.won).slice(0, 10), x => x.lost)
+      .map(x => ({ rank: x.rank, main: nameLink(x.p.Player), val: `${x.lost}`, sub: `${x.app} Finals · ${x.won} title${x.won === 1 ? '' : 's'}` }));
+    const noRing = ps.filter(x => x.won === 0).map(x => ({ ...x, rk: legacyRankOf(x.p) })).filter(x => x.rk).sort((a, b) => a.rk - b.rk).slice(0, 10)
+      .map((x, i) => ({ rank: i + 1, main: nameLink(x.p.Player), val: `#${x.rk}`, sub: `${x.app ? `${x.app} Finals, no title` : 'never reached the Finals'}${isActive(x.p) ? ' · <span class="rb-active">active</span>' : ''}` }));
+    const confNoRing = withRanks(ps.filter(x => x.won === 0 && x.app > 0).sort((a, b) => b.app - a.app || (legacyRankOf(a.p) || 999) - (legacyRankOf(b.p) || 999)).slice(0, 10), x => x.app)
+      .map(x => ({ rank: x.rank, main: nameLink(x.p.Player), val: `${x.app}`, sub: `conference title${x.app > 1 ? 's' : ''}, never won the Finals` }));
+    const teamLost = withRanks(Object.entries(appear).filter(([, v]) => v.l > 0).map(([t, v]) => ({ t, v })).sort((a, b) => b.v.l - a.v.l || a.v.w - b.v.w).slice(0, 10), r => r.v.l)
+      .map(r => ({ rank: r.rank, main: teamLink(r.t), val: `${r.v.l}`, sub: `${r.v.w + r.v.l} Finals · ${r.v.w} won` }));
+    section('Heartbreak', 'Finals lost (Finals App − Champions on each player row) and the best players without a title', [
+      recordCard('Most Finals Lost', mostLost, '', 'No Finals losses recorded.'),
+      recordCard('Best Players Without a Title', noRing, 'Ranked by legacy score'),
+      recordCard('Most Conference Titles, No Ring', confNoRing, '', 'Everyone who reached the Finals won one.'),
+      recordCard('Franchises: Most Finals Lost', teamLost),
+    ]);
+  }
 
   // ----- Dynasties
   const runRows = (len, minTitles) => withRanks(teamWindows(len).filter(r => r.titles >= minTitles).slice(0, 8), r => r.titles * 100 + r.finals)
@@ -4237,6 +4499,8 @@ function renderPlayerPage() {
       <div class="sim-match">${sp.match}%</div><div class="sim-name">${sp.p.Player} ${posBadge(sp.p.Position)}</div>
       <div class="sim-line">${one(perGame(sp.p, 'PTS'))} PPG · ${one(perGame(sp.p, 'REB'))} RPG · ${one(perGame(sp.p, 'AST'))} APG</div>
       <button class="card-link" onclick="event.stopPropagation();compareWith('${jsArg(p.Player)}','${jsArg(sp.p.Player)}')">Compare</button></div>`).join('')}</div></div>`);
+  // Closest match, drawn as a percentile fingerprint
+  if (sim.length) parts.push(fingerprintHtml([p, sim[0].p], ['var(--p1)', 'var(--p2)'], { title: 'Closest Match', sub: `${p.Player} vs ${sim[0].p.Player}, a ${sim[0].match}% statistical match` }));
 
   const pp = document.getElementById('playerPage');
   pp.innerHTML = parts.join('');
@@ -4492,9 +4756,10 @@ function renderCompare() {
   const board = `<div class="cmp-board">${players.map((p, i) => `<div class="cmp-score${wins[i] === top && wins.filter(w => w === top).length === 1 ? ' lead' : ''}">
       <i class="cmp-swatch" style="background:${colors[i]}"></i><span class="cs-name">${nameLink(p.Player)}</span>
       <b>${wins[i]}</b><span class="cs-label">categories led</span></div>`).join('')}</div>`;
-  const head = `<thead><tr><th>Stat</th>${players.map((p, i) => `<th><i class="cmp-swatch" style="background:${colors[i]}"></i>${nameLink(p.Player)}<div class="cmp-sub">${p.Position||''} · ${p.Season||''}${isActive(p) ? ' · Active' : ''}</div></th>`).join('')}</tr></thead>`;
+  const head = `<thead><tr><th>Stat</th>${players.map((p, i) => `<th><div class="cmp-name"><i class="cmp-swatch" style="background:${colors[i]}"></i><span class="cmp-full">${nameLink(p.Player)}</span><span class="cmp-short">${nameLink(p.Player, { label: p.Player.split(' ').slice(-1)[0] })}</span></div><div class="cmp-sub">${p.Position||''} · ${(() => { const sp = careerSpan(p.Season); return sp ? `${sp[0]}–${sp[1] === Infinity ? 'now' : sp[1]}` : (p.Season || ''); })()}${isActive(p) ? ' · Active' : ''}</div></th>`).join('')}</tr></thead>`;
   out.innerHTML = `${board}
-    <div style="overflow-x:auto;margin-top:8px"><table class="cmp-table">${head}<tbody>${rows}</tbody></table></div>`;
+    ${fingerprintHtml(players, colors, { title: 'Fingerprint' })}
+    <div style="overflow-x:auto;margin-top:8px"><table class="cmp-table cmp-n${players.length}">${head}<tbody>${rows}</tbody></table></div>`;
 }
 
 // =====================================================================
@@ -5106,9 +5371,177 @@ function playerFinalsHtml(p) {
     <div class="pf-list">${rows.sort((a, b) => b.f.yr - a.f.yr).map(r => `<div class="pf-row">
       <span class="pf-season">${seasonLink(r.f.yr)}</span>
       <span class="pf-res ${r.won ? 'pf-w' : 'pf-l'}">${r.won ? 'W' : 'L'}</span>
-      <span class="pf-opp"><span class="pf-team">${r.won ? 'over' : 'to'} ${teamIn(r.opp, r.f.yr, teamCode(r.opp))}</span>${r.oppStars.length ? `<span class="pf-stars">${r.oppStars.slice(0, 2).map(s => s.name).join(', ')}${r.oppStars.length > 2 ? ' …' : ''}</span>` : ''}</span>
+      <span class="pf-opp"><span class="pf-team">${r.won ? 'over' : 'to'} ${teamIn(r.opp, r.f.yr, teamCode(r.opp))}</span>${r.oppStars.length ? `<span class="pf-stars">${r.oppStars.map(s => `<span class="nm">${s.name}</span>`).join(', ')}</span>` : ''}</span>
       <span class="pf-score">${score(r)}</span></div>`).join('')}</div>
     ${rivals.length ? `<div class="pf-rivals"><span>Most-met</span> ${rivals.map(e => `${nameLink(e.name)} <span class="muted">${e.w}–${e.n - e.w}</span>`).join(' · ')}</div>` : ''}</div>`;
+}
+</script>
+<script>
+// 2K17 NBA Stats Database · Ring of Honor: every retired number in the league in one place
+// (Retired # tab merged with the # Retired columns of All Players, as on each team page).
+
+function ringData() {
+  return cached('ringData', () => DB.teams.filter(t => !t.defunct).flatMap(t => retiredForTeam(t.Team).map(r => ({ ...r, team: t.Team, numKey: String(r.num).trim() }))));
+}
+const ringState = { q: '', team: '', kind: 'players' };
+function setRingKind(k) { ringState.kind = k; renderRingList(); document.querySelectorAll('#ringKind button').forEach(b => b.classList.toggle('active', b.dataset.k === k)); }
+function renderRing() {
+  const all = ringData(), players = all.filter(r => r.type === 'Player');
+  const el = document.getElementById('ringContent');
+  if (!all.length) { el.innerHTML = '<p class="muted">No retired numbers recorded yet.</p>'; return; }
+  // Players honored by two or more franchises
+  const byPlayer = {};
+  players.forEach(r => (byPlayer[r.player] = byPlayer[r.player] || []).push(r));
+  const multi = Object.entries(byPlayer).map(([player, rs]) => ({ player, rs, teams: new Set(rs.map(r => r.team)).size })).filter(x => x.teams >= 2)
+    .sort((a, b) => b.teams - a.teams || a.player.localeCompare(b.player));
+  // Franchises by count, and the most-retired jersey numbers
+  const byTeam = {};
+  all.forEach(r => { const e = (byTeam[r.team] = byTeam[r.team] || { players: 0, all: 0 }); e.all++; if (r.type === 'Player') e.players++; });
+  const teams = Object.entries(byTeam).sort((a, b) => b[1].players - a[1].players || b[1].all - a[1].all);
+  const byNum = {};
+  players.filter(r => /^\d+$/.test(r.numKey)).forEach(r => (byNum[r.numKey] = byNum[r.numKey] || []).push(r));
+  const nums = Object.entries(byNum).sort((a, b) => b[1].length - a[1].length || Number(a[0]) - Number(b[0]));
+  const gameEra = players.filter(r => { const y = String(r.years || '').match(/\d{4}/g); return y && y.some(v => Number(v) > 2016); }).length;
+  const tile = (label, value) => `<div class="stat-card"><div class="label">${label}</div><div class="value">${value}</div></div>`;
+  el.innerHTML = `
+    <div class="stats-cards ring-tiles">
+      ${tile('Retired numbers', players.length)}
+      ${teams[0] ? tile('Most by one team', `${teams[0][1].players} <small class="ring-code">${teamCode(teams[0][0])}</small>`) : ''}
+      ${tile('Honored by 2+ teams', multi.length)}
+      ${tile('Honored by 3+ teams', multi.filter(m => m.teams >= 3).length)}
+    </div>
+    <div class="player-grid ring-grid">
+      <div>
+        <div class="toolbar ring-toolbar"><div class="search-wrap"><span class="icon"><svg class="ic"><use href="#i-search"/></svg></span><input type="text" placeholder="Search player, number..." oninput="ringState.q=this.value.toLowerCase();renderRingList()" aria-label="Search retired numbers"></div>
+          <select onchange="ringState.team=this.value;renderRingList()" aria-label="Team"><option value="">All franchises</option>${teams.map(([t]) => t).sort().map(t => `<option value="${t}">${t}</option>`).join('')}</select>
+          <div class="seg" id="ringKind">${[['players', 'Players'], ['all', 'Everyone'], ['game', 'Game era']].map(([k, l]) => `<button data-k="${k}" class="${ringState.kind === k ? 'active' : ''}" onclick="setRingKind('${k}')">${l}</button>`).join('')}</div></div>
+        <div class="muted ring-count" id="ringCount"></div>
+        <div id="ringList" class="ring-list"></div>
+      </div>
+      <div>
+        <div class="chart-card rb-card"><div class="chart-title">${icon('people')} Honored by 2+ Teams</div>
+          ${multi.length ? multi.map(m => `<div class="rb-row"><span class="rb-rank">${m.teams}</span><span class="rb-main">${m.rs.some(r => r.linked) ? nameLink(m.player) : `<span class="name-plain">${m.player}</span>`}</span><span class="rb-val"></span>
+            <span class="rb-sub">${m.rs.map(r => `#${r.num} ${teamLink(r.team, teamCode(r.team))}`).join(' · ')}</span></div>`).join('') : '<p class="muted">No player is honored by two teams yet.</p>'}</div>
+        <div class="chart-card rb-card"><div class="chart-title">${icon('jersey')} Most Retired Numbers</div>
+          ${teams.slice(0, 10).map(([t, v], i) => `<div class="rb-row"><span class="rb-rank">${i + 1}</span><span class="rb-main">${teamLink(t)}</span><span class="rb-val">${v.players}</span>${v.all > v.players ? `<span class="rb-sub">+${v.all - v.players} coaches and others</span>` : ''}</div>`).join('')}</div>
+        <div class="chart-card rb-card"><div class="chart-title">${icon('jersey')} Most-Retired Jersey Numbers</div>
+          ${nums.slice(0, 10).map(([n, rs], i) => `<div class="rb-row"><span class="rb-rank">${i + 1}</span><span class="rb-main">#${n}</span><span class="rb-val">${rs.length}</span>
+            <span class="rb-sub">${rs.slice(0, 4).map(r => r.player).join(', ')}${rs.length > 4 ? ` and ${rs.length - 4} more` : ''}</span></div>`).join('')}</div>
+        ${gameEra ? `<p class="muted fx-note">${gameEra} of the ${players.length} player numbers were earned in the game era (after 2016).</p>` : ''}
+      </div>
+    </div>`;
+  renderRingList();
+}
+function renderRingList() {
+  const q = ringState.q, isGame = r => { const y = String(r.years || '').match(/\d{4}/g); return !!y && y.some(v => Number(v) > 2016); };
+  const list = ringData().filter(r => (ringState.kind === 'all' || r.type === 'Player') && (ringState.kind !== 'game' || isGame(r)) && (!ringState.team || r.team === ringState.team) &&
+    (!q || String(r.player).toLowerCase().includes(q) || ('#' + r.num).includes(q) || String(r.num) === q || r.team.toLowerCase().includes(q)));
+  const groups = {};
+  list.forEach(r => (groups[r.team] = groups[r.team] || []).push(r));
+  document.getElementById('ringCount').textContent = `${list.length} honored · ${Object.keys(groups).length} franchises`;
+  document.getElementById('ringList').innerHTML = Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0])).map(([t, rs]) => `<div class="ring-team">
+    <div class="ring-team-head">${teamLink(t)} <span class="muted">${rs.length}</span></div>
+    <div class="ring-items">${rs.sort((a, b) => (parseInt(a.num) || 999) - (parseInt(b.num) || 999)).map(r => `<div class="ring-item">
+      <span class="ring-num">${r.type === 'Player' ? r.num : '—'}</span>
+      <span class="ring-who">${r.linked ? nameLink(r.player) : `<span class="name-plain">${r.player}</span>`}${r.type !== 'Player' ? ` <span class="muted">${r.type}</span>` : ''}${r.years ? `<span class="ring-years">${r.years}</span>` : ''}</span></div>`).join('')}</div></div>`).join('') || '<p class="muted">Nothing matches.</p>';
+}
+</script>
+<script>
+// 2K17 NBA Stats Database · Visual cards: the percentile "fingerprint" dot chart (Compare and
+// Similar Players), franchise stat tiles with league rank, and the team page season card.
+
+const ordinalRank = n => n + (n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th');
+
+// One row per percentile metric; a dot per player on a 0-100 track, joined by a bar from the
+// lowest to the highest so the gaps and shared strengths read at a glance
+function fingerprintHtml(players, colors, opts) {
+  opts = opts || {};
+  const pool = careerPlayers();
+  const rows = PCT_METRICS.map(m => ({ m, pts: players.map((p, i) => ({ p, i, pct: percentile(m, p, pool), v: m.get(p) })).filter(x => x.pct !== null) }))
+    .filter(r => r.pts.length === players.length);
+  if (!rows.length) return '';
+  return `<div class="chart-card fp-card"><div class="chart-title">${icon('chart')} ${opts.title || 'Fingerprint'}</div>
+    ${opts.sub ? `<p class="muted fx-note">${opts.sub}</p>` : ''}
+    <div class="fp-legend">${players.map((p, i) => `<span class="fp-key"><i style="background:${colors[i]}"></i>${p.Player}</span>`).join('')}</div>
+    <div class="fp-head"><span class="fp-label muted">percentile</span><div class="fp-scale"><span>0</span><span>50</span><span>100</span></div></div>
+    ${rows.map(r => {
+      const lo = Math.min(...r.pts.map(x => x.pct)), hi = Math.max(...r.pts.map(x => x.pct));
+      const tip = r.pts.map(x => `${x.p.Player}: ${r.m.fmt(x.v)} (${ordinalRank(x.pct)} pct.)`).join(' · ');
+      return `<div class="fp-row" title="${tip}"><span class="fp-label">${r.m.label}</span>
+        <span class="fp-track"><i class="fp-tick" style="left:0"></i><i class="fp-tick" style="left:50%"></i><i class="fp-tick" style="left:100%"></i>
+          <i class="fp-span" style="left:${lo}%;width:${hi - lo}%"></i>${[...r.pts].sort((a, b) => a.i - b.i).map(x => `<i class="fp-dot" style="left:${x.pct}%;background:${colors[x.i]}"></i>`).join('')}</span></div>`;
+    }).join('')}
+    <p class="muted fx-note">Percentile among all retired players with career stats (100 = best). Tap or hover a row for the values.</p></div>`;
+}
+
+// Franchise stat tiles: value, league rank and a bar for where that rank sits
+function franchiseStats(teamName) {
+  const teams = DB.teams.filter(t => !t.defunct);
+  const fin = Object.fromEntries(finalsByFranchise().map(r => [r.team, r.w + r.l]));
+  const allTime = t => { let w = 0, l = 0; Object.values(t.seasonRecords || {}).forEach(r => { w += r.w || 0; l += r.l || 0; }); return w + l ? w / (w + l) : null; };
+  const num = v => { const x = getNum(v); return x === -Infinity ? null : x; };
+  const metrics = [
+    ['Titles', t => num(t.Championship) ?? 0, v => v],
+    ['Finals', t => fin[t.Team] || 0, v => v],
+    ['Conf titles', t => num(t['Conference Titles']) ?? 0, v => v],
+    ['Playoffs', t => num(t.Playoffs) ?? 0, v => v],
+    ['Win %', allTime, v => (v * 100).toFixed(1)],
+    ['Glory', t => num(t['Glory Score']), v => Math.round(v).toLocaleString()],
+    ['Div titles', t => num(t['Division Titles']) ?? 0, v => v],
+    ['Wins, 5 yrs', t => num(t['Avg. W Last 5Y']), v => v.toFixed(1)],
+    ['Wins, 10 yrs', t => num(t['Avg. W Last 10Y']), v => v.toFixed(1)],
+  ];
+  const me = teams.find(t => t.Team === teamName); if (!me) return '';
+  const tiles = metrics.map(([label, get, fmt]) => {
+    const v = get(me); if (v === null || v === undefined) return '';
+    const vals = teams.map(get).filter(x => x !== null && x !== undefined);
+    const rank = vals.filter(x => x > v).length + 1, tie = vals.filter(x => x === v).length > 1, n = vals.length;
+    const fill = n > 1 ? Math.round((n - rank) / (n - 1) * 100) : 100;
+    return `<div class="fs-tile"><div class="fs-label">${label}</div><div class="fs-val">${fmt(v)}</div>
+      <div class="fs-foot"><div class="fs-bar"><i style="width:${Math.max(fill, 3)}%"></i></div><span class="fs-rank">${tie ? 'T-' : ''}${ordinalRank(rank)}</span></div></div>`;
+  }).join('');
+  return `<div class="chart-card fs-card"><div class="card-head"><div class="chart-title">${icon('chart')} Franchise Stats</div><span class="muted fs-note">rank of ${teams.length}</span></div>
+    <div class="fs-grid">${tiles}</div>
+    <p class="muted fx-note">Win % is all-time since the franchise began; wins are the average per season over the last 5 and 10 seasons.</p></div>`;
+}
+
+// Team page: the latest season at a glance, over a faded logo
+function teamSeasonCard(teamName) {
+  const t = DB.teams.find(x => x.Team === teamName); if (!t) return '';
+  const yr = DB.latestSeason, rec = t.seasonRecords?.[yr]; if (!rec) return '';
+  const st = seasonStandings(yr), me = st.find(r => r.team === teamName); if (!me) return '';
+  const conf = st.filter(r => r.conf === me.conf).sort((a, b) => b.raw - a.raw), top = conf[0];
+  const gb = top === me ? '—' : (((top.w - me.w) + (me.l - top.l)) / 2).toString().replace(/\.0$/, '');
+  const { champ, ru } = finalsTeams(yr);
+  const result = champ === teamName ? `${icon('trophy', 'ic-champ')} Champion` : ru === teamName ? `${icon('trophy', 'ic-silver')} Lost the Finals` : me.playoffs ? 'Playoffs' : 'Missed playoffs';
+  const prev = t.seasonRecords?.[yr - 1];
+  const pct = r => r.w / Math.max(1, r.w + r.l);
+  const delta = prev ? Math.round((pct(rec) - pct(prev)) * 82) : null;
+  const mi = mostImproved(yr), best = [...st].sort((a, b) => b.raw - a.raw)[0];
+  const badge = best && best.team === teamName ? 'Best record in the league' : mi && mi.team === teamName ? 'Most improved team' : '';
+  return `<section class="ts-card">
+    <div class="ts-mark" aria-hidden="true">${teamLogo(teamName, 'ts-logo')}</div>
+    <div class="ts-main"><div class="ts-kicker">${seasonLabel(yr)} season</div>
+      <div class="ts-rec">${me.w}-${me.l}</div>
+      <div class="ts-sub">${ordinalRank(me.confRk)} in ${confName(me.conf)} · ${result}${badge ? ` · <span class="ts-badge">${badge}</span>` : ''}</div></div>
+    <div class="ts-strip">
+      <div><span>Games back</span><b>${gb}</b></div>
+      <div><span>League rank</span><b>${ordinalRank(me.leagueRk)} of ${st.length}</b></div>
+      <div><span>Last season</span><b>${prev ? `${prev.w}-${prev.l}` : '—'}</b></div>
+      <div><span>Change</span><b class="${delta > 0 ? 'ts-up' : delta < 0 ? 'ts-down' : ''}">${delta === null ? '—' : (delta > 0 ? '+' : '') + delta + ' wins'}</b></div>
+    </div></section>`;
+}
+
+// Header button: switch light and dark in one tap
+function toggleThemeQuick() {
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark' || (!document.documentElement.getAttribute('data-theme') && matchMedia('(prefers-color-scheme: dark)').matches);
+  setTheme(dark ? 'light' : 'dark'); syncThemeButton();
+}
+function syncThemeButton() {
+  const b = document.getElementById('themeBtn'); if (!b) return;
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark' || (!document.documentElement.getAttribute('data-theme') && matchMedia('(prefers-color-scheme: dark)').matches);
+  b.innerHTML = `<svg class="ic"><use href="#i-${dark ? 'sun' : 'moon'}"/></svg>`;
+  b.setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode'); b.title = b.getAttribute('aria-label');
 }
 </script>
 <script>
@@ -5311,6 +5744,7 @@ function themeChoice() { try { return localStorage.getItem('nba2k17-theme') || '
 function setTheme(v) {
   try { v === 'system' ? localStorage.removeItem('nba2k17-theme') : localStorage.setItem('nba2k17-theme', v); } catch (e) {}
   if (v === 'system') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', v);
+  if (typeof syncThemeButton === 'function') syncThemeButton();
   renderSettings();
   if (document.getElementById('winChart')) renderWinChart();
 }
@@ -5481,6 +5915,34 @@ getSavedWorkbook().then(saved => {
     renderSavedInfo();
   }
 });
+
+// Big award names (Home hero, Season Hub tiles) stay on one line: shrink the text until it fits
+function fitNames() {
+  // Standings: a name that still doesn't fit (narrowest phones) shows the nickname, full name on hover
+  document.querySelectorAll('td.st-team').forEach(td => {
+    if (!td.offsetWidth || td.scrollWidth <= td.clientWidth + 1) return;
+    const link = td.querySelector('.team-link'), text = link && [...link.childNodes].reverse().find(n => n.nodeType === 3 && n.textContent.trim());
+    if (text) { link.title = link.title || text.textContent.trim(); text.textContent = shortTeam(text.textContent.trim()); }
+  });
+  document.querySelectorAll('.ha-name, .value-name, .cmp-name').forEach(el => {
+    if (!el.offsetWidth) return;
+    el.style.fontSize = '';
+    let size = parseFloat(getComputedStyle(el).fontSize);
+    el.classList.remove('fit-wrap');
+    const min = el.classList.contains('cmp-name') ? 10 : 14;
+    while (el.scrollWidth > el.clientWidth + 1 && size > min) { size -= 1; el.style.fontSize = size + 'px'; }
+    // Still too long at the smallest size: wrap between words rather than cut the name off
+    if (el.scrollWidth > el.clientWidth + 1) el.classList.add('fit-wrap');
+  });
+}
+let fitFrame = 0;
+const fitSoon = () => { cancelAnimationFrame(fitFrame); fitFrame = requestAnimationFrame(fitNames); };
+new MutationObserver(fitSoon).observe(document.body, { childList: true, subtree: true });
+window.addEventListener('resize', fitSoon);
+if (document.fonts) { document.fonts.ready.then(fitSoon); document.fonts.addEventListener('loadingdone', fitSoon); }
+
+syncThemeButton();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncThemeButton);
 </script>
 </body>
 </html>

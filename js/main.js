@@ -57,6 +57,8 @@ function fitNames() {
     el.classList.remove('fit-wrap');
     const min = el.classList.contains('cmp-name') ? 10 : 14;
     while (el.scrollWidth > el.clientWidth + 1 && size > min) { size -= 1; el.style.fontSize = size + 'px'; }
+    // Compare headers: a team nickname that still doesn't fit becomes its code (MIN)
+    if (el.scrollWidth > el.clientWidth + 1 && el.dataset.code) { const s = el.querySelector('.cmp-short .team-link'), tn = s && [...s.childNodes].reverse().find(n => n.nodeType === 3); if (tn) tn.textContent = el.dataset.code; }
     // Still too long at the smallest size: wrap between words rather than cut the name off
     if (el.scrollWidth > el.clientWidth + 1) el.classList.add('fit-wrap');
   });

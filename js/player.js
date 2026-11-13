@@ -485,7 +485,7 @@ function renderTeamCompare() {
     { label: 'Playoff appearances', get: s => num(s.t.Playoffs) },
     { label: 'Glory Score', get: s => num(s.t['Glory Score']) },
     { header: `Regular season (Team Record)` },
-    { label: 'Win %', get: s => s.seasons ? s.w / (s.w + s.l) : null, fmt: (v, s) => `${v.toFixed(3).replace(/^0/, '')} <span class="muted">(${s.w.toLocaleString()}-${s.l.toLocaleString()})</span>` },
+    { label: 'Win %', get: s => s.seasons ? s.w / (s.w + s.l) : null, fmt: (v, s) => `${v.toFixed(3).replace(/^0/, '')} <span class="muted cmp-rec">(${s.w.toLocaleString()}-${s.l.toLocaleString()})</span>` },
     { label: 'Best season (wins)', get: s => s.best },
     { label: '60-win seasons', get: s => s.sixty },
     { label: 'Avg. wins, last 5 years', get: s => num(parseFloat(s.t['Avg. W Last 5Y'])), fmt: v => v.toFixed(1) },
@@ -515,8 +515,8 @@ function renderTeamCompare() {
   const top = Math.max(...wins);
   out.innerHTML = `<div class="cmp-board">${st.map((x, i) => `<div class="cmp-score${wins[i] === top && wins.filter(w => w === top).length === 1 ? ' lead' : ''}">
       <i class="cmp-swatch" style="background:${colors[i]}"></i><span class="cs-name">${teamLink(x.v)}</span><b>${wins[i]}</b><span class="cs-label">categories led</span></div>`).join('')}</div>
-    <div style="overflow-x:auto;margin-top:8px"><table class="cmp-table"><thead><tr><th>Stat</th>${st.map((x, i) => `<th><i class="cmp-swatch" style="background:${colors[i]}"></i>${teamLink(x.v)}
-      <div class="cmp-sub">${x.s.t.Conference === 'EAST' ? 'East' : 'West'} · Est. ${x.s.t['Est. Date'] || '—'}${x.s.legend ? ` · top legend ${nameLink(x.s.legend.p.Player)}` : ''}</div></th>`).join('')}</tr></thead>
+    <div style="overflow-x:auto;margin-top:8px"><table class="cmp-table cmp-teams cmp-n${st.length}"><thead><tr><th>Stat</th>${st.map((x, i) => `<th><div class="cmp-name" data-code="${teamCode(x.v)}"><i class="cmp-swatch" style="background:${colors[i]}"></i><span class="cmp-full">${teamLink(x.v)}</span><span class="cmp-short">${teamLink(x.v, shortTeam(x.v))}</span></div>
+      <div class="cmp-sub">${x.s.t.Conference === 'EAST' ? 'East' : 'West'} · Est. ${x.s.t['Est. Date'] || '—'}${x.s.legend ? `<span class="cmp-legend"> · top legend ${nameLink(x.s.legend.p.Player)}</span><span class="cmp-legend-s">legend: ${nameLink(x.s.legend.p.Player, { label: x.s.legend.p.Player.split(' ').slice(-1)[0] })}</span>` : ''}</div></th>`).join('')}</tr></thead>
       <tbody>${rows}</tbody></table></div>
     <div class="chart-card rb-card" style="margin-top:16px"><div class="chart-title">${icon('trophy', 'ic-champ')} Finals Meetings</div>
       ${h2h.length ? h2h.join('') : '<p class="muted">These teams have never met in the Finals.</p>'}</div>`;
