@@ -50,12 +50,13 @@ function fitNames() {
     const link = td.querySelector('.team-link'), text = link && [...link.childNodes].reverse().find(n => n.nodeType === 3 && n.textContent.trim());
     if (text) { link.title = link.title || text.textContent.trim(); text.textContent = shortTeam(text.textContent.trim()); }
   });
-  document.querySelectorAll('.ha-name, .value-name').forEach(el => {
+  document.querySelectorAll('.ha-name, .value-name, .cmp-name').forEach(el => {
     if (!el.offsetWidth) return;
     el.style.fontSize = '';
     let size = parseFloat(getComputedStyle(el).fontSize);
     el.classList.remove('fit-wrap');
-    while (el.scrollWidth > el.clientWidth + 1 && size > 14) { size -= 1; el.style.fontSize = size + 'px'; }
+    const min = el.classList.contains('cmp-name') ? 10 : 14;
+    while (el.scrollWidth > el.clientWidth + 1 && size > min) { size -= 1; el.style.fontSize = size + 'px'; }
     // Still too long at the smallest size: wrap between words rather than cut the name off
     if (el.scrollWidth > el.clientWidth + 1) el.classList.add('fit-wrap');
   });

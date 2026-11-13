@@ -545,10 +545,10 @@ function renderCompare() {
   const board = `<div class="cmp-board">${players.map((p, i) => `<div class="cmp-score${wins[i] === top && wins.filter(w => w === top).length === 1 ? ' lead' : ''}">
       <i class="cmp-swatch" style="background:${colors[i]}"></i><span class="cs-name">${nameLink(p.Player)}</span>
       <b>${wins[i]}</b><span class="cs-label">categories led</span></div>`).join('')}</div>`;
-  const head = `<thead><tr><th>Stat</th>${players.map((p, i) => `<th><i class="cmp-swatch" style="background:${colors[i]}"></i>${nameLink(p.Player)}<div class="cmp-sub">${p.Position||''} · ${p.Season||''}${isActive(p) ? ' · Active' : ''}</div></th>`).join('')}</tr></thead>`;
+  const head = `<thead><tr><th>Stat</th>${players.map((p, i) => `<th><div class="cmp-name"><i class="cmp-swatch" style="background:${colors[i]}"></i><span class="cmp-full">${nameLink(p.Player)}</span><span class="cmp-short">${nameLink(p.Player, { label: p.Player.split(' ').slice(-1)[0] })}</span></div><div class="cmp-sub">${p.Position||''} · ${(() => { const sp = careerSpan(p.Season); return sp ? `${sp[0]}–${sp[1] === Infinity ? 'now' : sp[1]}` : (p.Season || ''); })()}${isActive(p) ? ' · Active' : ''}</div></th>`).join('')}</tr></thead>`;
   out.innerHTML = `${board}
     ${fingerprintHtml(players, colors, { title: 'Fingerprint' })}
-    <div style="overflow-x:auto;margin-top:8px"><table class="cmp-table">${head}<tbody>${rows}</tbody></table></div>`;
+    <div style="overflow-x:auto;margin-top:8px"><table class="cmp-table cmp-n${players.length}">${head}<tbody>${rows}</tbody></table></div>`;
 }
 
 // =====================================================================

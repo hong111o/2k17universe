@@ -856,3 +856,22 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
   .standings-table td.st-team .tlogo{margin-right:.25em;}
   .standings-table td:last-child,.standings-table th.st-mark{padding-left:0;padding-right:2px;}
 }
+/* Compare table fits the phone width like the cards above it */
+.cmp-short{display:none;}
+@media (max-width:640px){
+  .cmp-table{table-layout:fixed;font-size:13px;}
+  .cmp-table th,.cmp-table th:first-child{min-width:0;padding:8px 6px;}
+  .cmp-table th{font-size:16px;}
+  .cmp-table th:first-child{width:30%;}
+  .cmp-table td{padding:7px 6px;}
+  .cmp-table td:first-child{font-size:12px;overflow-wrap:break-word;}
+  .cmp-table .section-header td{padding:8px 6px;font-size:10px;}
+  .cmp-table th .cmp-sub{font-size:11px;}
+  .cmp-table.cmp-n3 .cmp-full{display:none;} .cmp-table.cmp-n3 .cmp-short{display:inline;}
+  .cmp-table.cmp-n3 th{font-size:14px;}
+}
+@media (max-width:640px){
+  .cmp-table .cmp-name{white-space:nowrap;overflow:hidden;}
+  .cmp-table th .cmp-sub{white-space:normal;overflow-wrap:anywhere;}
+  .cmp-table td:first-child{white-space:normal;}
+}
