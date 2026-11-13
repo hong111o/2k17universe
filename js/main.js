@@ -44,6 +44,12 @@ getSavedWorkbook().then(saved => {
 
 // Big award names (Home hero, Season Hub tiles) stay on one line: shrink the text until it fits
 function fitNames() {
+  // Standings: a name that still doesn't fit (narrowest phones) shows the nickname, full name on hover
+  document.querySelectorAll('td.st-team').forEach(td => {
+    if (!td.offsetWidth || td.scrollWidth <= td.clientWidth + 1) return;
+    const link = td.querySelector('.team-link'), text = link && [...link.childNodes].reverse().find(n => n.nodeType === 3 && n.textContent.trim());
+    if (text) { link.title = link.title || text.textContent.trim(); text.textContent = shortTeam(text.textContent.trim()); }
+  });
   document.querySelectorAll('.ha-name, .value-name').forEach(el => {
     if (!el.offsetWidth) return;
     el.style.fontSize = '';

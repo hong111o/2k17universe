@@ -849,3 +849,10 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
 .fs-foot{display:flex;align-items:center;gap:8px;margin-top:6px;} .fs-foot .fs-bar{flex:1;margin:0;}
 .fs-label{display:block;}
 .fp-legend{margin-bottom:8px;}
+/* Phones: standings drop Win % (W-L says the same) and tighten spacing so full team names fit */
+@media (max-width:640px){
+  .standings-table .st-pct{display:none;}
+  .standings-table th,.standings-table td{padding-left:5px;padding-right:5px;}
+  .standings-table td.st-team .tlogo{margin-right:.25em;}
+  .standings-table td:last-child,.standings-table th.st-mark{padding-left:0;padding-right:2px;}
+}

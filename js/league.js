@@ -51,7 +51,7 @@ function buildStandingsTable(teamsArr, season, champFull, ruFull, topN, showConf
       <td class="st-team">${teamLink(t.Team, rec.label || t.Team)}</td>
       ${showConf ? `<td><span class="conf-badge">${rec.conf || t.Conference}</span></td>` : ''}
       <td class="num ${recClass(rec.w, rec.l)}">${rec.w}-${rec.l}</td>
-      <td class="num">${pct}</td>
+      <td class="num st-pct">${pct}</td>
       <td class="num">${gb}</td>
       <td>${resultMark(isChamp, isRU, false)}</td>
     </tr>`;
@@ -59,7 +59,7 @@ function buildStandingsTable(teamsArr, season, champFull, ruFull, topN, showConf
 }
 
 function standingsHead(showConf) {
-  return `<thead><tr><th>#</th><th>Team</th>${showConf ? '<th>Conf</th>' : ''}<th class="num">W-L</th><th class="num">Win%</th><th class="num">GB</th><th></th></tr></thead>`;
+  return `<thead><tr><th>#</th><th>Team</th>${showConf ? '<th>Conf</th>' : ''}<th class="num">W-L</th><th class="num st-pct">Win%</th><th class="num">GB</th><th class="st-mark"></th></tr></thead>`;
 }
 // East and West tables side by side (stacked on phones); '' if the season has no team records
 function splitStandingsHtml(season) {
