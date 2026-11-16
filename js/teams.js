@@ -168,6 +168,7 @@ function renderTeamPage() {
   // Latest season at a glance, then the franchise's numbers with their league rank
   parts.push(teamSeasonCard(teamName));
   parts.push(franchiseStats(teamName));
+  parts.push(franchiseLineupHtml(teamName));
   const main = [], side = [];
   // Finals history, newest first
   const fin = [...won.map(yr => ({ yr, w: true })), ...lost.map(yr => ({ yr, w: false }))].sort((a, b) => b.yr - a.yr);

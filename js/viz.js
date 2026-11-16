@@ -94,3 +94,93 @@ function syncThemeButton() {
   b.innerHTML = `<svg class="ic"><use href="#i-${dark ? 'sun' : 'moon'}"/></svg>`;
   b.setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode'); b.title = b.getAttribute('aria-label');
 }
+
+// =====================================================================
+// ALL-TIME LINEUP: best Guard-Guard-Forward-Forward-Center and 3 bench for a franchise.
+// Only players with a clear tie to the team qualify: a retired number there, an award or stat
+// title won there (NBA History logos, Season Stat Leader teams), or a listed champion or
+// runner-up star there. They are ranked by a franchise score: what they did with this team.
+// =====================================================================
+function posGroup(pos) { const p = String(pos || '').toUpperCase(); return /^(PG|SG|G)$/.test(p) ? 'G' : /^(SF|PF|F)$/.test(p) ? 'F' : p === 'C' ? 'C' : ''; }
+// Positions for players without a row: All-NBA and Decade team slots ("H.McDaniels" -> G)
+function sheetPositions() {
+  return cached('sheetPositions', () => {
+    const out = {};
+    const put = (name, pos) => { const g = posGroup(pos); if (!g || !name) return; const n = normName(String(name).replace(/\./g, '. ')); (out[n] = out[n] || {})[g] = ((out[n] || {})[g] || 0) + 1; };
+    DB.allNbaSeasons.forEach(s => s.teams.forEach(t => t.slots.forEach(sl => put(sl.player, sl.pos))));
+    (DB.decades || []).forEach(d => (d.starter || []).forEach((n, i) => put(n, (d.positions || [])[i])));
+    return out;
+  });
+}
+function guessPosition(name) {
+  const sp = sheetPositions(), n = normName(name), parts = n.split(' '), abbr = parts.length > 1 ? parts[0][0] + ' ' + parts.slice(1).join(' ') : n;
+  const hit = sp[n] || sp[abbr]; if (!hit) return '';
+  return Object.entries(hit).sort((a, b) => b[1] - a[1])[0][0];
+}
+function franchiseLineup(team) {
+  return cached('lineup|' + team, () => {
+    const w = legacyWeights(), ctx = legacyContext(), q = {};
+    const get = (name, yr) => { const p = resolvePlayer(name, yr), k = p ? p.Player : String(name).trim(); return (q[k] = q[k] || { key: k, p, name: k, here: { mvp: [], fmvp: [], dpoy: [], roty: [], stat: [], titles: [], finals: [] }, retired: null }); };
+    retiredForTeam(team).filter(r => r.type === 'Player').forEach(r => { get(r.player).retired = r.num; });
+    DB.history.forEach(h => {
+      const yr = Number(h.Season), f = finalsTeams(yr);
+      [['MVP', 'mvp'], ['FMVP', 'fmvp'], ['DPOY', 'dpoy'], ['ROTY', 'roty']].forEach(([k, key]) => { if (h[k] && h[k] !== '-' && h[k + 'Team'] === team) coNames(h[k]).forEach(n => get(n, yr).here[key].push(yr)); });
+      if (f.champ === team) [h.Star1, h.Star2, h.Star3].forEach(x => { if (x) get(String(x).replace(/\s*\(\d+\)\s*$/, '').trim(), yr).here.titles.push(yr); });
+      if (f.ru === team) [h.RU1, h.RU2, h.RU3].forEach(x => { if (x) get(String(x).replace(/\s*\(\d+\)\s*$/, '').trim(), yr).here.finals.push(yr); });
+    });
+    const statW = { Pts: w.ptsTitle, Reb: w.rebTitle, Ast: w.astTitle, Stl: w.stlTitle, Blk: w.blkTitle };
+    DB.statLeaders.forEach(r => Object.keys(statW).forEach(k => { if (r[k + 'Leader'] && teamByCode(r[k + 'Team'])?.Team === team) get(r[k + 'Leader'], r.Season).here.stat.push({ yr: Number(r.Season), w: statW[k], k }); }));
+    // Franchise score
+    const list = Object.values(q).map(x => {
+      const p = x.p, H = x.here;
+      // Title and Finals roles as the legacy score values them (franchise player, co-star...)
+      const role = (map, yrs, fallback) => yrs.reduce((a, yr) => { const r = p && (ctx[map][p.Player] || []).find(z => z.yr === yr); return a + (r ? w[r.key] : fallback); }, 0);
+      let score = H.mvp.length * w.mvp + H.fmvp.length * w.fmvp + H.dpoy.length * w.dpoy + H.roty.length * w.roy + H.stat.reduce((a, s) => a + s.w, 0)
+        + role('roles', H.titles, w.roleCore) + role('ruRoles', H.finals, w.ruCore) + (x.retired !== null ? 100 : 0);
+      // Career parts with no season (All-Stars, All-NBA, production) count by the share of the
+      // career spent here: a one-team career gets all of it
+      let share = 0;
+      if (p) {
+        const teams = playerTeams(p), uniq = new Set(teams);
+        share = uniq.has(team) ? (uniq.size === 1 ? 1 : 1 / uniq.size) : 0;
+        const L = legacy(p).parts; score += share * ((L.allStar || 0) + (L.production || 0) + (L.teams || 0) + (L.other || 0) * 0.5);
+      }
+      const pos = p ? posGroup(p.Position) : guessPosition(x.name);
+      const tags = [];
+      if (H.titles.length) tags.push(`${H.titles.length} title${H.titles.length > 1 ? 's' : ''}`);
+      if (H.mvp.length) tags.push(`${H.mvp.length > 1 ? H.mvp.length + ' ' : ''}MVP${H.mvp.length > 1 ? 's' : ''}`);
+      if (H.fmvp.length) tags.push(`${H.fmvp.length > 1 ? H.fmvp.length + ' ' : ''}Finals MVP${H.fmvp.length > 1 ? 's' : ''}`);
+      if (H.dpoy.length) tags.push(`${H.dpoy.length > 1 ? H.dpoy.length + ' ' : ''}DPOY`);
+      if (H.stat.length) tags.push(`${H.stat.length} stat title${H.stat.length > 1 ? 's' : ''}`);
+      if (H.finals.length) tags.push(`${H.finals.length} conf. title${H.finals.length > 1 ? 's' : ''}`);
+      if (H.roty.length) tags.push('ROTY');
+      if (x.retired !== null) tags.push(`#${x.retired} retired`);
+      return { ...x, score, pos, tags, oneTeam: share === 1 };
+    }).filter(x => x.score > 0).sort((a, b) => b.score - a.score);
+    // Starting five: 2 guards, 2 forwards, 1 center; bench: the next 3 of any position
+    const starters = [], need = { G: 2, F: 2, C: 1 };
+    list.forEach(x => { if (x.pos && need[x.pos] > 0) { need[x.pos]--; starters.push(x); } });
+    // A position with no qualifying player goes to the best remaining player with a known
+    // position (a team with no center plays G-G-G-F-F or G-G-F-F-F)
+    let open = Object.values(need).reduce((a, b) => a + b, 0);
+    list.forEach(x => { if (open > 0 && x.pos && !starters.includes(x)) { starters.push(x); open--; } });
+    Object.keys(need).forEach(k => need[k] = 0); if (open > 0) need.F = open;
+    const order = { G: 0, F: 1, C: 2 }; starters.sort((a, b) => order[a.pos] - order[b.pos] || b.score - a.score);
+    const bench = list.filter(x => !starters.includes(x)).slice(0, 3);
+    return { list, starters, bench, open: need };
+  });
+}
+function franchiseLineupHtml(team) {
+  const L = franchiseLineup(team);
+  if (L.list.length < 5) return `<div class="chart-card lu-card"><div class="chart-title">${icon('people')} All-Time Lineup</div><p class="muted">Not enough franchise history yet: ${L.list.length} player${L.list.length === 1 ? '' : 's'} with a retired number, award or Finals star role here.</p></div>`;
+  const posName = { G: 'Guard', F: 'Forward', C: 'Center' };
+  const card = (x, slot) => `<div class="lu-player${slot ? '' : ' lu-bench'}">
+      <span class="lu-pos">${slot || (x.pos || '—')}</span>
+      <span class="lu-name">${x.p ? nameLink(x.p.Player) : `<span class="name-plain">${x.name}</span>`}</span>
+      <span class="lu-tags">${x.tags.join(' · ') || (x.oneTeam ? 'one-team career' : '')}</span></div>`;
+  const slots = [...L.starters.map(x => card(x, x.pos)), ...Object.entries(L.open).flatMap(([pos, n]) => Array(n).fill(`<div class="lu-player lu-open"><span class="lu-pos">${pos}</span><span class="lu-name muted">No qualifying ${posName[pos].toLowerCase()}</span></div>`))];
+  return `<div class="chart-card lu-card"><div class="chart-title">${icon('people')} All-Time Lineup</div>
+    <div class="lu-label">Starting five</div><div class="lu-five">${slots.join('')}</div>
+    ${L.bench.length ? `<div class="lu-label">Bench</div><div class="lu-five lu-bench-row">${L.bench.map(x => card(x)).join('')}</div>` : ''}
+    <p class="muted fx-note">Players with a retired number, an award or stat title won here, or a champion or runner-up star role here. Ranked by what they did with this team; career stats count by the share of the career spent here.</p></div>`;
+}

@@ -882,3 +882,15 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
   .cmp-teams .cmp-rec{display:block;font-size:11px;}
 }
 @media (max-width:360px){.cmp-teams .cmp-rec{font-size:9.5px;letter-spacing:-.2px;}}
+/* All-Time Lineup */
+.lu-label{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin:6px 0 6px;}
+.lu-five{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:8px;}
+.lu-bench-row{grid-template-columns:repeat(3,minmax(0,1fr));}
+.lu-player{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:10px;min-width:0;display:flex;flex-direction:column;gap:3px;}
+.lu-pos{font-family:var(--font-display);font-weight:800;font-size:13px;color:var(--ink-3);letter-spacing:.06em;}
+.lu-name{font-family:var(--font-display);font-weight:700;font-size:18px;line-height:1.15;}
+.lu-name .player-link,.lu-name .name-plain{white-space:normal;}
+.lu-tags{font-size:12px;color:var(--ink-3);line-height:1.35;}
+.lu-bench .lu-name{font-size:16px;}
+.lu-open{border-style:dashed;background:none;}
+@media (max-width:640px){.lu-five{grid-template-columns:repeat(2,minmax(0,1fr));}.lu-five > .lu-player:nth-child(5):last-child{grid-column:1 / -1;}.lu-bench-row{grid-template-columns:repeat(2,minmax(0,1fr));}}

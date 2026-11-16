@@ -11,6 +11,9 @@ const { chromium, devices } = require(process.argv[2] + '/node_modules/playwrigh
     await p.evaluate(() => openTeamModal(DB.teams.find(t => !t.defunct && t.seasonRecords?.[DB.latestSeason]).Team)); await p.waitForTimeout(500);
     r[`${label} team`] = await p.evaluate(() => ({ season: !!document.querySelector('.ts-card .ts-rec'), tiles: document.querySelectorAll('.fs-tile').length, logos: document.querySelectorAll('#teamPage img.tlogo').length }));
     if (!r[`${label} team`].season || r[`${label} team`].tiles < 6 || !r[`${label} team`].logos) bad.push(label + ' team');
+    // All-Time Lineup: five starters with no empty spot, for every team with enough history
+    r[`${label} lineup`] = await p.evaluate(() => DB.teams.filter(t => !t.defunct).map(t => franchiseLineup(t.Team)).filter(L => L.list.length >= 5).every(L => L.starters.length === 5));
+    if (!r[`${label} lineup`]) bad.push(label + ' lineup');
     await p.evaluate(() => { showSection('compare'); const ps = careerPlayers().slice(0, 2); cmpPlayers[1] = ps[0]; cmpPlayers[2] = ps[1]; cmpPlayers[3] = null; renderCompare(); }); await p.waitForTimeout(300);
     r[`${label} fingerprint rows`] = await p.evaluate(() => document.querySelectorAll('#cmpResult .fp-row').length);
     if (!r[`${label} fingerprint rows`]) bad.push(label + ' fingerprint');
