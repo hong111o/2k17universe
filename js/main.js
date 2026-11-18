@@ -50,7 +50,7 @@ function fitNames() {
     const link = td.querySelector('.team-link'), text = link && [...link.childNodes].reverse().find(n => n.nodeType === 3 && n.textContent.trim());
     if (text) { link.title = link.title || text.textContent.trim(); text.textContent = shortTeam(text.textContent.trim()); }
   });
-  document.querySelectorAll('.ha-name, .value-name, .cmp-name').forEach(el => {
+  document.querySelectorAll('.ha-name, .value-name, .cmp-name, .spot-name').forEach(el => {
     if (!el.offsetWidth) return;
     el.style.fontSize = '';
     let size = parseFloat(getComputedStyle(el).fontSize);
