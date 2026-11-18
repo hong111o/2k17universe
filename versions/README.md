@@ -10,7 +10,6 @@ they are still in the git history if ever needed.
 |---|---|---|
 | `v20.html` | v20: phone app, custom icon, locked table headers | player pages, compare v2, draft, legacy ranking, search, data check |
 | `v22.html` | v22: player pages, compare v2, draft, simple legacy formula, search, data check | points-system legacy formula |
-| `v68.html` | v68: names never split | Home award boxes, standings, draft list and wins chart fit small phones again |
 | `v69.html` | v69: names fit their boxes on phones | Most Improved team on Home and Season Hub |
 | `v70.html` | v70: Most Improved team | Turnarounds and Heartbreak records, team Trophy Cabinet, Ring of Honor |
 | `v71.html` | v71: Turnarounds, Heartbreak, Trophy Cabinet, Ring of Honor | Trophy Cabinet without titles, Finals and Finals MVPs |
@@ -20,6 +19,7 @@ they are still in the git history if ever needed.
 | `v75.html` | v75: phone standings full names | Compare table fits the phone width |
 | `v76.html` | v76: player Compare fits phones | team Compare fits phones |
 | `v77.html` | v77: team Compare fits phones | All-Time Lineup on team pages |
+| `v78.html` | v78: All-Time Lineup | lineup counts titles won as a non-listed player |
 
 Online: https://hong111o.github.io/2k17universe/versions/v20.html and .../versions/v22.html
 

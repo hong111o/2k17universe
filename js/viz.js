@@ -137,6 +137,11 @@ function franchiseLineup(team) {
       const role = (map, yrs, fallback) => yrs.reduce((a, yr) => { const r = p && (ctx[map][p.Player] || []).find(z => z.yr === yr); return a + (r ? w[r.key] : fallback); }, 0);
       let score = H.mvp.length * w.mvp + H.fmvp.length * w.fmvp + H.dpoy.length * w.dpoy + H.roty.length * w.roy + H.stat.reduce((a, s) => a + s.w, 0)
         + role('roles', H.titles, w.roleCore) + role('ruRoles', H.finals, w.ruCore) + (x.retired !== null ? 100 : 0);
+      // Titles won here without being a listed champion star (red team cells in the player sheet)
+      // count as a rotation player's title
+      const rowTitles = p ? titlesWithTeam(p, team) : 0, extraTitles = Math.max(0, rowTitles - H.titles.length);
+      score += extraTitles * w.roleRotation;
+      const titleCount = H.titles.length + extraTitles;
       // Career parts with no season (All-Stars, All-NBA, production) count by the share of the
       // career spent here: a one-team career gets all of it
       let share = 0;
@@ -147,7 +152,7 @@ function franchiseLineup(team) {
       }
       const pos = p ? posGroup(p.Position) : guessPosition(x.name);
       const tags = [];
-      if (H.titles.length) tags.push(`${H.titles.length} title${H.titles.length > 1 ? 's' : ''}`);
+      if (titleCount) tags.push(`${titleCount} title${titleCount > 1 ? 's' : ''}`);
       if (H.mvp.length) tags.push(`${H.mvp.length > 1 ? H.mvp.length + ' ' : ''}MVP${H.mvp.length > 1 ? 's' : ''}`);
       if (H.fmvp.length) tags.push(`${H.fmvp.length > 1 ? H.fmvp.length + ' ' : ''}Finals MVP${H.fmvp.length > 1 ? 's' : ''}`);
       if (H.dpoy.length) tags.push(`${H.dpoy.length > 1 ? H.dpoy.length + ' ' : ''}DPOY`);
