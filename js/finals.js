@@ -2,7 +2,7 @@
 // and the Finals card on player pages. Built from NBA History: Finals, Champion Stars, Runner-Up Stars.
 
 // One entry per Finals: both teams and their listed stars ("Name (rating)")
-const UPSET_GAP = 5;
+const UPSET_EDGE = 3.5;
 function finalsData() {
   return cached('finalsData', () => DB.history.map(h => {
     const yr = Number(h.Season), { champ, ru } = finalsTeams(yr);
@@ -15,12 +15,18 @@ function finalsData() {
     const cs = stars([h.Star1, h.Star2, h.Star3]), rs = stars([h.RU1, h.RU2, h.RU3]);
     const top = s => s.length && s[0].r !== null ? Math.max(...s.filter(x => x.r !== null).map(x => x.r)) : null;
     const ct = top(cs), rt = top(rs);
-    // Star power: every listed star adds the points they are rated above 80, so depth counts
-    // (three 95s = 45 beat a 97 + 88 = 25). An upset: the runner-up's star power was 5+ higher
-    const power = s => s.reduce((a, x) => a + Math.max(0, (x.r ?? 80) - 80), 0);
+    // Star power: each listed star adds the points they are rated above 80; the 3rd star counts half,
+    // since many teams list only two (three 95s = 37.5 still beat a 97 + 88 = 25)
+    const power = s => { const v = s.map(x => Math.max(0, (x.r ?? 80) - 80)).sort((a, b) => b - a); return (v[0] || 0) + (v[1] || 0) + 0.5 * (v[2] || 0); };
     const cp = power(cs), rp = power(rs);
-    const upset = cs.length && rs.length && rp - cp >= UPSET_GAP ? rp - cp : 0;
-    return { yr, h, champ, ru, score: finalsScore(h), cs, rs, ct, rt, cp, rp, upset, fmvp: h.FMVP && h.FMVP !== '-' ? h.FMVP : null };
+    // Regular-season win gap (82 games), when both teams have a record
+    const st = seasonStandings(yr), cr = st.find(r => r.team === champ), rr = st.find(r => r.team === ru);
+    const pct = r => r.w / Math.max(1, r.w + r.l), wins = cr && rr ? Math.round((pct(rr) - pct(cr)) * 82) : null;
+    // Favorite edge: half stars, half record (an injury can sink a record, a thin star list can hide depth).
+    // Without a record only the star half counts. Upset: the runner-up's edge was 3.5 or more
+    const edge = cs.length && rs.length ? 0.5 * (rp - cp) + 0.5 * (wins ?? 0) : 0;
+    const upset = edge >= UPSET_EDGE ? edge : 0;
+    return { yr, h, champ, ru, score: finalsScore(h), cs, rs, ct, rt, cp, rp, cr, rr, wins, edge, upset, fmvp: h.FMVP && h.FMVP !== '-' ? h.FMVP : null };
   }).filter(Boolean).sort((a, b) => b.yr - a.yr));
 }
 // Star duels: each team's top listed star against the other's, met in two or more Finals
@@ -72,7 +78,7 @@ function finalsStars(list, yr, roleMap) {
 }
 function finalsCard(f) {
   return `<div class="fx-card${f.upset ? ' fx-upset' : ''}">
-    <div class="fx-head"><span class="fx-season">${seasonLink(f.yr)}</span>${f.upset ? `<span class="fx-badge" title="The runner-up's star power was ${f.upset} higher">Upset</span>` : ''}${f.cs.length && f.rs.length ? `<span class="fx-power" title="Star power: each listed star adds their rating above 80">star power ${f.cp} vs ${f.rp}</span>` : ''}<span class="fx-score">${f.h.Finals || ''}</span></div>
+    <div class="fx-head"><span class="fx-season">${seasonLink(f.yr)}</span>${f.upset ? `<span class="fx-badge" title="The runner-up was the favorite by ${f.upset} (half star power, half record)">Upset</span>` : ''}${f.cs.length && f.rs.length ? `<span class="fx-power" title="Star power: each listed star adds their rating above 80, the 3rd star half">star power ${f.cp} vs ${f.rp}${f.cr && f.rr ? ` · ${f.cr.w}-${f.cr.l} vs ${f.rr.w}-${f.rr.l}` : ''}</span>` : ''}<span class="fx-score">${f.h.Finals || ''}</span></div>
     <div class="fx-sides">
       <div class="fx-side fx-win"><div class="fx-team">${icon('trophy', 'ic-champ')} ${teamIn(f.champ, f.yr)}</div><div class="fx-stars">${finalsStars(f.cs, f.yr, 'roles')}</div>
         ${f.fmvp ? `<div class="fx-fmvp">Finals MVP · ${nameLink(f.fmvp, { season: f.yr })}</div>` : ''}</div>
@@ -107,7 +113,7 @@ function renderFinals() {
   document.getElementById('finalsContent').innerHTML = `
     <div class="stats-cards">
       ${tile('Finals played', all.length, `${seasonLabel(all[all.length - 1].yr)} to ${seasonLabel(all[0].yr)}`)}
-      ${hasRu ? tile('Upsets', upsets.length, biggest ? `biggest: ${seasonLabel(biggest.yr)}, ${teamCode(biggest.champ)} over ${teamCode(biggest.ru)} (${biggest.cp} vs ${biggest.rp} star power)` : '') : ''}
+      ${hasRu ? tile('Upsets', upsets.length, biggest ? `biggest: ${seasonLabel(biggest.yr)}, ${teamCode(biggest.champ)} over ${teamCode(biggest.ru)} (runner-up favored by ${biggest.upset})` : '') : ''}
       ${mu[0] ? tile('Most common Finals', `${teamCode(mu[0].x)} vs ${teamCode(mu[0].y)}`, `${mu[0].n} times`) : ''}
       ${riv[0] ? (() => { const sx = riv[0].x.split(' ').pop(), sy = riv[0].y.split(' ').pop(), same = sx === sy;
         return tile('Top Finals rivalry', same ? `${riv[0].x} vs ${riv[0].y}` : `${sx} vs ${sy}`, `${riv[0].n} Finals, ${riv[0].wins[riv[0].x]}–${riv[0].wins[riv[0].y]}`); })() : ''}
@@ -127,7 +133,7 @@ function renderFinals() {
           ${mu.slice(0, 10).map(muRow).join('') || '<p class="muted">No repeat matchups yet.</p>'}</div>
         <div class="chart-card rb-card"><div class="chart-title">${icon('list')} Finals Record by Franchise</div>
           ${fr.slice(0, 15).map((r, i) => `<div class="rb-row"><span class="rb-rank">${i + 1}</span><span class="rb-main">${teamLink(r.team)}</span><span class="rb-val">${r.w}–${r.l}</span><span class="rb-sub">${r.w + r.l} Finals</span></div>`).join('')}</div>
-        ${hasRu ? `<p class="muted fx-note">Star power: each listed star adds the points they're rated above 80 (a 95 adds 15). Upset: the runner-up's star power was ${UPSET_GAP} or more higher than the champion's.</p>` : ''}
+        ${hasRu ? `<p class="muted fx-note">Star power: each listed star adds the points they're rated above 80 (a 95 adds 15); the 3rd star counts half. Favorite edge = half the star power gap + half the regular-season win gap (stars only when there's no team record). Upset: the runner-up was favored by ${UPSET_EDGE} or more.</p>` : ''}
       </div>
     </div>`;
   renderFinalsList();

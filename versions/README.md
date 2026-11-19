@@ -10,7 +10,6 @@ they are still in the git history if ever needed.
 |---|---|---|
 | `v20.html` | v20: phone app, custom icon, locked table headers | player pages, compare v2, draft, legacy ranking, search, data check |
 | `v22.html` | v22: player pages, compare v2, draft, simple legacy formula, search, data check | points-system legacy formula |
-| `v71.html` | v71: Turnarounds, Heartbreak, Trophy Cabinet, Ring of Honor | Trophy Cabinet without titles, Finals and Finals MVPs |
 | `v72.html` | v72: Trophy Cabinet individual awards only | Ring of Honor tiles without notes, two per row on phones, honored by 3+ teams |
 | `v73.html` | v73: Ring of Honor tiles | team season card, Franchise Stats, Fingerprint, Closest Match, theme button, NBA logos |
 | `v74.html` | v74: season card, Franchise Stats, Fingerprint, NBA logos | phone standings show full team names |
@@ -20,6 +19,7 @@ they are still in the git history if ever needed.
 | `v78.html` | v78: All-Time Lineup | lineup counts titles won as a non-listed player |
 | `v79.html` | v79: lineup counts non-listed titles | Legend Spotlight names fit small phones |
 | `v80.html` | v80: Legend Spotlight names fit | all-time record sort on Franchises |
+| `v81.html` | v81: all-time record sort | upsets judged half on star power, half on record |
 
 Online: https://hong111o.github.io/2k17universe/versions/v20.html and .../versions/v22.html
 
