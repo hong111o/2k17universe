@@ -6,7 +6,16 @@
 // =====================================================================
 // Franchises can be sorted high-to-low or low-to-high on any of the menu's measures
 let teamSortDir = -1;
+// All-time regular-season record over every season the franchise has (Team History + Team Record)
+function allTimeRecord(t) {
+  let w = 0, l = 0;
+  Object.values(t.seasonRecords || {}).forEach(r => { w += r.w || 0; l += r.l || 0; });
+  return { w, l, pct: w + l ? w / (w + l) : null, seasons: Object.keys(t.seasonRecords || {}).length };
+}
 function teamSortVal(t, sc) {
+  // Win %: franchises with under 10 seasons sort after the rest, so one good season can't top the list
+  if (sc === '_allPct') { const a = allTimeRecord(t); if (a.pct === null) return -Infinity; return a.seasons < 10 ? (teamSortDir < 0 ? a.pct - 10 : a.pct + 10) : a.pct; }
+  if (sc === '_allWins') return allTimeRecord(t).w;
   if (sc === '_lastWins') { const r = DB.latestSeason && t.seasonRecords?.[DB.latestSeason]; return r ? r.rawW : -Infinity; }
   const v = getNum(t[sc]); return v === -Infinity ? (teamSortDir < 0 ? -Infinity : Infinity) : v;
 }
@@ -35,6 +44,7 @@ function filterTeams() {
         ${r ? `<span class="team-rank">#${r.confRk} in ${t.Conference === 'EAST' ? 'East' : 'West'} · #${r.leagueRk} in league</span>` : ''}
       </div>
       <div class="team-meta">Est. ${t['Est. Date']||'—'} · Glory Score ${t['Glory Score']||0}</div>
+      ${(() => { const a = allTimeRecord(t); return a.pct === null ? '' : `<div class="team-meta team-alltime${/^_all/.test(sc) ? ' on' : ''}">All-time <b>${a.w.toLocaleString()}-${a.l.toLocaleString()}</b> · <b>${a.pct.toFixed(3).replace(/^0/, '')}</b> · ${a.seasons} season${a.seasons === 1 ? '' : 's'}</div>`; })()}
       <div class="team-stats-row">
         <div class="team-stat"><div class="tv">${t.Championship||0}</div><div class="tl">Titles</div></div>
         <div class="team-stat"><div class="tv">${t['Conference Titles']||0}</div><div class="tl">Conf</div></div>

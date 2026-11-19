@@ -895,3 +895,5 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
 .lu-open{border-style:dashed;background:none;}
 @media (max-width:640px){.lu-five{grid-template-columns:repeat(2,minmax(0,1fr));}.lu-five > .lu-player:nth-child(5):last-child{grid-column:1 / -1;}.lu-bench-row{grid-template-columns:repeat(2,minmax(0,1fr));}}
 .spot-name{white-space:nowrap;overflow:hidden;}
+.team-alltime b{color:var(--ink);font-weight:700;} .team-alltime.on{color:var(--ink-2);}
+.team-alltime.on b{color:var(--link);}
