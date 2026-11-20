@@ -9,7 +9,7 @@ const { chromium } = require(process.argv[2] + '/node_modules/playwright');
   await p.setInputFiles('#fileInput', xlsm);
   await p.waitForSelector('#app', { state: 'visible', timeout: 60000 });
   const r = {};
-  const open = async team => { await p.evaluate(t => openTeamModal(t), team); await p.waitForTimeout(200); };
+  const open = async team => { await p.evaluate(t => { openTeamModal(t); setTeamTab('seasons'); }, team); await p.waitForTimeout(200); };
   await open('Washington Wizards');
   r.wasMarks = await p.locator('#winChart circle.wc-mark').count();
   r.wasSeasons = await p.evaluate(() => winChartData.seasons.length);

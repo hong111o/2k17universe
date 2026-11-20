@@ -59,14 +59,14 @@ function filterTeams() {
 // =====================================================================
 // TEAM PAGE (replaces the old team popup; every team link lands here)
 // =====================================================================
-let teamState = { t: null };
+let teamState = { t: null, tab: 'home' };
 // Kept under its old name because every team link in the app calls it
 function openTeamModal(teamName, fromHistory) {
   const t = DB.teams.find(x => x.Team === teamName);
   if (!t) return;
   closeModal();
   closeSearch();
-  teamState.t = t.Team;
+  teamState.t = t.Team; teamState.tab = 'home';
   const hash = '#team-' + playerSlug(t.Team);
   if (!fromHistory && location.hash !== hash) history.pushState(null, '', hash);
   renderTeamPage();
@@ -156,11 +156,11 @@ function renderTeamPage() {
   parts.push(teamHeroHtml(t, won, lost));
 
   // Latest season at a glance, then the franchise's numbers with their league rank
-  parts.push(franchiseLineupHtml(teamName));
-  const main = [], side = [];
+  const C = {};
+  C.lineup = franchiseLineupHtml(teamName);
   // Finals history, newest first
   const fin = [...won.map(yr => ({ yr, w: true })), ...lost.map(yr => ({ yr, w: false }))].sort((a, b) => b.yr - a.yr);
-  if (fin.length || earlier) main.push(`<div class="chart-card"><div class="chart-title">${icon('trophy', 'ic-champ')} Finals History</div>
+  if (fin.length || earlier) C.finals = (`<div class="chart-card"><div class="chart-title">${icon('trophy', 'ic-champ')} Finals History</div>
     <div class="fin-chips">${fin.map(f => `<span class="fin-chip ${f.w ? 'won' : 'lost'}" onclick="openSeason(${f.yr})" role="button" tabindex="0" title="${f.w ? 'Won' : 'Lost'} the ${seasonLabel(f.yr)} Finals">${icon('trophy', f.w ? 'ic-champ' : 'ic-silver')} ${seasonLabel(f.yr)}</span>`).join('')}</div>
     <div class="fin-key"><span>${icon('trophy', 'ic-champ')} Won ${won.length}</span><span>${icon('trophy', 'ic-silver')} Lost ${lost.length}</span>${t['Last Title'] && t['Last Title'] !== '-' ? `<span>Last title ${t['Last Title']}</span>` : ''}${earlier ? `<span>+${earlier} title${earlier > 1 ? 's' : ''} before ${seasonLabel(firstHist)}</span>` : ''}</div></div>`);
   // Finals record against each opponent
@@ -173,21 +173,17 @@ function renderTeamPage() {
     r.games.push({ yr: f.yr, won: f.champ === teamName });
   });
   const rivalRows = Object.entries(rivals).sort((a, b) => (b[1].w + b[1].l) - (a[1].w + a[1].l) || b[1].w - a[1].w || Math.max(...b[1].games.map(g => g.yr)) - Math.max(...a[1].games.map(g => g.yr)));
-  if (rivalRows.length) main.push(`<div class="chart-card rb-card"><div class="chart-title">${icon('trophy', 'ic-champ')} Finals Rivalries</div>
+  if (rivalRows.length) C.rivals = (`<div class="chart-card rb-card"><div class="chart-title">${icon('trophy', 'ic-champ')} Finals Rivalries</div>
     ${rivalRows.map(([opp, r]) => `<div class="rb-row"><span class="rb-rank"></span><span class="rb-main">${teamLink(opp)}</span>
       <span class="rb-val ${r.w > r.l ? 'rec-win' : r.w < r.l ? 'rec-loss' : ''}">${r.w}-${r.l}</span>
       <span class="rb-sub">${r.games.sort((a, b) => b.yr - a.yr).map(g => `<span class="nowrap">${icon('trophy', g.won ? 'ic-champ' : 'ic-silver')}${seasonLink(g.yr)}</span>`).join(' · ')}</span></div>`).join('')}</div>`);
-  main.push(`<div class="chart-card">${legendsHtml(t.Team)}</div>`);
-  if (seasonInfo.length >= 2) main.push(`<div class="chart-card"><div class="chart-title">${icon('line')} Wins per Season</div>
+  C.legends = `<div class="chart-card">${legendsHtml(t.Team)}</div>`;
+  if (seasonInfo.length >= 2) C.wins = (`<div class="chart-card"><div class="chart-title">${icon('line')} Wins per Season</div>
     <div class="wc-key"><span><i class="wc-dot champ"></i>Champion</span><span><i class="wc-dot silver"></i>Lost Finals</span><span><i class="wc-rule"></i>.500 (41 wins)</span></div>
     <div class="seg wc-range" id="winRange"></div>
     <div class="win-chart" id="winChart"></div></div>`);
-  const Lt = teamLatest(t);
-  const latestLine = [Lt ? `${seasonLabel(Lt.yr)}: ${Lt.gb ? `${String(Lt.gb).replace(/\.0$/, '')} games back` : 'conference leader'}` : '',
-    Lt ? `${ordinalRank(Lt.me.leagueRk)} of ${Lt.n} in the league` : '',
-    Lt && Lt.prev ? `last season ${Lt.prev.w}-${Lt.prev.l}${Lt.delta ? ` <b class="${Lt.delta > 0 ? 'rec-win' : 'rec-loss'}">${Lt.delta > 0 ? '+' : '−'}${Math.abs(Lt.delta)} win${Math.abs(Lt.delta) === 1 ? '' : 's'}</b>` : ''}` : '',
-    t['Est. Date'] ? `est. ${t['Est. Date']}` : ''].filter(Boolean).map(x => `<span class="nowrap">${x}</span>`).join(' · ');
-  if (seasonInfo.length) main.push(`<div class="chart-card"><div class="chart-title">${icon('calendar')} Season by Season</div>
+  const latestLine = [t['Est. Date'] ? `Since ${t['Est. Date']}` : '', `${seasonInfo.length} seasons recorded`].filter(Boolean).join(' · ');
+  if (seasonInfo.length) C.sbs = (`<div class="chart-card"><div class="chart-title">${icon('calendar')} Season by Season</div>
     ${latestLine ? `<p class="sbs-latest fold-keep">${latestLine}</p>` : ''}
     <div class="season-scroll"><table class="standings-table">
       <thead><tr><th>Season</th><th class="num">Record</th><th class="num">Conf</th><th class="num">League</th><th class="num">Win%</th><th>Result</th></tr></thead>
@@ -200,16 +196,16 @@ function renderTeamPage() {
 
   // Side column: trophy cabinet, best run, best and worst seasons, retired numbers, active players
   const cabinet = trophyCabinet(teamName, won.length, won.length + lost.length, Number(t['Division Titles']) || 0);
-  if (cabinet) side.push(cabinet);
+  if (cabinet) C.cabinet = (cabinet);
   const runs = [3, 5, 10].map(len => ({ len, r: teamWindows(len).find(x => x.team === teamName) })).filter(x => x.r);
-  if (runs.length) side.push(`<div class="chart-card rb-card"><div class="chart-title">${icon('star')} Best Runs</div>
+  if (runs.length) C.runs = (`<div class="chart-card rb-card"><div class="chart-title">${icon('star')} Best Runs</div>
     ${runs.map(({ len, r }) => `<div class="rb-row"><span class="rb-rank"></span><span class="rb-main">${len} seasons</span><span class="rb-val">${r.titles} title${r.titles > 1 ? 's' : ''}</span>
       <span class="rb-sub">${runLabel(r)}</span></div>`).join('')}
     <button class="card-link" onclick="showSection('records');setTimeout(()=>document.getElementById('rb-dynasties')?.scrollIntoView(),50)">All dynasties</button></div>`);
   const seasonRow = si => `<div class="rb-row"><span class="rb-rank"></span><span class="rb-main">${seasonLink(si.yr)}</span><span class="rb-val">${si.w}-${si.l}</span>
-    <span class="rb-sub">${si.isChamp ? 'Won the title' : si.isRU ? 'Lost in the Finals' : si.madePlayoffs === false ? `Missed the playoffs (#${si.confRk})` : `#${si.confRk} in the ${confName(si.conf)}`}${si.label ? ` · ${si.label}` : ''}</span></div>`;
+    <span class="rb-sub">${si.isChamp ? 'Won the title' : si.isRU ? 'Conf. Champion' : si.madePlayoffs === false ? `Missed the playoffs (#${si.confRk})` : `#${si.confRk} in the ${confName(si.conf)}`}${si.label ? ` · ${si.label}` : ''}</span></div>`;
   if (seasonInfo.length) {
-    side.push(`<div class="chart-card rb-card bw-card"><div class="card-head"><div class="chart-title">${icon('calendar')} Best &amp; Worst Seasons</div>
+    C.bw = (`<div class="chart-card rb-card bw-card"><div class="card-head"><div class="chart-title">${icon('calendar')} Best &amp; Worst Seasons</div>
       <div class="seg"><button class="active" onclick="bwSwitch(this, 'best')">Best</button><button onclick="bwSwitch(this, 'worst')">Worst</button></div></div>
       <div class="bw-list" data-list="best">${[...seasonInfo].sort((a, b) => b.pct - a.pct || b.w - a.w || b.yr - a.yr).slice(0, 5).map(seasonRow).join('')}</div>
       <div class="bw-list" data-list="worst" hidden>${[...seasonInfo].sort((a, b) => a.pct - b.pct || a.w - b.w || b.yr - a.yr).slice(0, 5).map(seasonRow).join('')}</div></div>`);
@@ -217,7 +213,7 @@ function renderTeamPage() {
   const retired = retiredForTeam(teamName);
   const jerseys = retired.filter(r => r.type === 'Player'), others = retired.filter(r => r.type !== 'Player');
   const byNum = (a, b) => (parseInt(a.num) || 999) - (parseInt(b.num) || 999);
-  if (retired.length) side.push(`<div class="chart-card"><div class="chart-title">${icon('jersey')} Retired Numbers <span class="muted">${retired.length}</span></div>
+  if (retired.length) C.retired = (`<div class="chart-card"><div class="chart-title">${icon('jersey')} Retired Numbers <span class="muted">${retired.length}</span></div>
     <div class="chip-row">${jerseys.sort(byNum).map(r => `<div class="jersey" ${r.years ? `title="${r.years}"` : ''}><div class="jersey-num">${r.num}</div>
       <div class="jersey-name">${r.linked ? nameLink(r.player) : `<span class="name-plain">${r.player}</span>`}</div>${r.years ? `<div class="jersey-years">${r.years}</div>` : ''}</div>`).join('')}</div>
     ${others.length ? `<div class="jersey-others"><div class="jo-title">Also honored</div>${others.map(r => `<div class="jo-row"><b>${r.num && r.num !== '—' ? r.num : '—'}</b> ${r.player} <span class="muted">${r.type}${r.years ? ' · ' + r.years : ''}</span></div>`).join('')}</div>` : ''}</div>`);
@@ -232,19 +228,27 @@ function renderTeamPage() {
       return `<div class="rb-row"><span class="rb-rank">${posBadge(p.Position)}</span><span class="rb-main">${nameLink(p.Player)}${isActive(p) ? ' <span class="muted">active</span>' : ''}</span>
         <span class="rb-val rb-val-sm">${span ? seasonLabel(span[0]) : ''}</span><span class="rb-sub">${stay}</span></div>`;
     };
-    side.push(`<div class="chart-card rb-card"><div class="chart-title">${icon('people')} Started Here</div>
+    C.started = (`<div class="chart-card rb-card"><div class="chart-title">${icon('people')} Started Here</div>
       ${startedHere.slice(0, 8).map(row).join('')}
       ${startedHere.length > 8 ? `<details class="more-legends"><summary>All ${startedHere.length} players who started here</summary>${startedHere.slice(8).map(row).join('')}</details>` : ''}
       <div class="muted" style="font-size:12px;margin-top:6px">First team on the player's row · season = their first</div></div>`);
   }
-  if (activeHere.length) side.push(`<div class="chart-card rb-card"><div class="chart-title">${icon('people')} Active Players Here</div>
+  if (activeHere.length) C.active = (`<div class="chart-card rb-card"><div class="chart-title">${icon('people')} Active Players Here</div>
     ${activeHere.map(p => `<div class="rb-row"><span class="rb-rank">${posBadge(p.Position)}</span><span class="rb-main">${nameLink(p.Player)}</span><span class="rb-val">${p['All Stars'] || 0}</span>
       <span class="rb-sub">${draftCareer(p)}</span></div>`).join('')}<div class="muted" style="font-size:12px;margin-top:6px">Last team listed on their row · number = All-Star selections</div></div>`);
 
-  parts.push(`<div class="player-grid"><div>${main.join('')}</div><div>${side.join('')}</div></div>`);
+  C.home = teamHomeHtml(t, seasonInfo, won, lost);
+  // Each tab is its own short page; the team always opens on Home
+  const grid = (m, sd) => `<div class="player-grid"><div>${m.filter(Boolean).join('')}</div><div>${sd.filter(Boolean).join('')}</div></div>`;
+  const tabs = {
+    home: C.home,
+    seasons: grid([C.wins, C.sbs], [C.bw, C.runs]),
+    players: (C.lineup || '') + grid([C.legends], [C.retired, C.started, C.active]),
+    trophies: grid([C.finals, C.rivals], [C.cabinet]),
+  };
+  parts.push(Object.entries(tabs).map(([k, html]) => `<div class="tm-tab" data-tab="${k}"${k === teamState.tab ? '' : ' hidden'}>${html}</div>`).join(''));
   const tp = document.getElementById('teamPage');
   tp.innerHTML = parts.join('');
-  applyFolds(tp, TEAM_FOLDS);
   finishTeamHero(tp);
   winChartData = { team: t, seasons: [...seasonInfo].reverse() };
 }
@@ -296,6 +300,61 @@ function logoColor(src) {
     img.onerror = () => res(null);
     img.src = src;
   }));
+}
+// Team Home: the first page of every team, a short summary with links into the other tabs
+function teamHomeHtml(t, seasonInfo, won, lost) {
+  const name = t.Team, L = teamLatest(t), parts = [], side = [];
+  const more = (tab, label) => `<button class="card-link th-more" onclick="setTeamTab('${tab}')">${label} →</button>`;
+  // This season, beyond the record and result already in the header
+  if (L) parts.push(`<div class="chart-card"><div class="card-head"><div class="chart-title">${icon('calendar')} ${seasonLabel(L.yr)} Season</div>${more('seasons', 'All seasons')}</div>
+    <div class="th-strip">
+      <div><span>Games back</span><b>${L.gb ? String(L.gb).replace(/\.0$/, '') : '—'}</b></div>
+      <div><span>League rank</span><b>${ordinalRank(L.me.leagueRk)} <small>of ${L.n}</small></b></div>
+      <div><span>Last season</span><b>${L.prev ? `${L.prev.w}-${L.prev.l}` : '—'}</b></div>
+      <div><span>Change</span><b class="${L.delta > 0 ? 'rec-win' : L.delta < 0 ? 'rec-loss' : ''}">${L.delta === null ? '—' : (L.delta > 0 ? '+' : L.delta < 0 ? '−' : '') + Math.abs(L.delta) + ' win' + (Math.abs(L.delta) === 1 ? '' : 's')}</b></div>
+    </div></div>`);
+  // The last 10 seasons as bars (wins scaled to 82 games)
+  const last = seasonInfo.slice(0, 10).reverse();
+  if (last.length >= 2) parts.push(`<div class="chart-card"><div class="card-head"><div class="chart-title">${icon('chart')} Last ${last.length} Seasons</div>${more('seasons', 'Wins chart')}</div>
+    <div class="th-bars">${last.map(si => `<div class="th-bar ${si.isChamp ? 'is-champ' : si.isRU ? 'is-ru' : si.madePlayoffs ? 'is-po' : ''}" title="${seasonLabel(si.yr)}: ${si.w}-${si.l}${si.isChamp ? ', champion' : si.isRU ? ', conference champion' : si.madePlayoffs ? ', playoffs' : ''}" onclick="openSeason(${si.yr})">
+      <b>${si.w}</b><i style="height:${Math.max(4, Math.round(si.cw / 82 * 100))}%"></i><span>${String(si.yr).slice(-2)}</span></div>`).join('')}</div>
+    <div class="th-key"><span><i class="k-champ"></i>Champion</span><span><i class="k-ru"></i>Conf. Champion</span><span><i class="k-po"></i>Playoffs</span><span><i class="k-out"></i>Missed</span></div></div>`);
+  // All-Time starting five, compact
+  const LU = franchiseLineup(name);
+  if (LU.list.length >= 5) parts.push(`<div class="chart-card"><div class="card-head"><div class="chart-title">${icon('people')} All-Time Starting Five</div>${more('players', 'Full lineup')}</div>
+    <div class="th-five">${LU.starters.map(x => `<div><span class="lu-pos">${x.pos}</span>${x.p ? nameLink(x.p.Player) : `<span class="name-plain">${x.name}</span>`}</div>`).join('')}</div></div>`);
+  // Face of the franchise
+  const face = franchiseLegends(name)[0];
+  if (face) side.push(`<div class="chart-card th-face"><div class="card-head"><div class="chart-title">${icon('star')} Face of the Franchise</div>${more('players', 'Legends')}</div>
+    <div class="th-face-name">${nameLink(face.p.Player)} ${posBadge(face.p.Position)}</div>
+    <div class="journey-tags">${face.ret.map(r => `<em class="tag-ret">#${r.num} retired</em>`).join('')}${face.titles ? `<em class="tag-gold">${icon('trophy')} ${face.titles} here</em>` : ''}${face.oneTeam ? '<em class="tag-plain">One-team career</em>' : ''}</div>
+    <div class="muted th-face-sub">Career, all teams: ${draftCareer(face.p)}</div></div>`);
+  // Titles at a glance
+  const lastTitle = Number(t['Last Title']) || null, lastFinals = Number(t['Last Finals']) || null;
+  const drought = lastTitle && DB.latestSeason ? DB.latestSeason - lastTitle : null;
+  side.push(`<div class="chart-card"><div class="card-head"><div class="chart-title">${icon('trophy', 'ic-champ')} Titles</div>${more('trophies', 'Trophies')}</div>
+    <div class="th-tiles">
+      <div><b>${won.length + lost.length ? `${won.length}-${lost.length}` : '—'}</b><span>Finals record</span></div>
+      <div><b>${lastTitle || '—'}</b><span>Last title</span></div>
+      <div><b>${lastFinals || '—'}</b><span>Last Finals</span></div>
+      <div><b>${drought === null ? '—' : drought === 0 ? 'Champs' : drought}</b><span>${drought ? 'Seasons since' : 'Title drought'}</span></div>
+    </div></div>`);
+  // Best active players here
+  const act = DB.currentPlayers.filter(p => { const ts = playerTeams(p); return ts[ts.length - 1] === name; }).sort((a, b) => legacy(b).total - legacy(a).total).slice(0, 3);
+  if (act.length) side.push(`<div class="chart-card rb-card"><div class="card-head"><div class="chart-title">${icon('people')} Top Active Players</div>${more('players', 'All')}</div>
+    ${act.map((p, i) => `<div class="rb-row"><span class="rb-rank">${i + 1}</span><span class="rb-main">${nameLink(p.Player)} ${posBadge(p.Position)}</span><span class="rb-val">${p['All Stars'] || 0}</span><span class="rb-sub">${draftCareer(p)}</span></div>`).join('')}
+    <div class="muted" style="font-size:12px;margin-top:6px">Number = All-Star selections</div></div>`);
+  return `<div class="player-grid"><div>${parts.join('')}</div><div>${side.join('')}</div></div>`;
+}
+function setTeamTab(tab) {
+  teamState.tab = tab;
+  const tp = document.getElementById('teamPage');
+  tp.querySelectorAll('.tm-tab').forEach(el => el.hidden = el.dataset.tab !== tab);
+  tp.querySelectorAll('.tm-btns button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  if (tab === 'seasons' && document.getElementById('winChart')) renderWinChart();
+  // Keep the header in view, start the tab at its top
+  const hero = tp.querySelector('.tm-hero');
+  if (hero && scrollY > hero.offsetTop + hero.offsetHeight - 200) scrollTo({ top: hero.offsetTop + hero.offsetHeight - 160 });
 }
 // The latest season for one team: result, games back, league rank and the change from last season
 function teamLatest(t) {
@@ -371,28 +430,14 @@ function finishTeamHero(root) {
     const src = DB.logos && DB.logos[hero.dataset.team], team = hero.dataset.team;
     if (src) logoColor(src).then(c => { if (c && teamState.t === team) { hero.style.setProperty('--tc', c); teamTheme(root, c); } });
   }
-  const jumps = [['Seasons', 'Season by Season'], ['Lineup', 'All-Time Lineup'], ['Legends', 'Franchise Legends'], ['Retired', 'Retired Numbers'], ['Trophies', 'Trophy Cabinet'], ['Finals', 'Finals History']]
-    .filter(([, title]) => teamCard(root, title));
-  hero.querySelector('.tm-btns').innerHTML = jumps.map(([label, title]) => `<button onclick="teamJump('${title}')">${label}</button>`).join('');
-}
-function teamCard(root, title) {
-  const h = [...root.querySelectorAll('.chart-title, .modal-section-title')].find(x => x.textContent.trim().startsWith(title));
-  return h && (h.closest('.chart-card') || h.closest('.modal-section'));
-}
-function teamJump(title) {
-  const card = teamCard(document.getElementById('teamPage'), title); if (!card) return;
-  if (card.classList.contains('folded')) { card.classList.remove('folded'); card.querySelector('.fold-head')?.setAttribute('aria-expanded', 'true'); }
-  // Clear the sticky bars at the top of the screen
-  const cover = Math.max(0, ...[...document.querySelectorAll('body *')].filter(e => { const cs = getComputedStyle(e); return (cs.position === 'sticky' || cs.position === 'fixed') && e.offsetHeight > 0 && e.getBoundingClientRect().bottom < innerHeight / 3; }).map(e => e.getBoundingClientRect().bottom));
-  const top = card.getBoundingClientRect().top + scrollY - cover - 16;
-  scrollTo({ top, behavior: 'smooth' });
+  const tabs = [['home', 'Home'], ['seasons', 'Seasons'], ['players', 'Players'], ['trophies', 'Trophies']].filter(([k]) => root.querySelector(`.tm-tab[data-tab="${k}"]`)?.textContent.trim());
+  hero.querySelector('.tm-btns').innerHTML = tabs.map(([k, label]) => `<button data-tab="${k}" class="${teamState.tab === k ? 'active' : ''}" onclick="setTeamTab('${k}')">${label}</button>`).join('');
 }
 
 // =====================================================================
 // FOLDING CARDS: secondary cards on the team and player pages start closed;
 // tapping the title opens or closes them, and the choice is remembered
 // =====================================================================
-const TEAM_FOLDS = { 'Trophy Cabinet': false, 'Finals Rivalries': false, 'Season by Season': false, 'Best Runs': false, 'Started Here': false, 'Active Players Here': false };
 const PLAYER_FOLDS = { 'Closest Match': false, 'Percentile Ranks': false, 'Advanced Stats': false, 'Similar Players': false, 'Legacy Score': false, 'Finals': false };
 function foldState() { return readJSON('nba2k17-folds') || {}; }
 function applyFolds(root, defaults) {

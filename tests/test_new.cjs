@@ -28,7 +28,7 @@ const { chromium, devices } = require(process.argv[2] + '/node_modules/playwrigh
   r.legacyTop = (await p.locator('#legacyContent tbody tr').first().innerText()).replace(/\s+/g, ' ');
   await shot('legacy');
   // Legends
-  await p.evaluate(() => openTeamModal('Los Angeles Lakers'));
+  await p.evaluate(() => { openTeamModal('Los Angeles Lakers'); setTeamTab('players'); });
   r.legends = (await p.locator('#teamPage .modal-section:has-text("Franchise Legends") .leader-list').innerText()).replace(/\s+/g, ' ').slice(0, 400);
   await p.locator('#teamPage .modal-section:has-text("Franchise Legends")').screenshot({ path: `${out}/n-legends.png` });
   await p.keyboard.press('Escape');

@@ -52,7 +52,7 @@ const { chromium } = require(process.argv[2] + '/node_modules/playwright');
   await p.locator('#recordsContent .season-link').first().click(); await settle();
   r.fromRecord = await txt('#seasonTitle');
   // team popup season link
-  await p.evaluate(() => openTeamModal('Toronto Raptors')); await settle();
+  await p.evaluate(() => { openTeamModal('Toronto Raptors'); setTeamTab('seasons'); }); await settle();
   if (await p.locator('#teamPage .fold.folded .fold-head:has-text("Season by Season")').count()) await p.locator('#teamPage .fold-head:has-text("Season by Season")').click();
   await p.locator('#teamPage .standings-table .season-link:text-is("2057–58")').click(); await settle();
   r.fromTeamModal = [await txt('#seasonTitle'), await p.isVisible('#playerModal')];

@@ -8,17 +8,17 @@ const { chromium, devices } = require(process.argv[2] + '/node_modules/playwrigh
     await p.goto('file://' + html); await p.setInputFiles('#fileInput', xlsm); await p.waitForSelector('#app', { state: 'visible', timeout: 60000 });
     R[label + ' home cards'] = await p.evaluate(() => [...document.querySelectorAll('#homeContent .chart-title')].map(t => t.textContent.trim()).join(' | '));
     await p.evaluate(() => openTeamModal('Los Angeles Lakers')); await p.waitForTimeout(1200);
-    R[label + ' team folded'] = await p.evaluate(() => [...document.querySelectorAll('#teamPage .fold')].map(c => c.querySelector('.chart-title').textContent.trim() + (c.classList.contains('folded') ? ' [closed]' : ' [open]')).join(' | '));
-    R[label + ' team height'] = await p.evaluate(() => document.getElementById('teamPage').scrollHeight);
+    // Team pages open on Home; each tab is its own page and a new team starts on Home again
+    R[label + ' team tabs'] = await p.evaluate(() => [...document.querySelectorAll('#teamPage .tm-btns button')].map(b => b.textContent + (b.classList.contains('active') ? '*' : '')).join(' | '));
+    R[label + ' home only'] = await p.evaluate(() => [...document.querySelectorAll('#teamPage .tm-tab')].filter(t => !t.hidden).map(t => t.dataset.tab).join(','));
     await p.screenshot({ path: `${out}/fold-team-${label}.png`, fullPage: true });
-    // open Season by Season, then check it stays open after re-render
-    await p.locator('#teamPage .fold-head:has-text("Season by Season")').click();
+    await p.locator('#teamPage .tm-btns button:has-text("Seasons")').click(); await p.waitForTimeout(300);
     R[label + ' table visible after tap'] = await p.locator('#teamPage .standings-table').isVisible();
     await p.locator('#teamPage .bw-card .seg button:has-text("Worst")').click();
     R[label + ' worst shown'] = (await p.locator('#teamPage .bw-list[data-list="worst"]').innerText()).split('\n')[0];
     await p.evaluate(() => openTeamModal('Boston Celtics')); await p.waitForTimeout(500);
-    R[label + ' remembered'] = await p.locator('#teamPage .standings-table').isVisible();
-    await p.locator('#teamPage .fold-head:has-text("Season by Season")').click();
+    R[label + ' new team on home'] = await p.evaluate(() => teamState.tab === 'home' && !document.querySelector('#teamPage .standings-table').checkVisibility());
+    if (!R[label + ' table visible after tap'] || !R[label + ' new team on home'] || R[label + ' home only'] !== 'home') { console.log(JSON.stringify(R, null, 1)); process.exit(1); }
     await p.evaluate(() => openPlayerModal('LeBron James')); await p.waitForTimeout(600);
     R[label + ' player folded'] = await p.evaluate(() => [...document.querySelectorAll('#playerPage .fold')].map(c => c.querySelector('.chart-title').textContent.trim() + (c.classList.contains('folded') ? ' [closed]' : ' [open]')).join(' | '));
     R[label + ' legacy total visible'] = await p.locator('#playerPage .legacy-total').isVisible();
