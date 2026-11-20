@@ -317,7 +317,7 @@ function teamHomeHtml(t, seasonInfo, won, lost) {
   const last = seasonInfo.slice(0, 10).reverse();
   if (last.length >= 2) parts.push(`<div class="chart-card"><div class="card-head"><div class="chart-title">${icon('chart')} Last ${last.length} Seasons</div>${more('seasons', 'Wins chart')}</div>
     <div class="th-bars">${last.map(si => `<div class="th-bar ${si.isChamp ? 'is-champ' : si.isRU ? 'is-ru' : si.madePlayoffs ? 'is-po' : ''}" title="${seasonLabel(si.yr)}: ${si.w}-${si.l}${si.isChamp ? ', champion' : si.isRU ? ', conference champion' : si.madePlayoffs ? ', playoffs' : ''}" onclick="openSeason(${si.yr})">
-      <b>${si.w}</b><i style="height:${Math.max(4, Math.round(si.cw / 82 * 100))}%"></i><span>${String(si.yr).slice(-2)}</span></div>`).join('')}</div>
+      <b>${si.w}</b><i style="height:${Math.max(4, Math.round(si.cw / 82 * 100))}%"></i><span>${String(si.yr).slice(-2)}'</span></div>`).join('')}</div>
     <div class="th-key"><span><i class="k-champ"></i>Champion</span><span><i class="k-ru"></i>Conf. Champion</span><span><i class="k-po"></i>Playoffs</span><span><i class="k-out"></i>Missed</span></div></div>`);
   // All-Time starting five, compact
   const LU = franchiseLineup(name);

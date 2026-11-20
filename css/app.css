@@ -939,7 +939,8 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
 /* Team Home tab */
 .th-more{margin-left:auto;}
 .th-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
-.th-strip > div{background:var(--surface-2);border-radius:8px;padding:10px 12px;}
+.th-strip > div{background:var(--surface-2);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;}
+.th-strip > div b{margin-top:auto;padding-top:4px;}
 .th-strip span,.th-tiles span{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);}
 .th-strip b{font-family:var(--font-display);font-size:22px;font-weight:800;} .th-strip small{font-size:13px;color:var(--ink-3);font-weight:600;}
 .th-bars{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px;height:150px;align-items:end;}
