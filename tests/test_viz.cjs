@@ -9,8 +9,8 @@ const { chromium, devices } = require(process.argv[2] + '/node_modules/playwrigh
     const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
     await p.goto('file://' + html); await p.setInputFiles('#fileInput', xlsm); await p.waitForSelector('#app', { state: 'visible', timeout: 60000 });
     await p.evaluate(() => openTeamModal(DB.teams.find(t => !t.defunct && t.seasonRecords?.[DB.latestSeason]).Team)); await p.waitForTimeout(500);
-    r[`${label} team`] = await p.evaluate(() => ({ season: !!document.querySelector('.ts-card .ts-rec'), tiles: document.querySelectorAll('.fs-tile').length, logos: document.querySelectorAll('#teamPage img.tlogo').length }));
-    if (!r[`${label} team`].season || r[`${label} team`].tiles < 6 || !r[`${label} team`].logos) bad.push(label + ' team');
+    r[`${label} team`] = await p.evaluate(() => ({ season: !!document.querySelector('#teamPage .sbs-latest') && !document.querySelector('#teamPage .ts-card'), tiles: document.querySelectorAll('.tm-stat').length, jumps: document.querySelectorAll('.tm-btns button').length, logos: document.querySelectorAll('#teamPage img.tlogo').length }));
+    if (!r[`${label} team`].season || r[`${label} team`].tiles < 6 || r[`${label} team`].jumps < 3 || !r[`${label} team`].logos) bad.push(label + ' team');
     // All-Time Lineup: five starters with no empty spot, for every team with enough history
     r[`${label} lineup`] = await p.evaluate(() => DB.teams.filter(t => !t.defunct).map(t => franchiseLineup(t.Team)).filter(L => L.list.length >= 5).every(L => L.starters.length === 5));
     if (!r[`${label} lineup`]) bad.push(label + ' lineup');

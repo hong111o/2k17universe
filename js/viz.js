@@ -56,33 +56,6 @@ function franchiseStats(teamName) {
     <p class="muted fx-note">Win % is all-time since the franchise began; wins are the average per season over the last 5 and 10 seasons.</p></div>`;
 }
 
-// Team page: the latest season at a glance, over a faded logo
-function teamSeasonCard(teamName) {
-  const t = DB.teams.find(x => x.Team === teamName); if (!t) return '';
-  const yr = DB.latestSeason, rec = t.seasonRecords?.[yr]; if (!rec) return '';
-  const st = seasonStandings(yr), me = st.find(r => r.team === teamName); if (!me) return '';
-  const conf = st.filter(r => r.conf === me.conf).sort((a, b) => b.raw - a.raw), top = conf[0];
-  const gb = top === me ? '—' : (((top.w - me.w) + (me.l - top.l)) / 2).toString().replace(/\.0$/, '');
-  const { champ, ru } = finalsTeams(yr);
-  const result = champ === teamName ? `${icon('trophy', 'ic-champ')} Champion` : ru === teamName ? `${icon('trophy', 'ic-silver')} Lost the Finals` : me.playoffs ? 'Playoffs' : 'Missed playoffs';
-  const prev = t.seasonRecords?.[yr - 1];
-  const pct = r => r.w / Math.max(1, r.w + r.l);
-  const delta = prev ? Math.round((pct(rec) - pct(prev)) * 82) : null;
-  const mi = mostImproved(yr), best = [...st].sort((a, b) => b.raw - a.raw)[0];
-  const badge = best && best.team === teamName ? 'Best record in the league' : mi && mi.team === teamName ? 'Most improved team' : '';
-  return `<section class="ts-card">
-    <div class="ts-mark" aria-hidden="true">${teamLogo(teamName, 'ts-logo')}</div>
-    <div class="ts-main"><div class="ts-kicker">${seasonLabel(yr)} season</div>
-      <div class="ts-rec">${me.w}-${me.l}</div>
-      <div class="ts-sub">${ordinalRank(me.confRk)} in ${confName(me.conf)} · ${result}${badge ? ` · <span class="ts-badge">${badge}</span>` : ''}</div></div>
-    <div class="ts-strip">
-      <div><span>Games back</span><b>${gb}</b></div>
-      <div><span>League rank</span><b>${ordinalRank(me.leagueRk)} of ${st.length}</b></div>
-      <div><span>Last season</span><b>${prev ? `${prev.w}-${prev.l}` : '—'}</b></div>
-      <div><span>Change</span><b class="${delta > 0 ? 'ts-up' : delta < 0 ? 'ts-down' : ''}">${delta === null ? '—' : (delta > 0 ? '+' : '') + delta + ' wins'}</b></div>
-    </div></section>`;
-}
-
 // Header button: switch light and dark in one tap
 function toggleThemeQuick() {
   const dark = document.documentElement.getAttribute('data-theme') === 'dark' || (!document.documentElement.getAttribute('data-theme') && matchMedia('(prefers-color-scheme: dark)').matches);

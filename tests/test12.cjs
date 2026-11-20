@@ -57,7 +57,7 @@ const { chromium } = require(process.argv[2] + '/node_modules/playwright');
   // Teams + modal
   await p.evaluate(() => showSection('teams'));
   await p.waitForTimeout(500); await p.mouse.move(0,0); await p.screenshot({ path: out + '/v12-teams.png' });
-  await p.click('.team-card:has-text("Vancouver Ravens")'); r.ravensModal = await p.textContent('#teamPage .ph-name');
+  await p.click('.team-card:has-text("Vancouver Ravens")'); r.ravensModal = await p.textContent('#teamPage .tm-name');
   await p.keyboard.press('Escape'); await p.evaluate(() => document.getElementById('playerModal').classList.remove('open'));
   // D-Team sort
   await p.evaluate(() => showSection('players'));

@@ -15,7 +15,7 @@ const { chromium, devices } = require(process.argv[2] + '/node_modules/playwrigh
     await p.evaluate(() => showSection('teams')); await p.waitForTimeout(500);
     await p.screenshot({ path: `${out}/logo-teams-${label}.png` });
     await p.evaluate(() => openTeamModal('Brooklyn Nets')); await p.waitForTimeout(500);
-    await p.locator('.team-hero').screenshot({ path: `${out}/logo-teamhero-${label}.png` });
+    await p.locator('.tm-hero').screenshot({ path: `${out}/logo-teamhero-${label}.png` });
     R[label + ' overflow'] = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth);
     R[label + ' errors'] = errs; await ctx.close(); }
   console.log(JSON.stringify(R, null, 1)); await b.close(); })();

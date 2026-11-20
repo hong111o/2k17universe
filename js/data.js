@@ -422,16 +422,17 @@ async function shrinkLogos(size = 160) {
     } catch (e) { done[url] = url; }
   }
 }
-// Current official logos for the 30 NBA teams, loaded from the NBA's logo server in the browser
-// (not stored in this repository). The workbook's own logo is the fallback, and the only logo for
-// the league's game-era teams.
+// Current official logos for the 30 NBA teams, stored with the site in assets/logos/ (one PNG per
+// NBA team id), so they work offline. The workbook's own logo is the fallback, and the only logo for
+// the league's game-era teams. Single-file copies set LOGO_BASE (backups) or LOGO_DATA (preview).
 const NBA_TEAM_IDS = { 'Atlanta Hawks': 1610612737, 'Boston Celtics': 1610612738, 'Cleveland Cavaliers': 1610612739, 'New Orleans Pelicans': 1610612740,
   'Chicago Bulls': 1610612741, 'Dallas Mavericks': 1610612742, 'Denver Nuggets': 1610612743, 'Golden State Warriors': 1610612744, 'Houston Rockets': 1610612745,
   'Los Angeles Clippers': 1610612746, 'Los Angeles Lakers': 1610612747, 'Miami Heat': 1610612748, 'Milwaukee Bucks': 1610612749, 'Minnesota Timberwolves': 1610612750,
   'Brooklyn Nets': 1610612751, 'New York Knicks': 1610612752, 'Orlando Magic': 1610612753, 'Indiana Pacers': 1610612754, 'Philadelphia 76ers': 1610612755,
   'Phoenix Suns': 1610612756, 'Portland Trail Blazers': 1610612757, 'Sacramento Kings': 1610612758, 'San Antonio Spurs': 1610612759, 'Oklahoma City Thunder': 1610612760,
   'Toronto Raptors': 1610612761, 'Utah Jazz': 1610612762, 'Memphis Grizzlies': 1610612763, 'Washington Wizards': 1610612764, 'Detroit Pistons': 1610612765, 'Charlotte Hornets': 1610612766 };
-let nbaLogosOk = true; // turned off after the first failure (offline, blocked), so pages stop trying
+let nbaLogosOk = true; // turned off after the first failure, so pages stop trying
+const logoUrl = id => (window.LOGO_DATA && window.LOGO_DATA[id]) || (window.LOGO_BASE || 'assets/logos/') + id + '.png';
 function logoFail(img) {
   nbaLogosOk = false;
   const u = DB.logos && DB.logos[img.dataset.team];
@@ -440,7 +441,7 @@ function logoFail(img) {
 }
 function teamLogo(team, cls) {
   const full = fullTeamName(team), u = DB.logos && (DB.logos[full] || DB.logos[team]), id = NBA_TEAM_IDS[full];
-  if (id && nbaLogosOk) return `<img class="tlogo nba-logo${cls ? ' ' + cls : ''}" src="https://cdn.nba.com/logos/nba/${id}/primary/L/logo.svg" data-team="${full}" onerror="logoFail(this)" alt="" aria-hidden="true" decoding="async">`;
+  if (id && nbaLogosOk) return `<img class="tlogo nba-logo${cls ? ' ' + cls : ''}" src="${logoUrl(id)}" data-team="${full}" onerror="logoFail(this)" alt="" aria-hidden="true" decoding="async">`;
   return u ? `<img class="tlogo${cls ? ' ' + cls : ''}" src="${u}" alt="" aria-hidden="true" decoding="async">` : '';
 }
 // Flags which of a player's team stints are in red (aligned with playerTeams)
