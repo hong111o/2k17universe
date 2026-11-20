@@ -431,17 +431,17 @@ const NBA_TEAM_IDS = { 'Atlanta Hawks': 1610612737, 'Boston Celtics': 1610612738
   'Brooklyn Nets': 1610612751, 'New York Knicks': 1610612752, 'Orlando Magic': 1610612753, 'Indiana Pacers': 1610612754, 'Philadelphia 76ers': 1610612755,
   'Phoenix Suns': 1610612756, 'Portland Trail Blazers': 1610612757, 'Sacramento Kings': 1610612758, 'San Antonio Spurs': 1610612759, 'Oklahoma City Thunder': 1610612760,
   'Toronto Raptors': 1610612761, 'Utah Jazz': 1610612762, 'Memphis Grizzlies': 1610612763, 'Washington Wizards': 1610612764, 'Detroit Pistons': 1610612765, 'Charlotte Hornets': 1610612766 };
-let nbaLogosOk = true; // turned off after the first failure, so pages stop trying
 const logoUrl = id => (window.LOGO_DATA && window.LOGO_DATA[id]) || (window.LOGO_BASE || 'assets/logos/') + id + '.png';
+// One logo failing (a network blip) only affects that image: try it once more, then the workbook's logo
 function logoFail(img) {
-  nbaLogosOk = false;
+  if (!img.dataset.retry) { img.dataset.retry = '1'; const s = img.src; setTimeout(() => { img.src = s + (s.startsWith('data:') ? '' : '?r=1'); }, 800); return; }
   const u = DB.logos && DB.logos[img.dataset.team];
   img.onerror = null;
   if (u) { img.src = u; img.classList.remove('nba-logo'); } else img.remove();
 }
 function teamLogo(team, cls) {
   const full = fullTeamName(team), u = DB.logos && (DB.logos[full] || DB.logos[team]), id = NBA_TEAM_IDS[full];
-  if (id && nbaLogosOk) return `<img class="tlogo nba-logo${cls ? ' ' + cls : ''}" src="${logoUrl(id)}" data-team="${full}" onerror="logoFail(this)" alt="" aria-hidden="true" decoding="async">`;
+  if (id) return `<img class="tlogo nba-logo${cls ? ' ' + cls : ''}" src="${logoUrl(id)}" data-team="${full}" onerror="logoFail(this)" alt="" aria-hidden="true" decoding="async">`;
   return u ? `<img class="tlogo${cls ? ' ' + cls : ''}" src="${u}" alt="" aria-hidden="true" decoding="async">` : '';
 }
 // Flags which of a player's team stints are in red (aligned with playerTeams)

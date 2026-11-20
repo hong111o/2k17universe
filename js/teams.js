@@ -304,7 +304,7 @@ function teamLatest(t) {
   const st = seasonStandings(yr), top = st.filter(r => r.conf === me.conf).sort((a, b) => b.raw - a.raw)[0];
   const gb = top === me ? 0 : ((top.w - me.w) + (me.l - top.l)) / 2;
   const { champ, ru } = finalsTeams(yr);
-  const result = champ === name ? `${icon('trophy', 'ic-champ')} Champion` : ru === name ? `${icon('trophy', 'ic-silver')} Lost the Finals` : me.playoffs ? 'Playoffs' : 'Missed playoffs';
+  const result = champ === name ? `${icon('trophy', 'ic-champ')} Champion` : ru === name ? `${icon('trophy', 'ic-silver')} Conf. Champion` : me.playoffs ? 'Playoffs' : 'Missed playoffs';
   const prev = t.seasonRecords?.[yr - 1], pct = r => r.w / Math.max(1, r.w + r.l);
   const delta = prev ? Math.round((pct(t.seasonRecords[yr]) - pct(prev)) * 82) : null;
   const mi = mostImproved(yr), best = [...st].sort((a, b) => b.raw - a.raw)[0];
@@ -328,12 +328,13 @@ function teamHeroHtml(t, won, lost) {
   ].map(([k, get, fmt]) => { const r = rankOf(get); return r.v === null || r.v === undefined ? '' : `<div class="tm-stat"><span class="tm-k">${k}</span><b>${r.rk}</b><span class="tm-v">${fmt(r.v)}</span></div>`; }).join('');
   // Latest season, as in "14th in West | 31-51 · Missed playoffs"
   const L = teamLatest(t);
-  const kicker = L ? `${ordinalRank(L.me.confRk)} in ${confName(L.me.conf)} | ${L.me.w}-${L.me.l} · ${L.result} <span class="tm-yr">${seasonLabel(L.yr)}</span>` : t.defunct ? 'Former franchise' : 'Franchise';
+  // rank | record, then result | season, lined up in two rows
+  const kicker = L ? `<span>${ordinalRank(L.me.confRk)} in ${confName(L.me.conf)}</span><i>|</i><span>${L.me.w}-${L.me.l}</span><span>${L.result}</span><i>|</i><span>${seasonLabel(L.yr)}</span>` : `<span>${t.defunct ? 'Former franchise' : 'Franchise'}</span>`;
   const color = TEAM_COLORS[name];
   return `<section class="tm-hero" ${color ? `style="--tc:${color}"` : ''} data-team="${name}">
     <button class="tm-back" onclick="teamBack()" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     <div class="tm-top">
-      <div class="tm-id"><div class="tm-kicker">${kicker}</div>
+      <div class="tm-id"><div class="tm-kicker${L ? ' tm-kicker-grid' : ''}">${kicker}</div>
         <h1 class="tm-name">${city ? `<span>${city}</span> ` : ''}<span>${nick}</span></h1>
         ${L && L.badge ? `<span class="tm-badge">${L.badge}</span>` : ''}</div>
       <div class="tm-logo${TEAM_LOGO_WHITE.has(name) ? ' tm-logo-white' : ''}">${teamLogo(name, 'tm-logo-img')}</div>
@@ -372,8 +373,7 @@ function finishTeamHero(root) {
   }
   const jumps = [['Seasons', 'Season by Season'], ['Lineup', 'All-Time Lineup'], ['Legends', 'Franchise Legends'], ['Retired', 'Retired Numbers'], ['Trophies', 'Trophy Cabinet'], ['Finals', 'Finals History']]
     .filter(([, title]) => teamCard(root, title));
-  hero.querySelector('.tm-btns').innerHTML = jumps.map(([label, title]) => `<button onclick="teamJump('${title}')">${label}</button>`).join('') +
-    (hero.dataset.team && !DB.teams.find(x => x.Team === hero.dataset.team)?.defunct ? `<button onclick="compareThisTeam()">Compare</button>` : '');
+  hero.querySelector('.tm-btns').innerHTML = jumps.map(([label, title]) => `<button onclick="teamJump('${title}')">${label}</button>`).join('');
 }
 function teamCard(root, title) {
   const h = [...root.querySelectorAll('.chart-title, .modal-section-title')].find(x => x.textContent.trim().startsWith(title));
@@ -386,12 +386,6 @@ function teamJump(title) {
   const cover = Math.max(0, ...[...document.querySelectorAll('body *')].filter(e => { const cs = getComputedStyle(e); return (cs.position === 'sticky' || cs.position === 'fixed') && e.offsetHeight > 0 && e.getBoundingClientRect().bottom < innerHeight / 3; }).map(e => e.getBoundingClientRect().bottom));
   const top = card.getBoundingClientRect().top + scrollY - cover - 16;
   scrollTo({ top, behavior: 'smooth' });
-}
-function compareThisTeam() {
-  const team = teamState.t;
-  showSection('compare'); setCmpKind('teams'); populateTeamCompare();
-  const a = document.getElementById('cmpTeam1'); if (a) { a.value = team; renderTeamCompare(); }
-  scrollTo(0, 0);
 }
 
 // =====================================================================

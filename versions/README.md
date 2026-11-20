@@ -10,7 +10,6 @@ they are still in the git history if ever needed.
 |---|---|---|
 | `v20.html` | v20: phone app, custom icon, locked table headers | player pages, compare v2, draft, legacy ranking, search, data check |
 | `v22.html` | v22: player pages, compare v2, draft, simple legacy formula, search, data check | points-system legacy formula |
-| `v73.html` | v73: Ring of Honor tiles | team season card, Franchise Stats, Fingerprint, Closest Match, theme button, NBA logos |
 | `v74.html` | v74: season card, Franchise Stats, Fingerprint, NBA logos | phone standings show full team names |
 | `v75.html` | v75: phone standings full names | Compare table fits the phone width |
 | `v76.html` | v76: player Compare fits phones | team Compare fits phones |
@@ -20,6 +19,7 @@ they are still in the git history if ever needed.
 | `v80.html` | v80: Legend Spotlight names fit | all-time record sort on Franchises |
 | `v81.html` | v81: all-time record sort | upsets judged half on star power, half on record |
 | `v82.html` | v82: upsets half stars, half record | team pages in team colours, new header, NBA logos stored with the site |
+| `v83.html` | v83: team colours and header | header in two rows, Conf. Champion, no Compare button, logo retry fix |
 
 Online: https://hong111o.github.io/2k17universe/versions/v20.html and .../versions/v22.html
 
