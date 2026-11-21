@@ -197,9 +197,48 @@ function badgeHolders() {
   });
 }
 const tierClass = lv => ['', 'bd-bronze', 'bd-silver', 'bd-gold', 'bd-legend'][lv];
-function badgeChip(b, lv, withTitle = true) {
-  return `<span class="bd-chip ${tierClass(lv)}"${withTitle ? ` title="${BADGE_TIERS[lv - 1]} · ${b.desc}${b.tierText[lv - 1] && b.tierText[lv - 1] !== 'Achieved' ? `: ${b.tierText[lv - 1]}` : ''}"` : ''}><i></i>${b.name}</span>`;
+// A badge chip: tap it (phones) or point at it (desktop) for a small box explaining it
+function badgeChip(b, lv, player) {
+  return `<button type="button" class="bd-chip ${tierClass(lv)}" data-badge="${b.id}" data-lv="${lv}"${player ? ` data-player="${String(player).replace(/"/g, '&quot;')}"` : ''} aria-expanded="false"><i></i>${b.name}</button>`;
 }
+// The box: what the badge is, what this level needs, the player's own number, and the next level
+function badgeTipHtml(b, lv, playerName) {
+  const p = playerName && everyPlayer().find(x => x.Player === playerName);
+  const own = p && !b.single && b.get ? b.get(p) : null;
+  const ownText = own === null || own === undefined ? '' : Array.isArray(own) ? (b.tierText.find(Boolean) && b.tiers.find(Boolean) ? own.filter((v, j) => !(b.tiers.find(Boolean)[j] === 1 && v === 1)).map(v => bFmt(v)).join(' / ') : '') : (b.fmt || bFmt)(own);
+  const next = b.tierText.findIndex((t, i) => i >= lv && t);
+  return `<div class="bd-tip-head"><span class="bd-count ${tierClass(lv)}"><i></i>${BADGE_TIERS[lv - 1]}</span><b>${b.name}</b></div>
+    <div class="bd-tip-desc">${b.desc}</div>
+    ${b.single ? '' : `<div class="bd-tip-row"><span>This level</span><b>${b.tierText[lv - 1]}</b></div>`}
+    ${ownText ? `<div class="bd-tip-row"><span>${playerName.split(' ').slice(-1)[0]}</span><b>${ownText}</b></div>` : ''}
+    ${b.single ? '' : next >= 0 ? `<div class="bd-tip-row"><span>${BADGE_TIERS[next]} needs</span><b>${b.tierText[next]}</b></div>` : '<div class="bd-tip-row bd-tip-top">Highest level</div>'}`;
+}
+let badgeTipEl = null, badgeTipFor = null;
+function showBadgeTip(chip) {
+  const b = BADGES.find(x => x.id === chip.dataset.badge); if (!b) return;
+  if (!badgeTipEl) { badgeTipEl = document.createElement('div'); badgeTipEl.className = 'bd-tip'; badgeTipEl.setAttribute('role', 'tooltip'); document.body.appendChild(badgeTipEl); }
+  badgeTipEl.innerHTML = badgeTipHtml(b, Number(chip.dataset.lv), chip.dataset.player);
+  badgeTipEl.hidden = false;
+  if (badgeTipFor) badgeTipFor.setAttribute('aria-expanded', 'false');
+  badgeTipFor = chip; chip.setAttribute('aria-expanded', 'true');
+  // Below the chip, kept inside the screen; above it when there is no room below
+  const r = chip.getBoundingClientRect(), w = Math.min(300, innerWidth - 24);
+  badgeTipEl.style.width = w + 'px';
+  const left = Math.max(12, Math.min(innerWidth - w - 12, r.left + r.width / 2 - w / 2));
+  const h = badgeTipEl.offsetHeight, below = r.bottom + 8 + h < innerHeight - 70;
+  badgeTipEl.style.left = left + scrollX + 'px';
+  badgeTipEl.style.top = (below ? r.bottom + 8 : r.top - 8 - h) + scrollY + 'px';
+}
+function hideBadgeTip() { if (badgeTipEl) badgeTipEl.hidden = true; if (badgeTipFor) badgeTipFor.setAttribute('aria-expanded', 'false'); badgeTipFor = null; }
+document.addEventListener('click', e => {
+  const chip = e.target.closest('.bd-chip[data-badge]');
+  if (chip) { if (badgeTipFor === chip && !matchMedia('(hover: hover)').matches) hideBadgeTip(); else showBadgeTip(chip); return; }
+  if (!e.target.closest('.bd-tip')) hideBadgeTip();
+});
+document.addEventListener('mouseover', e => { if (!matchMedia('(hover: hover)').matches) return; const chip = e.target.closest('.bd-chip[data-badge]'); if (chip && chip !== badgeTipFor) showBadgeTip(chip); });
+document.addEventListener('mouseout', e => { if (!matchMedia('(hover: hover)').matches) return; const chip = e.target.closest('.bd-chip[data-badge]'); if (chip && !chip.contains(e.relatedTarget)) hideBadgeTip(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') hideBadgeTip(); });
+addEventListener('scroll', () => { if (badgeTipFor && !matchMedia('(hover: hover)').matches) return; hideBadgeTip(); }, { passive: true });
 // Player page card: one button per level (icon and count); the card opens on the player's best level
 function playerBadgesHtml(p) {
   const list = playerBadges(p); if (!list.length) return '';
@@ -209,12 +248,13 @@ function playerBadgesHtml(p) {
     <div class="bd-counts" role="group" aria-label="Show badges by level">
       <button type="button" class="bd-count bd-all" data-lv="0" aria-pressed="false" onclick="badgeLevelFilter(this)">All ${list.length}</button>
       ${lvs.map(lv => `<button type="button" class="bd-count ${tierClass(lv)}${lv === start ? ' on' : ''}" data-lv="${lv}" aria-pressed="${lv === start}" aria-label="${BADGE_TIERS[lv - 1]}: ${list.filter(x => x.lv === lv).length}" title="${BADGE_TIERS[lv - 1]}" onclick="badgeLevelFilter(this)"><i></i>${list.filter(x => x.lv === lv).length}</button>`).join('')}</div>
-    <div class="bd-chips">${list.map(x => `<span data-lv="${x.lv}"${x.lv === start ? '' : ' hidden'}>${badgeChip(x.b, x.lv)}</span>`).join('')}</div></div>`;
+    <div class="bd-chips">${list.map(x => `<span data-lv="${x.lv}"${x.lv === start ? '' : ' hidden'}>${badgeChip(x.b, x.lv, p.Player)}</span>`).join('')}</div></div>`;
 }
 function badgeLevelFilter(btn) {
   const card = btn.closest('.bd-card'), lv = Number(btn.dataset.lv);
   card.querySelectorAll('.bd-counts button').forEach(b => { const on = b === btn; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
-  card.querySelectorAll('.bd-chips [data-lv]').forEach(c => c.hidden = lv && Number(c.dataset.lv) !== lv);
+  hideBadgeTip();
+  card.querySelectorAll('.bd-chips > [data-lv]').forEach(c => c.hidden = lv && Number(c.dataset.lv) !== lv);
 }
 // Badges page: every badge, its levels and how many players reach each
 const badgeState = { group: '', open: null };
