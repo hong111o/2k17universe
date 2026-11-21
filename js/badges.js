@@ -218,14 +218,14 @@ const BADGES = [
 // Saved on this device; anything left as it was follows the defaults above.
 // ---------------------------------------------------------------------
 const BADGE_SET_KEY = 'nba2k17-badges';
+let badgeDraft = null;   // Settings → Badges changes not saved yet
 // What each part of a club badge measures (null = a fixed gate such as "is a center")
 const BADGE_PARTS = { ptsreb: ['pts', 'reb'], ptsast: ['pts', 'ast'], '504090': ['FG%', '3P%', 'FT%'], stretchbig: [null, 'threes'], unicorn: ['bpg', 'threes'], guardreb: [null, 'rpg'],
   bigpass: [null, 'apg'], pointfwd: ['rpg', 'apg'], paint: ['rpg', 'bpg'], twoway: ['All-NBA', 'All-D'], triangle: ['pts', 'reb', 'ast'], '25-10': ['ppg', 'rpg'], '25-5-5': ['ppg', 'rpg', 'apg'],
   '5x5': ['ppg', 'rpg', 'apg', 'spg', 'bpg'], agestar: ['seasons', 'All-Stars'], mvpfmvp: ['MVP', 'FMVP'], steal: [null, 'All-Stars'], latepick: [null, 'MVP'],
   volsniper: ['3PM/g', '3P%'], ftmoney: ['FTM/g', 'FT%'], fgvol: ['FGM/g', 'FG%'], effstar: ['ppg', 'TS%'] };
 const badgeSettings = () => readJSON(BADGE_SET_KEY) || {};
-function applyBadgeSettings() {
-  const set = badgeSettings();
+function applyBadgeSettings(set = badgeDraft || badgeSettings()) {
   BADGES.forEach(b => {
     const o = set[b.id] || {};
     b.on = o.on ?? b.defOn; b.name = o.name || b.defName;
@@ -237,15 +237,20 @@ function applyBadgeSettings() {
 applyBadgeSettings();
 const activeBadges = () => BADGES.filter(b => b.on);
 const badgeChanged = b => b.on !== b.defOn || b.name !== b.defName || JSON.stringify(b.tiers) !== JSON.stringify(b.defTiers);
+// Settings → Badges edits a draft: changes show in the counts at once, and are written only on Save
+function badgeDraftStart() { badgeDraft = JSON.parse(JSON.stringify(badgeSettings())); }
+function badgeDraftSave() { if (badgeDraft) writeJSON(BADGE_SET_KEY, badgeDraft); applyBadgeSettings(); }
+function badgeDraftDiscard() { badgeDraft = null; applyBadgeSettings(); }
 function saveBadgeSetting(id, patch) {
-  const set = badgeSettings(), b = BADGES.find(x => x.id === id);
+  if (!badgeDraft) badgeDraftStart();
+  const set = badgeDraft, b = BADGES.find(x => x.id === id);
   const o = { ...(set[id] || {}), ...patch };
   if (o.on === b.defOn) delete o.on;
   if (!o.name || o.name === b.defName) delete o.name;
   if (o.tiers && JSON.stringify(o.tiers) === JSON.stringify(b.defTiers)) delete o.tiers;
   if (Object.keys(o).length) set[id] = o; else delete set[id];
-  writeJSON(BADGE_SET_KEY, set);
-  applyBadgeSettings();
+  applyBadgeSettings(set);
+  if (typeof markSettingsDirty === 'function') markSettingsDirty();
 }
 // Each player's number for a badge, kept for live counts while levels are typed
 const badgeValues = b => cached('bvals|' + b.id, () => everyPlayer().map(p => b.get(p)));
@@ -273,7 +278,7 @@ function badgeSettingsHtml() {
   const groups = BADGE_GROUPS.filter(g => BADGES.some(b => b.group === g));
   const list = BADGES.filter(b => b.group === badgeSetState.group);
   return `<div class="chart-card" id="badgeSettings"><div class="card-head"><div class="chart-title">${icon('star')} Badges</div><button class="card-link" onclick="resetAllBadgeSettings()">Reset all</button></div>
-    <p class="muted" style="margin-bottom:10px">Switch badges on or off, rename them and change the number each level needs. The player counts update as you change a level; leave a box empty to skip that level. Saved on this device.</p>
+    <p class="muted" style="margin-bottom:10px">Switch badges on or off, rename them and change the number each level needs. The player counts update as you change a level; leave a box empty to skip that level. Tap Save to keep your changes (saved on this device).</p>
     <div class="bs-summary"><b>${activeBadges().length}</b> of ${BADGES.length} badges on · <b>${badgeSettingsAvg()}</b> per player</div>
     <div class="bs-groups">${groups.map(g => `<button type="button" class=""${badgeSetState.group === g ? 'active' : ''}" onclick="badgeSetState.group='${g}';refreshBadgeSettings()">${g} <span class="muted">${BADGES.filter(b => b.group === g && b.on).length}/${BADGES.filter(b => b.group === g).length}</span></button>`).join('')}</div>
     <div class="bs-list">${list.map(badgeSettingRow).join('')}</div></div>`;
@@ -295,8 +300,8 @@ function setBadgeLevel(id, k, j, raw) {
   saveBadgeSetting(id, { tiers: t }); refreshBadgeSettings();
 }
 function setBadgeFlag(id, k) { const t = [null, null, null, null]; t[Number(k)] = 1; saveBadgeSetting(id, { tiers: t }); refreshBadgeSettings(); }
-function resetBadgeSetting(id) { const set = badgeSettings(); delete set[id]; writeJSON(BADGE_SET_KEY, set); applyBadgeSettings(); refreshBadgeSettings(); }
-function resetAllBadgeSettings() { writeJSON(BADGE_SET_KEY, {}); applyBadgeSettings(); refreshBadgeSettings(); }
+function resetBadgeSetting(id) { if (!badgeDraft) badgeDraftStart(); delete badgeDraft[id]; applyBadgeSettings(badgeDraft); markSettingsDirty(); refreshBadgeSettings(); }
+function resetAllBadgeSettings() { badgeDraft = {}; applyBadgeSettings(badgeDraft); markSettingsDirty(); refreshBadgeSettings(); }
 
 // Every badge a player holds, best first
 function playerBadges(p) {

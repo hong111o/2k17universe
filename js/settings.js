@@ -201,41 +201,82 @@ function setTheme(v) {
   renderSettings();
   if (document.getElementById('winChart')) renderWinChart();
 }
+// Settings: the main page, plus two sub pages (Legacy Formula, Badges). Changes on a sub page
+// are a draft until Save; Discard (or leaving Settings) puts back what was saved.
+const settingsState = { view: 'main', legacyDraft: null, dirty: false };
+function openSettingsView(v) {
+  settingsState.view = v; settingsState.dirty = false;
+  if (v === 'legacy') settingsState.legacyDraft = legacyWeights();
+  if (v === 'badges') badgeDraftStart();
+  renderSettings(); scrollTo(0, 0);
+}
+function settingsBack() { settingsDiscard(true); settingsState.view = 'main'; renderSettings(); scrollTo(0, 0); }
+// Leaving Settings drops unsaved changes
+function settingsLeave() { if (settingsState.view !== 'main' || settingsState.dirty) { settingsDiscard(true); settingsState.view = 'main'; } }
+// Update the save bar in place (rebuilding it would swallow a tap on Save that also ends an edit)
+function markSettingsDirty() {
+  settingsState.dirty = true;
+  const bar = document.getElementById('settingsSaveBar'); if (!bar) return;
+  bar.classList.add('dirty'); bar.querySelector('span').textContent = 'Unsaved changes';
+  bar.querySelectorAll('button').forEach(b => b.disabled = false);
+}
+function saveBarHtml() {
+  return `<div class="save-bar${settingsState.dirty ? ' dirty' : ''}" id="settingsSaveBar" role="status">
+    <span>${settingsState.dirty ? 'Unsaved changes' : 'All changes saved'}</span>
+    <button type="button" class="icon-btn" onclick="settingsDiscard()" ${settingsState.dirty ? '' : 'disabled'}>Discard</button>
+    <button type="button" class="btn-primary" onclick="settingsSave()" ${settingsState.dirty ? '' : 'disabled'}>Save</button></div>`;
+}
+function settingsSave() {
+  if (settingsState.view === 'legacy') {
+    try { localStorage.setItem('nba2k17-legacy-v2', JSON.stringify(settingsState.legacyDraft)); } catch (e) {}
+    engineCache = {}; renderLegacy(); renderDraft();
+  }
+  if (settingsState.view === 'badges') badgeDraftSave();
+  settingsState.dirty = false; renderSettings();
+}
+function settingsDiscard(quiet) {
+  if (settingsState.view === 'legacy') settingsState.legacyDraft = legacyWeights();
+  if (settingsState.view === 'badges') badgeDraftDiscard();
+  settingsState.dirty = false;
+  if (!quiet) renderSettings();
+}
 function renderSettings() {
+  const el = document.getElementById('settingsContent');
+  const back = title => `<div class="settings-sub-head"><button type="button" class="card-link" onclick="settingsBack()">← Settings</button><h2>${title}</h2></div>`;
+  if (settingsState.view === 'legacy') {
+    const w = settingsState.legacyDraft || legacyWeights();
+    el.innerHTML = back('Legacy Formula') + `<div class="chart-card"><div class="card-head"><div class="chart-title">${icon('trophy')} Legacy Formula</div><button class="card-link" onclick="legacyDraftReset()">Reset to defaults</button></div>
+      <p class="muted" style="margin-bottom:12px">The points system behind the Legacy Ranking. A repeat of the same honor is worth its base points × a multiplier that starts at 1 and drops each time, down to the lowest multiplier. Changes take effect when you tap Save.</p>
+      ${LEGACY_SCHEMA.map(g => `<div class="weight-group"><div class="weight-title">${g.group}</div><div class="weights">${g.items.map(([k, label]) => `<label class="weight"><span>${label}</span>
+        <input type="number" id="w-${k}" min="0" step="${LEGACY_DEFAULTS[k] < 1 ? 0.05 : 1}" value="${w[k]}" onchange="legacyDraftSet('${k}', this.value)"></label>`).join('')}</div></div>`).join('')}</div>` + saveBarHtml();
+    return;
+  }
+  if (settingsState.view === 'badges') { el.innerHTML = back('Badges') + badgeSettingsHtml() + saveBarHtml(); return; }
   const res = dataCheckResults;
   const freshKeys = new Set(newDataProblems().map(dcKey));
   const by = l => res.filter(r => r.level === l);
   const groups = [['error', 'Numbers that can\'t all be right'], ['warn', 'Worth a look'], ['info', 'Spelling and gaps']];
-  const w = legacyWeights();
-  document.getElementById('settingsContent').innerHTML = `
+  const changedW = Object.keys(LEGACY_DEFAULTS).filter(k => legacyWeights()[k] !== LEGACY_DEFAULTS[k]).length;
+  const link = (v, ic, title, sub) => `<button type="button" class="settings-link" onclick="openSettingsView('${v}')">${icon(ic)}<span><b>${title}</b><small>${sub}</small></span><span class="settings-arrow" aria-hidden="true">›</span></button>`;
+  el.innerHTML = `
+    <div class="settings-links">
+      ${link('legacy', 'trophy', 'Legacy Formula', changedW ? `${changedW} value${changedW === 1 ? '' : 's'} changed from the defaults` : 'The points behind the Legacy Ranking')}
+      ${link('badges', 'star', 'Badges', `${activeBadges().length} of ${BADGES.length} on · switch on or off, rename, change levels`)}
+    </div>
     <div class="chart-card"><div class="card-head"><div class="chart-title">${icon('list')} Data Check</div><button class="card-link" onclick="updateDataCheckDot();renderSettings()">Run again</button></div>
       <div class="dc-summary">${groups.map(([l, t]) => `<div class="dc-pill dc-${l}"><b>${by(l).length}</b><span>${t}</span></div>`).join('')}</div>
       ${groups.map(([l, t]) => by(l).length ? `<details class="dc-group" ${l === 'error' ? 'open' : ''}><summary>${t} (${by(l).length})</summary>
         <div class="table-wrap dc-table"><table><thead><tr><th>Sheet</th><th>Cell</th><th>Problem</th></tr></thead><tbody>
         ${by(l).map(r => `<tr><td>${r.sheet}</td><td class="nowrap">${r.cell || '—'}</td><td class="dc-msg">${freshKeys.has(dcKey(r)) ? '<span class="dc-new">New</span> ' : ''}${r.msg}</td></tr>`).join('')}</tbody></table></div></details>` : '').join('')}
       ${res.length ? '' : '<p class="muted">No problems found.</p>'}</div>
-    <div class="chart-card"><div class="card-head"><div class="chart-title">${icon('trophy')} Legacy Formula</div><button class="card-link" onclick="resetLegacyWeights()">Reset to defaults</button></div>
-      <p class="muted" style="margin-bottom:12px">The points system behind the Legacy Ranking. A repeat of the same honor is worth its base points × a multiplier that starts at 1 and drops each time, down to the lowest multiplier. Changes apply straight away and are saved in this browser.</p>
-      ${LEGACY_SCHEMA.map(g => `<div class="weight-group"><div class="weight-title">${g.group}</div><div class="weights">${g.items.map(([k, label]) => `<label class="weight"><span>${label}</span>
-        <input type="number" id="w-${k}" min="0" step="${LEGACY_DEFAULTS[k] < 1 ? 0.05 : 1}" value="${w[k]}" onchange="saveLegacyWeight('${k}', this.value)"></label>`).join('')}</div></div>`).join('')}</div>
-    ${badgeSettingsHtml()}
     <div class="chart-card"><div class="chart-title">${icon('star')} Appearance</div>
       <div class="seg theme-seg">${[['system', 'Match phone'], ['light', 'Light'], ['dark', 'Dark']].map(([v, l]) => `<button class="${themeChoice() === v ? 'active' : ''}" onclick="setTheme('${v}')">${l}</button>`).join('')}</div></div>
     <div class="chart-card"><div class="chart-title">${icon('file')} Saved Workbook</div><p id="settingsSaved" class="muted"></p>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn-primary" onclick="showLoadOverlay()">Load a new workbook</button>${readJSON(RECAP_KEY)?.groups?.length ? '<button class="icon-btn" onclick="showRecap()">Show last update recap</button>' : ''}<button class="icon-btn" onclick="forgetSavedWorkbook();renderSettings()">Forget saved file</button></div></div>`;
-  getSavedWorkbook().then(saved => { const el = document.getElementById('settingsSaved'); if (el) el.textContent = saved ? `${saved.name}, saved ${new Date(saved.savedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })} on this device.` : 'No workbook saved on this device.'; });
+  getSavedWorkbook().then(saved => { const s2 = document.getElementById('settingsSaved'); if (s2) s2.textContent = saved ? `${saved.name}, saved ${new Date(saved.savedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })} on this device.` : 'No workbook saved on this device.'; });
 }
-function saveLegacyWeight(k, v) {
-  const w = legacyWeights(); w[k] = Math.max(0, Number(v) || 0);
-  try { localStorage.setItem('nba2k17-legacy-v2', JSON.stringify(w)); } catch (e) {}
-  engineCache = {};
-  renderLegacy(); renderDraft();
-}
-function resetLegacyWeights() {
-  try { localStorage.removeItem('nba2k17-legacy-v2'); } catch (e) {}
-  engineCache = {};
-  renderSettings(); renderLegacy(); renderDraft();
-}
+function legacyDraftSet(k, v) { settingsState.legacyDraft[k] = Math.max(0, Number(v) || 0); markSettingsDirty(); }
+function legacyDraftReset() { settingsState.legacyDraft = { ...LEGACY_DEFAULTS }; settingsState.dirty = true; renderSettings(); }
 
 // =====================================================================
 // PHONE CARD LISTS

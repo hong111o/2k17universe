@@ -39,10 +39,21 @@ const { chromium, devices } = require(process.argv[2] + '/node_modules/playwrigh
   r.dcErrors = await p.evaluate(() => dataCheckResults.filter(x => x.level === 'error').map(x => `${x.sheet}!${x.cell}: ${x.msg}`));
   await shot('settings');
   // weight change reorders legacy
+  // Legacy Formula is a sub page: changes apply only after Save, and Discard puts them back
+  r.legacyTop0 = await p.evaluate(() => legacyRanking().slice(0, 3).map(x => x.p.Player).join(', '));
+  await p.click('.settings-link:has-text("Legacy Formula")');
   await p.fill('#w-mvp', '30'); await p.dispatchEvent('#w-mvp', 'change');
+  r.legacyBeforeSave = await p.evaluate(() => legacyRanking().slice(0, 3).map(x => x.p.Player).join(', '));
+  await p.click('#settingsSaveBar button:has-text("Save")');
   r.legacyTopMvp30 = await p.evaluate(() => legacyRanking().slice(0, 3).map(x => x.p.Player).join(', '));
   await p.click('text=Reset to defaults');
+  r.resetIsDraft = await p.evaluate(() => legacyWeights().mvp === 30);
+  await p.click('#settingsSaveBar button:has-text("Discard")');
+  r.discardKept = await p.evaluate(() => legacyWeights().mvp === 30 && Number(document.getElementById('w-mvp').value) === 30);
+  await p.click('text=Reset to defaults'); await p.click('#settingsSaveBar button:has-text("Save")');
   r.legacyTopReset = await p.evaluate(() => legacyRanking().slice(0, 3).map(x => x.p.Player).join(', '));
+  if (r.legacyBeforeSave !== r.legacyTop0 || !r.resetIsDraft || !r.discardKept || r.legacyTopReset !== r.legacyTop0) { console.log(JSON.stringify(r, null, 1)); process.exit(1); }
+  await p.click('text=← Settings');
   r.errors = errs;
   console.log(JSON.stringify(r, null, 1));
   // phone screenshots

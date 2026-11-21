@@ -1014,3 +1014,16 @@ button.bd-chip:focus-visible{outline:2px solid var(--link);outline-offset:2px;}
 .bs-groups button.active{background:var(--ink);color:var(--surface);border-color:var(--ink);} .bs-groups button.active .muted{color:inherit;opacity:.7;}
 .bs-row .bd-levels{gap:5px;}
 @media (max-width:640px){.bs-row .bd-level{padding:3px 8px 3px 5px;gap:4px;} .bs-row .bd-level input{width:58px;font-size:12px;} .bs-name{font-size:16px;}}
+/* Settings sub pages */
+.settings-links{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-bottom:16px;}
+.settings-link{display:flex;align-items:center;gap:12px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;color:var(--ink);cursor:pointer;font-family:var(--font-body);}
+.settings-link:hover{border-color:var(--line-strong);} .settings-link:focus-visible{outline:2px solid var(--link);outline-offset:2px;}
+.settings-link .ic{width:22px;height:22px;flex:none;color:var(--link);}
+.settings-link span{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1;} .settings-link b{font-family:var(--font-display);font-size:19px;} .settings-link small{color:var(--ink-3);font-size:13px;}
+.settings-arrow{font-size:28px;color:var(--ink-3);flex:none !important;}
+.settings-sub-head{display:flex;align-items:center;gap:14px;margin-bottom:12px;flex-wrap:wrap;} .settings-sub-head h2{font-family:var(--font-display);font-size:26px;margin:0;}
+.save-bar{position:sticky;bottom:12px;z-index:40;display:flex;align-items:center;gap:10px;justify-content:flex-end;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px;box-shadow:0 6px 20px rgba(0,0,0,.12);margin-top:12px;}
+.save-bar span{margin-right:auto;color:var(--ink-3);font-weight:600;font-size:14px;}
+.save-bar.dirty{border-color:var(--accent,#e8862a);} .save-bar.dirty span{color:var(--ink);}
+.save-bar button[disabled]{opacity:.45;cursor:default;}
+@media (max-width:768px){.save-bar{bottom:calc(76px + env(safe-area-inset-bottom,0px));}}

@@ -7,6 +7,7 @@
 const SECTIONS = ['overview','players','top20','bypos','current','draft','compare','badges','player','legacy','settings','teams','team','awards','finals','ring','season','history','statleaders','allnba','decades','records','leaders'];
 function showSection(id) {
   if (!SECTIONS.includes(id)) id = 'overview';
+  if (id !== 'settings' && typeof settingsLeave === 'function') settingsLeave();
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('sec-' + id).classList.add('active');
   // Masthead highlights the section; the sub-nav shows only that section's pages
