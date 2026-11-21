@@ -198,26 +198,19 @@ function badgeHolders() {
 }
 const tierClass = lv => ['', 'bd-bronze', 'bd-silver', 'bd-gold', 'bd-legend'][lv];
 // A badge chip: tap it (phones) or point at it (desktop) for a small box explaining it
-function badgeChip(b, lv, player) {
-  return `<button type="button" class="bd-chip ${tierClass(lv)}" data-badge="${b.id}" data-lv="${lv}"${player ? ` data-player="${String(player).replace(/"/g, '&quot;')}"` : ''} aria-expanded="false"><i></i>${b.name}</button>`;
+function badgeChip(b, lv) {
+  return `<button type="button" class="bd-chip ${tierClass(lv)}" data-badge="${b.id}" data-lv="${lv}" aria-expanded="false"><i></i>${b.name}</button>`;
 }
-// The box: what the badge is, what this level needs, the player's own number, and the next level
-function badgeTipHtml(b, lv, playerName) {
-  const p = playerName && everyPlayer().find(x => x.Player === playerName);
-  const own = p && !b.single && b.get ? b.get(p) : null;
-  const ownText = own === null || own === undefined ? '' : Array.isArray(own) ? (b.tierText.find(Boolean) && b.tiers.find(Boolean) ? own.filter((v, j) => !(b.tiers.find(Boolean)[j] === 1 && v === 1)).map(v => bFmt(v)).join(' / ') : '') : (b.fmt || bFmt)(own);
-  const next = b.tierText.findIndex((t, i) => i >= lv && t);
+// The box: the badge's level, what it measures and what this level needs
+function badgeTipHtml(b, lv) {
   return `<div class="bd-tip-head"><span class="bd-count ${tierClass(lv)}"><i></i>${BADGE_TIERS[lv - 1]}</span><b>${b.name}</b></div>
-    <div class="bd-tip-desc">${b.desc}</div>
-    ${b.single ? '' : `<div class="bd-tip-row"><span>This level</span><b>${b.tierText[lv - 1]}</b></div>`}
-    ${ownText ? `<div class="bd-tip-row"><span>${playerName.split(' ').slice(-1)[0]}</span><b>${ownText}</b></div>` : ''}
-    ${b.single ? '' : next >= 0 ? `<div class="bd-tip-row"><span>${BADGE_TIERS[next]} needs</span><b>${b.tierText[next]}</b></div>` : '<div class="bd-tip-row bd-tip-top">Highest level</div>'}`;
+    <div class="bd-tip-desc">${b.desc}${b.single ? '' : `: <b>${b.tierText[lv - 1]}</b>`}</div>`;
 }
 let badgeTipEl = null, badgeTipFor = null;
 function showBadgeTip(chip) {
   const b = BADGES.find(x => x.id === chip.dataset.badge); if (!b) return;
   if (!badgeTipEl) { badgeTipEl = document.createElement('div'); badgeTipEl.className = 'bd-tip'; badgeTipEl.setAttribute('role', 'tooltip'); document.body.appendChild(badgeTipEl); }
-  badgeTipEl.innerHTML = badgeTipHtml(b, Number(chip.dataset.lv), chip.dataset.player);
+  badgeTipEl.innerHTML = badgeTipHtml(b, Number(chip.dataset.lv));
   badgeTipEl.hidden = false;
   if (badgeTipFor) badgeTipFor.setAttribute('aria-expanded', 'false');
   badgeTipFor = chip; chip.setAttribute('aria-expanded', 'true');
@@ -248,7 +241,7 @@ function playerBadgesHtml(p) {
     <div class="bd-counts" role="group" aria-label="Show badges by level">
       <button type="button" class="bd-count bd-all" data-lv="0" aria-pressed="false" onclick="badgeLevelFilter(this)">All ${list.length}</button>
       ${lvs.map(lv => `<button type="button" class="bd-count ${tierClass(lv)}${lv === start ? ' on' : ''}" data-lv="${lv}" aria-pressed="${lv === start}" aria-label="${BADGE_TIERS[lv - 1]}: ${list.filter(x => x.lv === lv).length}" title="${BADGE_TIERS[lv - 1]}" onclick="badgeLevelFilter(this)"><i></i>${list.filter(x => x.lv === lv).length}</button>`).join('')}</div>
-    <div class="bd-chips">${list.map(x => `<span data-lv="${x.lv}"${x.lv === start ? '' : ' hidden'}>${badgeChip(x.b, x.lv, p.Player)}</span>`).join('')}</div></div>`;
+    <div class="bd-chips">${list.map(x => `<span data-lv="${x.lv}"${x.lv === start ? '' : ' hidden'}>${badgeChip(x.b, x.lv)}</span>`).join('')}</div></div>`;
 }
 function badgeLevelFilter(btn) {
   const card = btn.closest('.bd-card'), lv = Number(btn.dataset.lv);
