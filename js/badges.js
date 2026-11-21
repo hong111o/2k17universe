@@ -12,24 +12,31 @@ const bPG = (p, k) => { const v = perGame(p, k); return v === null || isNaN(v) ?
 const bFmt = v => v >= 1000 ? Math.round(v).toLocaleString() : String(Math.round(v * 10) / 10);
 const bPct = v => (Math.round(v * 10) / 10) + '%';
 
-// A badge earned by reaching a number: tiers are the four thresholds (null = level not used)
-function statBadge(id, name, group, desc, get, tiers, fmt = bFmt) {
-  return { id, name, group, desc, tiers, fmt, get,
-    level: p => { const v = get(p); if (v === null || v === undefined) return 0; return tiers.reduce((n, t, i) => t !== null && v >= t ? i + 1 : n, 0); },
-    tierText: tiers.map(t => t === null ? null : fmt(t)) };
+// The badge level for a value: the highest level whose threshold it reaches (null = level not used).
+// Club badges compare every part; one-off achievements are 1 when earned.
+function badgeLevelFor(b, v, tiers = b.tiers) {
+  if (v === null || v === undefined) return 0;
+  return tiers.reduce((n, t, i) => t === null || t === undefined ? n : (Array.isArray(t) ? t.every((x, j) => v[j] >= x) : v >= t) ? i + 1 : n, 0);
 }
+function badgeTierText(b, t) { return t === null || t === undefined ? null : b.kind === 'flag' ? 'Achieved' : b.kind === 'club' ? b.labels(t) : b.fmt(t); }
+function makeBadge(b) {
+  b.defName = b.name; b.defTiers = JSON.parse(JSON.stringify(b.tiers)); b.on = b.defOn = !b.off;
+  b.level = p => badgeLevelFor(b, b.get(p));
+  b.tierText = b.tiers.map(t => badgeTierText(b, t));
+  return b;
+}
+// A badge earned by reaching a number: tiers are the four thresholds
+function statBadge(id, name, group, desc, get, tiers, fmt = bFmt) { return makeBadge({ id, name, group, desc, tiers, fmt, get, kind: 'stat' }); }
 // A club: every part must reach that level's number (e.g. points/rebounds/assists)
 function clubBadge(id, name, group, desc, gets, tiers, labels) {
-  return { id, name, group, desc, tiers,
-    level: p => { const v = gets.map(g => g(p)); if (v.some(x => x === null || x === undefined)) return 0;
-      return tiers.reduce((n, t, i) => t && t.every((x, j) => v[j] >= x) ? i + 1 : n, 0); },
-    get: p => gets.map(g => g(p)),
-    tierText: tiers.map(t => t ? labels(t) : null) };
+  return makeBadge({ id, name, group, desc, tiers, labels, kind: 'club', get: p => { const v = gets.map(g => g(p)); return v.some(x => x === null || x === undefined) ? null : v; } });
 }
-// A one-level achievement at a fixed level (0 = Bronze ... 3 = Legendary)
+// A badge that starts switched off
+function switchedOff(b) { b.off = true; b.on = b.defOn = false; return b; }
+// A one-off achievement at one level (0 = Bronze ... 3 = Legendary)
 function flagBadge(id, name, group, desc, tier, test) {
   const tiers = [null, null, null, null]; tiers[tier] = 1;
-  return { id, name, group, desc, tiers, level: p => test(p) ? tier + 1 : 0, tierText: tiers.map(t => t ? 'Achieved' : null), single: true };
+  return makeBadge({ id, name, group, desc, tiers, kind: 'flag', single: true, get: p => test(p) ? 1 : null });
 }
 
 // Season-by-season facts the career rows don't hold, built once per workbook
@@ -180,18 +187,126 @@ const BADGES = [
   statBadge('ts', 'Smooth Operator', 'Shooting', 'Career true shooting % (points ÷ 2 × (FGA + 0.44 × FTA))', p => bN(p, 'PTS') && bN(p, 'FGA') ? bN(p, 'PTS') / (2 * (bN(p, 'FGA') + 0.44 * (bN(p, 'FTA') ?? 0))) * 100 : null, [60.5, 61.5, 63.5, 65], bPct),
   clubBadge('effstar', 'Efficient Superstar', 'Scoring', 'Points per game and true shooting % together', [p => bPG(p, 'PTS'), p => bN(p, 'PTS') && bN(p, 'FGA') ? bN(p, 'PTS') / (2 * (bN(p, 'FGA') + 0.44 * (bN(p, 'FTA') ?? 0))) * 100 : null], [[24, 60], [25, 61], [26, 62], [27, 63]], t => `${t[0]} ppg + ${t[1]}% TS`),
 
+  // Switched off (they can be turned on in Settings → Badges)
+  switchedOff(statBadge('fgm', 'Shot Maker', 'Scoring', 'Career field goals made', p => bN(p, 'FGM'), [12000, 13500, 14800, 15800])),
+  switchedOff(statBadge('fta', 'Contact Seeker', 'Scoring', 'Career free throw attempts', p => bN(p, 'FTA'), [8200, 8800, 9600, 11500])),
+  switchedOff(statBadge('3pa', 'Limitless Trigger', 'Shooting', 'Career three-point attempts', p => bN(p, '3PA'), [8700, 10000, 11000, 12300])),
+  switchedOff(statBadge('oreb', 'Putback Artist', 'Rebounding', 'Offensive rebounds per game', p => bN(p, 'Avg OREB'), [3.3, 4.2, 4.5, 4.9], v => v.toFixed(1))),
+  switchedOff(statBadge('alld1', 'Lockdown', 'Defense', 'All-Defensive 1st team selections', p => bN(p, '1st D Team'), [5, 8, 10, 11])),
+  switchedOff(statBadge('ddrate', 'Nightly Double', 'All-Around', 'Double-doubles per game played', p => bN(p, 'GP') ? (bN(p, 'DD2') ?? 0) / bN(p, 'GP') * 100 : null, [58, 66, 75, 82], v => Math.round(v) + '%')),
+  switchedOff(clubBadge('25-10', 'Walking 25-10', 'All-Around', 'Career points and rebounds per game', [p => bPG(p, 'PTS'), p => bPG(p, 'REB')], [[22, 10], [24, 11], [26, 12], [28, 13]], t => `${t[0]} ppg + ${t[1]} rpg`)),
+  switchedOff(clubBadge('agestar', 'Fine Wine', 'Durability', 'Long career with All-Star selections', [p => bN(p, 'Exp'), p => bN(p, 'All Stars')], [[19, 13], [20, 15], [21, 17], [22, 19]], t => `${t[0]} seasons + ${t[1]} All-Stars`)),
+  switchedOff(flagBadge('roty', 'Rookie Sensation', 'Honors', 'Won Rookie of the Year', 0, p => isRoty(p))),
+  switchedOff(statBadge('mvpring', 'King of the Hill', 'Titles', 'MVP and title in the same season (counted over the career)', p => sameYear(yrsOf(bc().mvpYrs, p), yrsOf(bc().titleYrs, p)), [1, 2, 3, 4])),
+  switchedOff(statBadge('journey', 'Suitcase', 'Legacy', 'Teams played for', p => new Set(playerTeams(p)).size, [5, 6, 7, 9])),
+  switchedOff(flagBadge('pick1', 'Number One', 'Legacy', 'Drafted 1st overall', 0, p => draftPick(p)?.rnd === 1 && draftPick(p)?.pick === 1)),
+  switchedOff(statBadge('sixth', 'Sixth Man Spark', 'Honors', 'Sixth Man of the Year awards', p => otherAward(p, '6th Man') || null, [1, 2, 3, 5])),
+  switchedOff(flagBadge('mip', 'Glow Up', 'Honors', 'Most Improved Player award', 0, p => otherAward(p, 'MIP') > 0)),
+  switchedOff(flagBadge('rookie1', 'Instant Impact', 'Honors', 'All-Rookie 1st team', 0, p => String(p.RookieTeam || '').trim() === '1st')),
+  switchedOff(statBadge('duo', 'Dynamic Duo', 'Titles', 'Most titles won with the same listed co-star', p => { const yrs = yrsOf(bc().titleYrs, p), c = {}; yrs.forEach(y => { const h = DB.history.find(x => Number(x.Season) === y); [h?.Star1, h?.Star2, h?.Star3].filter(Boolean).forEach(s => { const q = resolvePlayer(String(s).replace(/\s*\(\d+\)\s*$/, ''), y); if (q && q.Player !== p.Player) c[q.Player] = (c[q.Player] || 0) + 1; }); }); return Math.max(0, ...Object.values(c)) || null; }, [2, 3, 4, 5])),
+  switchedOff(statBadge('rival', 'Rival Slayer', 'Titles', 'Most Finals won against the same team, as a listed star', p => { const c = {}; yrsOf(bc().titleYrs, p).forEach(y => { const ru = finalsTeams(y).ru; if (ru) c[ru] = (c[ru] || 0) + 1; }); return Math.max(0, ...Object.values(c)) || null; }, [null, 2, 3, 4])),
+  switchedOff(flagBadge('hometown', 'Hometown Hero', 'Legacy', 'Number retired by the team that drafted him (his first team), after playing elsewhere too', 1, p => { const ts = playerTeams(p); return new Set(ts).size > 1 && retiredFor(p).some(r => r.team === ts[0]); })),
+  switchedOff(statBadge('ironclad', 'Ironclad', 'Durability', 'Games played per season', p => bN(p, 'Exp') && bN(p, 'GP') ? bN(p, 'GP') / bN(p, 'Exp') : null, [74, 76, 78, 80], v => v.toFixed(1))),
+  switchedOff(statBadge('bridesmaid', 'Always the Bridesmaid', 'Titles', 'Finals lost without ever winning a title', p => (bN(p, 'Champions') ?? 0) === 0 ? (bN(p, 'Finals App') ?? 0) || null : null, [2, 3, 4, 5])),
+  switchedOff(clubBadge('fgvol', 'Bully Ball', 'Shooting', 'Field goals made per game and career FG% together', [p => bN(p, 'GP') ? (bN(p, 'FGM') ?? 0) / bN(p, 'GP') : null, p => bN(p, 'FG%')], [[8.5, 50], [9, 52], [10, 52], [10, 55]], t => `${t[0]} FGM/g + ${t[1]}%`)),
+  switchedOff(statBadge('ftpg', 'And-One Artist', 'Scoring', 'Free throw attempts per game', p => bN(p, 'GP') ? (bN(p, 'FTA') ?? 0) / bN(p, 'GP') : null, [6.5, 7.5, 8.5, 10], v => v.toFixed(1))),
 ];
 
 
+// ---------------------------------------------------------------------
+// Settings → Badges: switch badges on or off, rename them and change their levels.
+// Saved on this device; anything left as it was follows the defaults above.
+// ---------------------------------------------------------------------
+const BADGE_SET_KEY = 'nba2k17-badges';
+// What each part of a club badge measures (null = a fixed gate such as "is a center")
+const BADGE_PARTS = { ptsreb: ['pts', 'reb'], ptsast: ['pts', 'ast'], '504090': ['FG%', '3P%', 'FT%'], stretchbig: [null, 'threes'], unicorn: ['bpg', 'threes'], guardreb: [null, 'rpg'],
+  bigpass: [null, 'apg'], pointfwd: ['rpg', 'apg'], paint: ['rpg', 'bpg'], twoway: ['All-NBA', 'All-D'], triangle: ['pts', 'reb', 'ast'], '25-10': ['ppg', 'rpg'], '25-5-5': ['ppg', 'rpg', 'apg'],
+  '5x5': ['ppg', 'rpg', 'apg', 'spg', 'bpg'], agestar: ['seasons', 'All-Stars'], mvpfmvp: ['MVP', 'FMVP'], steal: [null, 'All-Stars'], latepick: [null, 'MVP'],
+  volsniper: ['3PM/g', '3P%'], ftmoney: ['FTM/g', 'FT%'], fgvol: ['FGM/g', 'FG%'], effstar: ['ppg', 'TS%'] };
+const badgeSettings = () => readJSON(BADGE_SET_KEY) || {};
+function applyBadgeSettings() {
+  const set = badgeSettings();
+  BADGES.forEach(b => {
+    const o = set[b.id] || {};
+    b.on = o.on ?? b.defOn; b.name = o.name || b.defName;
+    b.tiers = JSON.parse(JSON.stringify(o.tiers || b.defTiers));
+    b.tierText = b.tiers.map(t => badgeTierText(b, t));
+  });
+  Object.keys(engineCache).forEach(k => { if (k.startsWith('badges|') || k === 'badgeHolders') delete engineCache[k]; });
+}
+applyBadgeSettings();
+const activeBadges = () => BADGES.filter(b => b.on);
+const badgeChanged = b => b.on !== b.defOn || b.name !== b.defName || JSON.stringify(b.tiers) !== JSON.stringify(b.defTiers);
+function saveBadgeSetting(id, patch) {
+  const set = badgeSettings(), b = BADGES.find(x => x.id === id);
+  const o = { ...(set[id] || {}), ...patch };
+  if (o.on === b.defOn) delete o.on;
+  if (!o.name || o.name === b.defName) delete o.name;
+  if (o.tiers && JSON.stringify(o.tiers) === JSON.stringify(b.defTiers)) delete o.tiers;
+  if (Object.keys(o).length) set[id] = o; else delete set[id];
+  writeJSON(BADGE_SET_KEY, set);
+  applyBadgeSettings();
+}
+// Each player's number for a badge, kept for live counts while levels are typed
+const badgeValues = b => cached('bvals|' + b.id, () => everyPlayer().map(p => b.get(p)));
+function badgeCounts(b) {
+  const out = [0, 0, 0, 0]; badgeValues(b).forEach(v => { const lv = badgeLevelFor(b, v); if (lv) out[lv - 1]++; }); return out;
+}
+const badgeSetState = { group: 'Scoring' };
+function badgeSettingsAvg() {
+  const act = activeBadges(), n = everyPlayer().length;
+  return (act.reduce((a, b) => a + badgeCounts(b).reduce((x, y) => x + y, 0), 0) / n).toFixed(1);
+}
+function badgeSettingRow(b) {
+  const c = badgeCounts(b), parts = BADGE_PARTS[b.id] || [];
+  const box = (k, j, val, lab) => `<span class="part"><input type="number" step="any" inputmode="decimal" id="bs-${b.id}-${k}${j === undefined ? '' : '-' + j}" value="${val ?? ''}" placeholder="off"
+      aria-label="${BADGE_TIERS[k]}${lab ? ' ' + lab : ''}" onchange="setBadgeLevel('${b.id}',${k},${j === undefined ? 'null' : j},this.value)">${lab ? `<small>${lab}</small>` : ''}</span>`;
+  const levels = b.kind === 'flag'
+    ? `<span class="bd-level ${tierClass(b.tiers.findIndex(t => t) + 1)}"><i></i><select id="bs-${b.id}-flag" aria-label="Level" onchange="setBadgeFlag('${b.id}',this.value)">${BADGE_TIERS.map((n, i) => `<option value="${i}"${b.tiers[i] ? ' selected' : ''}>${n}</option>`).join('')}</select> <em>${c.reduce((a, x) => a + x, 0)}</em></span>`
+    : b.tiers.map((t, k) => `<span class="bd-level ${tierClass(k + 1)}${t === null ? ' unused' : ''}"><i></i>${b.kind === 'club' ? parts.map((lab, j) => lab === null ? '' : box(k, j, t ? t[j] : null, lab)).join('') : box(k, undefined, t)} <em>${t === null ? '' : c[k]}</em></span>`).join('');
+  return `<div class="bs-row${b.on ? '' : ' off'}" id="bs-row-${b.id}">
+    <div class="bs-main"><div class="bs-head"><label class="bs-on"><input type="checkbox" id="bs-on-${b.id}" ${b.on ? 'checked' : ''} onchange="saveBadgeSetting('${b.id}',{on:this.checked});refreshBadgeSettings()"><span class="sr-only">Use ${b.defName}</span></label><input class="bs-name" id="bs-name-${b.id}" value="${b.name.replace(/"/g, '&quot;')}" placeholder="${b.defName}" aria-label="Badge name" onchange="saveBadgeSetting('${b.id}',{name:this.value.trim()});refreshBadgeSettings()">
+      <span class="bs-total">${c.reduce((a, x) => a + x, 0)} players</span>${badgeChanged(b) ? `<button type="button" class="card-link" onclick="resetBadgeSetting('${b.id}')">Reset</button>` : ''}</div>
+      <div class="muted bs-desc">${b.desc}</div><div class="bd-levels">${levels}</div></div></div>`;
+}
+function badgeSettingsHtml() {
+  const groups = BADGE_GROUPS.filter(g => BADGES.some(b => b.group === g));
+  const list = BADGES.filter(b => b.group === badgeSetState.group);
+  return `<div class="chart-card" id="badgeSettings"><div class="card-head"><div class="chart-title">${icon('star')} Badges</div><button class="card-link" onclick="resetAllBadgeSettings()">Reset all</button></div>
+    <p class="muted" style="margin-bottom:10px">Switch badges on or off, rename them and change the number each level needs. The player counts update as you change a level; leave a box empty to skip that level. Saved on this device.</p>
+    <div class="bs-summary"><b>${activeBadges().length}</b> of ${BADGES.length} badges on · <b>${badgeSettingsAvg()}</b> per player</div>
+    <div class="bs-groups">${groups.map(g => `<button type="button" class=""${badgeSetState.group === g ? 'active' : ''}" onclick="badgeSetState.group='${g}';refreshBadgeSettings()">${g} <span class="muted">${BADGES.filter(b => b.group === g && b.on).length}/${BADGES.filter(b => b.group === g).length}</span></button>`).join('')}</div>
+    <div class="bs-list">${list.map(badgeSettingRow).join('')}</div></div>`;
+}
+// Redraw on the next frame (an input's own change/blur events must finish first); keep the scroll position
+let badgeSetFrame = 0;
+function refreshBadgeSettings() {
+  cancelAnimationFrame(badgeSetFrame);
+  badgeSetFrame = requestAnimationFrame(() => { const el = document.getElementById('badgeSettings'); if (!el) return; const y = scrollY; el.outerHTML = badgeSettingsHtml(); scrollTo(0, y); });
+}
+function setBadgeLevel(id, k, j, raw) {
+  const b = BADGES.find(x => x.id === id), t = JSON.parse(JSON.stringify(b.tiers)), v = raw === '' ? null : Number(raw);
+  if (b.kind === 'club') {
+    const parts = BADGE_PARTS[id] || [], cur = (t[k] || b.defTiers[k] || b.defTiers.find(Boolean)).slice();
+    cur[j] = v;
+    const boxes = [...document.querySelectorAll(`[id^="bs-${id}-${k}-"]`)];
+    t[k] = boxes.every(x => x.value === '') ? null : cur.map((x, i) => parts[i] === null ? 1 : (x ?? 0));
+  } else t[k] = v;
+  saveBadgeSetting(id, { tiers: t }); refreshBadgeSettings();
+}
+function setBadgeFlag(id, k) { const t = [null, null, null, null]; t[Number(k)] = 1; saveBadgeSetting(id, { tiers: t }); refreshBadgeSettings(); }
+function resetBadgeSetting(id) { const set = badgeSettings(); delete set[id]; writeJSON(BADGE_SET_KEY, set); applyBadgeSettings(); refreshBadgeSettings(); }
+function resetAllBadgeSettings() { writeJSON(BADGE_SET_KEY, {}); applyBadgeSettings(); refreshBadgeSettings(); }
+
 // Every badge a player holds, best first
 function playerBadges(p) {
-  return cached('badges|' + p.Player, () => BADGES.map(b => ({ b, lv: b.level(p) })).filter(x => x.lv > 0)
+  return cached('badges|' + p.Player, () => activeBadges().map(b => ({ b, lv: b.level(p) })).filter(x => x.lv > 0)
     .sort((a, c) => c.lv - a.lv || BADGE_GROUPS.indexOf(a.b.group) - BADGE_GROUPS.indexOf(c.b.group)));
 }
 // Holders of each badge at each level
 function badgeHolders() {
   return cached('badgeHolders', () => {
-    const out = {}; BADGES.forEach(b => out[b.id] = [[], [], [], []]);
+    const out = {}; activeBadges().forEach(b => out[b.id] = [[], [], [], []]);
     everyPlayer().forEach(p => playerBadges(p).forEach(({ b, lv }) => out[b.id][lv - 1].push(p)));
     return out;
   });
@@ -253,13 +368,13 @@ function badgeLevelFilter(btn) {
 const badgeState = { group: '', open: null };
 function renderBadges() {
   const H = badgeHolders(), el = document.getElementById('badgesContent'); if (!el) return;
-  const groups = BADGE_GROUPS.filter(g => BADGES.some(b => b.group === g));
-  const shown = BADGES.filter(b => !badgeState.group || b.group === badgeState.group);
+  const groups = BADGE_GROUPS.filter(g => activeBadges().some(b => b.group === g));
+  const shown = activeBadges().filter(b => !badgeState.group || b.group === badgeState.group);
   // Players with the most badges, weighted by level
   const top = everyPlayer().map(p => { const l = playerBadges(p); return { p, n: l.length, score: l.reduce((a, x) => a + x.lv, 0), leg: l.filter(x => x.lv === 4).length }; })
     .sort((a, b) => b.score - a.score || b.leg - a.leg).slice(0, 10);
   el.innerHTML = `<div class="player-grid"><div>
-      <div class="seg bd-groups"><button class="${badgeState.group ? '' : 'active'}" onclick="badgeState.group='';renderBadges()">All ${BADGES.length}</button>${groups.map(g => `<button class="${badgeState.group === g ? 'active' : ''}" onclick="badgeState.group='${g}';renderBadges()">${g}</button>`).join('')}</div>
+      <div class="seg bd-groups"><button class="${badgeState.group ? '' : 'active'}" onclick="badgeState.group='';renderBadges()">All ${activeBadges().length}</button>${groups.map(g => `<button class="${badgeState.group === g ? 'active' : ''}" onclick="badgeState.group='${g}';renderBadges()">${g}</button>`).join('')}</div>
       <div class="bd-list">${shown.map(b => { const h = H[b.id], total = h.reduce((a, x) => a + x.length, 0), open = badgeState.open === b.id;
         return `<div class="bd-row${open ? ' open' : ''}"><div class="bd-row-head" role="button" tabindex="0" onclick="badgeState.open=${open ? 'null' : `'${b.id}'`};renderBadges()">
           <div><b>${b.name}</b> <span class="muted bd-group">${b.group}</span><div class="muted bd-desc">${b.desc}</div></div><span class="bd-total">${total}</span></div>
