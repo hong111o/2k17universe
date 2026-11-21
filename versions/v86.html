@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>2K17 NBA Stats Database</title>
+<script>window.LOGO_BASE='../assets/logos/';</script>
 <script>/* Light/dark choice from Settings, applied before the page paints */try{var t=localStorage.getItem('nba2k17-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
 <!-- PWA: installable app (removed from the claude.ai copy, which can't be installed) -->
 <link rel="manifest" href="manifest.webmanifest?v=2">
@@ -854,18 +855,6 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
 .fs-bar{height:4px;border-radius:2px;background:var(--line);margin-top:6px;overflow:hidden;} .fs-bar i{display:block;height:100%;background:var(--ink-3);border-radius:2px;}
 .fs-note{font-size:12px;margin-left:auto;}
 /* Team season card */
-.ts-card{position:relative;overflow:hidden;border-radius:12px;margin-bottom:16px;padding:16px 18px 0;color:var(--on-brand);background:linear-gradient(120deg,var(--hero),var(--hero-2));}
-.ts-mark{position:absolute;right:-30px;top:50%;transform:translateY(-55%);opacity:.16;pointer-events:none;-webkit-mask-image:radial-gradient(circle at center,#000 52%,transparent 70%);mask-image:radial-gradient(circle at center,#000 52%,transparent 70%);} .ts-mark .ts-logo{width:230px;height:230px;background:none !important;padding:0 !important;border-radius:0 !important;box-shadow:none !important;}
-.ts-kicker{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--on-brand-2);}
-.ts-rec{font-family:var(--font-display);font-size:56px;font-weight:900;line-height:1;margin:4px 0;}
-.ts-sub{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--on-brand-2);}
-.ts-badge{color:var(--on-brand);}
-.ts-strip{position:relative;display:grid;grid-template-columns:repeat(4,1fr);margin:14px -18px 0;border-top:1px solid rgba(255,255,255,.14);}
-.ts-strip > div{padding:8px 18px 10px;border-left:1px solid rgba(255,255,255,.14);} .ts-strip > div:first-child{border-left:0;}
-.ts-strip span{display:block;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--on-brand-2);}
-.ts-strip b{font-family:var(--font-display);font-size:20px;font-weight:700;}
-.ts-up{color:#7ee2a8;} .ts-down{color:#ff9b9b;}
-@media (max-width:640px){.ts-rec{font-size:48px;}.ts-strip{grid-template-columns:repeat(2,1fr);}.ts-strip > div:nth-child(3){border-left:0;}.ts-strip > div:nth-child(n+3){border-top:1px solid rgba(255,255,255,.14);}
   .fp-head,.fp-row{grid-template-columns:minmax(0,36%) 1fr;gap:8px;}.fp-label{font-size:12px;}}
 .fs-foot{display:flex;align-items:center;gap:8px;margin-top:6px;} .fs-foot .fs-bar{flex:1;margin:0;}
 .fs-label{display:block;}
@@ -896,6 +885,105 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
   .cmp-table th .cmp-sub{white-space:normal;overflow-wrap:anywhere;}
   .cmp-table td:first-child{white-space:normal;}
 }
+@media (max-width:640px){.cmp-teams .cmp-full{display:none;}.cmp-teams .cmp-short{display:inline;}.cmp-teams th .cmp-name .tlogo{display:none;}}
+.cmp-legend-s{display:none;}
+@media (max-width:640px){
+  .cmp-teams .cmp-legend{display:none;} .cmp-teams .cmp-legend-s{display:block;margin-top:2px;}
+  .cmp-teams .cmp-rec{display:block;font-size:11px;}
+}
+@media (max-width:360px){.cmp-teams .cmp-rec{font-size:9.5px;letter-spacing:-.2px;}}
+/* All-Time Lineup */
+.lu-label{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin:6px 0 6px;}
+.lu-five{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:8px;}
+.lu-bench-row{grid-template-columns:repeat(3,minmax(0,1fr));}
+.lu-player{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:10px;min-width:0;display:flex;flex-direction:column;gap:3px;}
+.lu-pos{font-family:var(--font-display);font-weight:800;font-size:13px;color:var(--ink-3);letter-spacing:.06em;}
+.lu-name{font-family:var(--font-display);font-weight:700;font-size:18px;line-height:1.15;}
+.lu-name .player-link,.lu-name .name-plain{white-space:normal;}
+.lu-tags{font-size:12px;color:var(--ink-3);line-height:1.35;}
+.lu-bench .lu-name{font-size:16px;}
+.lu-open{border-style:dashed;background:none;}
+@media (max-width:640px){.lu-five{grid-template-columns:repeat(2,minmax(0,1fr));}.lu-five > .lu-player:nth-child(5):last-child{grid-column:1 / -1;}.lu-bench-row{grid-template-columns:repeat(2,minmax(0,1fr));}}
+.spot-name{white-space:nowrap;overflow:hidden;}
+.team-alltime b{color:var(--ink);font-weight:700;} .team-alltime.on{color:var(--ink-2);}
+.team-alltime.on b{color:var(--link);}
+
+/* Team page header in the team's colour */
+.tm-hero{--tc:var(--hero);position:relative;background:var(--tc);color:#fff;border-radius:12px;padding:18px 24px 18px;margin-bottom:16px;overflow:hidden;transition:background .3s;}
+.tm-back{width:44px;height:44px;border-radius:50%;border:none;background:rgba(255,255,255,.82);color:color-mix(in srgb,var(--tc) 70%,#000);display:grid;place-items:center;cursor:pointer;margin-bottom:10px;}
+.tm-back svg{width:22px;height:22px;}
+.tm-top{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,.22);}
+.tm-kicker{font-size:16px;color:rgba(255,255,255,.92);}
+.tm-up,.tm-down{color:#fff;font-weight:700;}
+.tm-badge{display:inline-block;background:rgba(255,255,255,.18);color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:1px 8px;border-radius:999px;margin-left:4px;}
+.tm-yr{white-space:nowrap;font-size:12px;color:rgba(255,255,255,.65);margin-left:4px;}
+.tm-name{font-family:var(--font-display);font-weight:800;font-size:52px;line-height:.98;text-transform:uppercase;margin:6px 0 8px;letter-spacing:.2px;}
+.tm-name span{display:block;}
+.tm-logo-img{width:150px;height:150px;margin:0;background:none !important;padding:0 !important;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,.25));}
+.tm-logo-white .nba-logo{filter:brightness(0) invert(1) drop-shadow(0 2px 6px rgba(0,0,0,.25));}
+.tm-stats{display:grid;grid-template-columns:repeat(2,max-content);gap:6px 56px;padding:14px 0 4px;}
+.tm-stat{display:grid;grid-template-columns:6.2em 3.6em auto;align-items:baseline;gap:8px;font-size:17px;white-space:nowrap;}
+.tm-k{color:rgba(255,255,255,.7);overflow:hidden;text-overflow:ellipsis;}
+.tm-stat b{font-weight:700;}
+.tm-v{font-variant-numeric:tabular-nums;}
+.tm-btns{display:flex;gap:10px;overflow-x:auto;padding:12px 0 2px;scrollbar-width:none;}
+.tm-btns::-webkit-scrollbar{display:none;}
+.tm-btns button{flex:none;border:none;border-radius:8px;padding:9px 18px;font-family:var(--font-body);font-size:15px;font-weight:600;color:#fff;background:rgba(255,255,255,.2);cursor:pointer;}
+.tm-btns button.active{background:#fff;color:#111;}
+.tm-btns button:hover{background:rgba(255,255,255,.3);} .tm-btns button.active:hover{background:#f0f0f0;}
+@media (max-width:640px){.tm-hero{border-radius:0;margin:-12px -16px 16px;padding:14px 16px 14px;}
+  .tm-name{font-size:38px;} .tm-kicker{font-size:15px;} .tm-logo-img{width:118px;height:118px;}
+  .tm-stats{grid-template-columns:1fr 1fr;gap:4px 10px;} .tm-stat{grid-template-columns:5.6em 3.5em auto;font-size:14.5px;gap:4px;}
+  .tm-btns{margin-right:-16px;padding-right:16px;}}
+@media (max-width:380px){.tm-name{font-size:32px;} .tm-logo-img{width:92px;height:92px;} .tm-stat{font-size:13.5px;}}
+
+/* The rest of the team page takes the team's colour */
+#teamPage.tm-themed{--ta:var(--ta-l);--link:var(--ta);--link-hover:var(--ta);background:linear-gradient(180deg,color-mix(in srgb,var(--tc) 12%,transparent) 0,transparent 900px);border-radius:12px;}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) #teamPage.tm-themed{--ta:var(--ta-d);background:linear-gradient(180deg,color-mix(in srgb,var(--tc) 30%,transparent) 0,transparent 900px);}}
+:root[data-theme="dark"] #teamPage.tm-themed{--ta:var(--ta-d);background:linear-gradient(180deg,color-mix(in srgb,var(--tc) 30%,transparent) 0,transparent 900px);}
+.tm-themed .chart-card{border-top:3px solid var(--ta);}
+.tm-themed .chart-title .ic:not(.ic-champ):not(.ic-silver),.tm-themed .modal-section-title .ic{color:var(--ta);}
+.tm-themed .seg button.active{background:var(--tc);color:#fff;}
+.tm-themed .jersey{border-color:var(--ta);}
+.tm-themed .jersey-num{color:var(--ta);}
+.tm-themed .lu-player{border-top:3px solid var(--ta);}
+.tm-themed .fold .fold-head .chart-title::after,.tm-themed .fold > .chart-title.fold-head::after{border-color:var(--ta);}
+.tm-themed .rb-rank{color:var(--ta);}
+@media (max-width:640px){#teamPage.tm-themed,:root[data-theme="dark"] #teamPage.tm-themed{background:none;}}
+@media (max-width:640px) and (prefers-color-scheme: dark){:root:not([data-theme="light"]) #teamPage.tm-themed{background:none;}}
+.sbs-latest{font-size:13px;color:var(--ink-3);margin:-4px 0 10px;line-height:1.6;}
+.tm-hero .tm-badge{margin:2px 0 0;}
+.tm-kicker .ic{vertical-align:-2px;}
+.tm-kicker-grid{display:grid;grid-template-columns:repeat(3,max-content);column-gap:8px;row-gap:2px;align-items:center;}
+.tm-kicker-grid i{font-style:normal;color:rgba(255,255,255,.55);}
+.tm-kicker-grid span{white-space:nowrap;display:inline-flex;align-items:center;gap:4px;}
+
+/* Team Home tab */
+.th-more{margin-left:auto;}
+.th-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.th-strip > div{background:var(--surface-2);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;}
+.th-strip > div b{margin-top:auto;padding-top:4px;}
+.th-strip span,.th-tiles span{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);}
+.th-strip b{font-family:var(--font-display);font-size:22px;font-weight:800;} .th-strip small{font-size:13px;color:var(--ink-3);font-weight:600;}
+.th-bars{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px;height:150px;align-items:end;}
+.th-bar{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;cursor:pointer;min-width:0;}
+.th-bar b{font-size:12px;font-weight:700;color:var(--ink-2);margin-bottom:3px;}
+.th-bar i{display:block;width:100%;max-width:34px;border-radius:4px 4px 0 0;background:var(--line);}
+.th-bar.is-po i{background:var(--ta,var(--link));} .th-bar.is-champ i{background:var(--champ);} .th-bar.is-ru i{background:var(--silver);}
+.th-bar span{font-size:11px;color:var(--ink-3);margin-top:4px;}
+.th-key{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:12px;color:var(--ink-3);}
+.th-key i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px;}
+.th-key .k-champ{background:var(--champ);} .th-key .k-ru{background:var(--silver);} .th-key .k-po{background:var(--ta,var(--link));} .th-key .k-out{background:var(--line);}
+.th-five{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;}
+.th-five > div{background:var(--surface-2);border-radius:8px;padding:8px 10px;border-top:3px solid var(--ta,var(--link));display:flex;flex-direction:column;gap:2px;min-width:0;font-weight:700;}
+.th-five .player-link,.th-five .name-link{white-space:normal;}
+.th-face-name{font-family:var(--font-display);font-size:26px;font-weight:800;display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;}
+.th-face-sub{font-size:13px;margin-top:6px;}
+.th-tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.th-tiles > div{background:var(--surface-2);border-radius:8px;padding:10px 12px;}
+.th-tiles b{display:block;font-family:var(--font-display);font-size:24px;font-weight:800;line-height:1.1;}
+@media (max-width:640px){.th-strip{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;} .th-strip > div{padding:8px 8px;} .th-strip span{font-size:9.5px;letter-spacing:.04em;} .th-strip b{font-size:17px;} .th-strip small{display:none;} .th-five{grid-template-columns:1fr 1fr;} .th-bars{height:120px;gap:4px;}}
+
 </style>
 </head>
 <body>
@@ -1154,7 +1242,7 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
   <div class="toolbar">
     <div class="search-wrap"><span class="icon"><svg class="ic"><use href="#i-search"/></svg></span><input type="text" id="teamSearch" placeholder="Search teams..." oninput="filterTeams()"></div>
     <select id="teamConfFilter" onchange="filterTeams()"><option value="">All Conferences</option><option value="EAST">East</option><option value="WEST">West</option></select>
-    <select id="teamSortFilter" onchange="filterTeams()" aria-label="Sort teams by"><option value="Glory Score">Glory Score</option><option value="Championship">Championships</option><option value="Conference Titles">Conference titles</option><option value="Division Titles">Division titles</option><option value="Playoffs">Playoffs</option><option value="_lastWins">Last season's wins</option><option value="Avg. W Last 5Y">Avg. wins, last 5 years</option><option value="Avg. W Last 10Y">Avg. wins, last 10 years</option><option value="Est. Date">Year established</option></select>
+    <select id="teamSortFilter" onchange="filterTeams()" aria-label="Sort teams by"><option value="Glory Score">Glory Score</option><option value="_allPct">All-time win %</option><option value="_allWins">All-time wins</option><option value="Championship">Championships</option><option value="Conference Titles">Conference titles</option><option value="Division Titles">Division titles</option><option value="Playoffs">Playoffs</option><option value="_lastWins">Last season's wins</option><option value="Avg. W Last 5Y">Avg. wins, last 5 years</option><option value="Avg. W Last 10Y">Avg. wins, last 10 years</option><option value="Est. Date">Year established</option></select>
     <button class="icon-btn" id="teamSortDir" type="button" onclick="flipTeamSort()" aria-label="Sort direction">↓ High first</button>
   </div>
   <div class="team-grid" id="teamGrid"></div>
@@ -1770,25 +1858,26 @@ async function shrinkLogos(size = 160) {
     } catch (e) { done[url] = url; }
   }
 }
-// Current official logos for the 30 NBA teams, loaded from the NBA's logo server in the browser
-// (not stored in this repository). The workbook's own logo is the fallback, and the only logo for
-// the league's game-era teams.
+// Current official logos for the 30 NBA teams, stored with the site in assets/logos/ (one PNG per
+// NBA team id), so they work offline. The workbook's own logo is the fallback, and the only logo for
+// the league's game-era teams. Single-file copies set LOGO_BASE (backups) or LOGO_DATA (preview).
 const NBA_TEAM_IDS = { 'Atlanta Hawks': 1610612737, 'Boston Celtics': 1610612738, 'Cleveland Cavaliers': 1610612739, 'New Orleans Pelicans': 1610612740,
   'Chicago Bulls': 1610612741, 'Dallas Mavericks': 1610612742, 'Denver Nuggets': 1610612743, 'Golden State Warriors': 1610612744, 'Houston Rockets': 1610612745,
   'Los Angeles Clippers': 1610612746, 'Los Angeles Lakers': 1610612747, 'Miami Heat': 1610612748, 'Milwaukee Bucks': 1610612749, 'Minnesota Timberwolves': 1610612750,
   'Brooklyn Nets': 1610612751, 'New York Knicks': 1610612752, 'Orlando Magic': 1610612753, 'Indiana Pacers': 1610612754, 'Philadelphia 76ers': 1610612755,
   'Phoenix Suns': 1610612756, 'Portland Trail Blazers': 1610612757, 'Sacramento Kings': 1610612758, 'San Antonio Spurs': 1610612759, 'Oklahoma City Thunder': 1610612760,
   'Toronto Raptors': 1610612761, 'Utah Jazz': 1610612762, 'Memphis Grizzlies': 1610612763, 'Washington Wizards': 1610612764, 'Detroit Pistons': 1610612765, 'Charlotte Hornets': 1610612766 };
-let nbaLogosOk = true; // turned off after the first failure (offline, blocked), so pages stop trying
+const logoUrl = id => (window.LOGO_DATA && window.LOGO_DATA[id]) || (window.LOGO_BASE || 'assets/logos/') + id + '.png';
+// One logo failing (a network blip) only affects that image: try it once more, then the workbook's logo
 function logoFail(img) {
-  nbaLogosOk = false;
+  if (!img.dataset.retry) { img.dataset.retry = '1'; const s = img.src; setTimeout(() => { img.src = s + (s.startsWith('data:') ? '' : '?r=1'); }, 800); return; }
   const u = DB.logos && DB.logos[img.dataset.team];
   img.onerror = null;
   if (u) { img.src = u; img.classList.remove('nba-logo'); } else img.remove();
 }
 function teamLogo(team, cls) {
   const full = fullTeamName(team), u = DB.logos && (DB.logos[full] || DB.logos[team]), id = NBA_TEAM_IDS[full];
-  if (id && nbaLogosOk) return `<img class="tlogo nba-logo${cls ? ' ' + cls : ''}" src="https://cdn.nba.com/logos/nba/${id}/primary/L/logo.svg" data-team="${full}" onerror="logoFail(this)" alt="" aria-hidden="true" decoding="async">`;
+  if (id) return `<img class="tlogo nba-logo${cls ? ' ' + cls : ''}" src="${logoUrl(id)}" data-team="${full}" onerror="logoFail(this)" alt="" aria-hidden="true" decoding="async">`;
   return u ? `<img class="tlogo${cls ? ' ' + cls : ''}" src="${u}" alt="" aria-hidden="true" decoding="async">` : '';
 }
 // Flags which of a player's team stints are in red (aligned with playerTeams)
@@ -2829,7 +2918,16 @@ function goPosPage(p) { posState.page = p; renderPos(); }
 // =====================================================================
 // Franchises can be sorted high-to-low or low-to-high on any of the menu's measures
 let teamSortDir = -1;
+// All-time regular-season record over every season the franchise has (Team History + Team Record)
+function allTimeRecord(t) {
+  let w = 0, l = 0;
+  Object.values(t.seasonRecords || {}).forEach(r => { w += r.w || 0; l += r.l || 0; });
+  return { w, l, pct: w + l ? w / (w + l) : null, seasons: Object.keys(t.seasonRecords || {}).length };
+}
 function teamSortVal(t, sc) {
+  // Win %: franchises with under 10 seasons sort after the rest, so one good season can't top the list
+  if (sc === '_allPct') { const a = allTimeRecord(t); if (a.pct === null) return -Infinity; return a.seasons < 10 ? (teamSortDir < 0 ? a.pct - 10 : a.pct + 10) : a.pct; }
+  if (sc === '_allWins') return allTimeRecord(t).w;
   if (sc === '_lastWins') { const r = DB.latestSeason && t.seasonRecords?.[DB.latestSeason]; return r ? r.rawW : -Infinity; }
   const v = getNum(t[sc]); return v === -Infinity ? (teamSortDir < 0 ? -Infinity : Infinity) : v;
 }
@@ -2858,6 +2956,7 @@ function filterTeams() {
         ${r ? `<span class="team-rank">#${r.confRk} in ${t.Conference === 'EAST' ? 'East' : 'West'} · #${r.leagueRk} in league</span>` : ''}
       </div>
       <div class="team-meta">Est. ${t['Est. Date']||'—'} · Glory Score ${t['Glory Score']||0}</div>
+      ${(() => { const a = allTimeRecord(t); return a.pct === null ? '' : `<div class="team-meta team-alltime${/^_all/.test(sc) ? ' on' : ''}">All-time <b>${a.w.toLocaleString()}-${a.l.toLocaleString()}</b> · <b>${a.pct.toFixed(3).replace(/^0/, '')}</b> · ${a.seasons} season${a.seasons === 1 ? '' : 's'}</div>`; })()}
       <div class="team-stats-row">
         <div class="team-stat"><div class="tv">${t.Championship||0}</div><div class="tl">Titles</div></div>
         <div class="team-stat"><div class="tv">${t['Conference Titles']||0}</div><div class="tl">Conf</div></div>
@@ -2872,14 +2971,14 @@ function filterTeams() {
 // =====================================================================
 // TEAM PAGE (replaces the old team popup; every team link lands here)
 // =====================================================================
-let teamState = { t: null };
+let teamState = { t: null, tab: 'home' };
 // Kept under its old name because every team link in the app calls it
 function openTeamModal(teamName, fromHistory) {
   const t = DB.teams.find(x => x.Team === teamName);
   if (!t) return;
   closeModal();
   closeSearch();
-  teamState.t = t.Team;
+  teamState.t = t.Team; teamState.tab = 'home';
   const hash = '#team-' + playerSlug(t.Team);
   if (!fromHistory && location.hash !== hash) history.pushState(null, '', hash);
   renderTeamPage();
@@ -2927,7 +3026,7 @@ function retiredFromPlayers(teamName) {
 // Trophy cabinet: individual awards won by the franchise's players while with it (NBA History
 // logos, Season Stat Leader teams), grouped by player with the seasons. Titles and Finals MVPs
 // are left out: the header and Finals History already show them, and Finals MVPs match titles
-function trophyCabinet(teamName, titles, finals) {
+function trophyCabinet(teamName, titles, finals, divTitles = 0) {
   const groups = [];
   const collect = (label, entries) => {
     const by = new Map();
@@ -2939,8 +3038,8 @@ function trophyCabinet(teamName, titles, finals) {
   collect('MVP', hist('MVP')); collect('DPOY', hist('DPOY')); collect('Rookie of the Year', hist('ROTY'));
   [['Pts', 'Scoring title'], ['Reb', 'Rebounding title'], ['Ast', 'Assists title'], ['Stl', 'Steals title'], ['Blk', 'Blocks title']].forEach(([k, l]) =>
     collect(l, DB.statLeaders.filter(r => r[k + 'Leader'] && teamByCode(r[k + 'Team'])?.Team === teamName).map(r => ({ name: r[k + 'Leader'], yr: Number(r.Season) }))));
-  if (!groups.length) return '';
-  const tiles = [...groups.filter(g => !/title$/.test(g.label)).map(g => [g.label === 'Rookie of the Year' ? 'ROTY' : g.label, g.n]),
+  if (!groups.length && !divTitles) return '';
+  const tiles = [['Division titles', divTitles], ...groups.filter(g => !/title$/.test(g.label)).map(g => [g.label === 'Rookie of the Year' ? 'ROTY' : g.label, g.n]),
     ['Stat titles', groups.filter(g => /title$/.test(g.label)).reduce((a, g) => a + g.n, 0)]].filter(([, v]) => v > 0);
   return `<div class="chart-card tc-card"><div class="chart-title">${icon('trophy', 'ic-champ')} Trophy Cabinet</div>
     <div class="tc-tiles fold-keep">${tiles.map(([l, v]) => `<div class="tc-tile"><b>${v}</b><span>${l}</span></div>`).join('')}</div>
@@ -2966,37 +3065,16 @@ function renderTeamPage() {
   const earlier = Math.max(0, (Number(t.Championship) || 0) - won.length);
   const parts = [];
 
-  const bio = [
-    ['Conference', t.Conference === 'EAST' ? 'East' : t.Conference === 'WEST' ? 'West' : (t.Conference || '—')],
-    ['Established', t['Est. Date'] || '—'],
-    ['Glory rank', t.Rank ? `#${t.Rank} of ${DB.teams.filter(x => !x.defunct).length}` : '—'],
-    ['Glory score', t['Glory Score'] || 0],
-    ...(seasonInfo.length ? [[`Record (${seasonInfo.length} seasons)`, `${totW.toLocaleString()}-${totL.toLocaleString()} (${(totW / Math.max(totW + totL, 1)).toFixed(3).replace(/^0/, '')})`]] : []),
-    ...(won.length + lost.length ? [['Finals record', `${won.length}-${lost.length}`]] : []),
-    ['Last title', t['Last Title'] || '—'],
-  ];
-  parts.push(`<section class="player-hero team-hero">
-    <button class="hero-back" onclick="teamBack()" aria-label="Back">← Back</button>
-    <div class="ph-main">
-      <div class="team-hero-head">${teamLogo(t.Team, 'tlogo-xl')}<div>
-        <div class="hero-kicker">${icon('trophy')} Franchise</div>
-        <h1 class="ph-name">${t.Team}</h1></div></div>
-      <dl class="bio-strip">${bio.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>
-    </div>
-    <div class="ph-stats">${[['Titles', t.Championship || 0], ['Conf. titles', t['Conference Titles'] || 0], ['Playoffs', t.Playoffs || 0]].map(([k, v]) => `<div><b>${v}</b><span>${k}</span></div>`).join('')}
-      <div class="ph-sub">${t['Division Titles'] || 0} division titles · last Finals ${t['Last Finals'] || '—'}</div>
-    </div>
-  </section>`);
+  parts.push(teamHeroHtml(t, won, lost));
 
   // Latest season at a glance, then the franchise's numbers with their league rank
-  parts.push(teamSeasonCard(teamName));
-  parts.push(franchiseStats(teamName));
-  const main = [], side = [];
+  const C = {};
+  C.lineup = franchiseLineupHtml(teamName);
   // Finals history, newest first
   const fin = [...won.map(yr => ({ yr, w: true })), ...lost.map(yr => ({ yr, w: false }))].sort((a, b) => b.yr - a.yr);
-  if (fin.length || earlier) main.push(`<div class="chart-card"><div class="chart-title">${icon('trophy', 'ic-champ')} Finals History</div>
+  if (fin.length || earlier) C.finals = (`<div class="chart-card"><div class="chart-title">${icon('trophy', 'ic-champ')} Finals History</div>
     <div class="fin-chips">${fin.map(f => `<span class="fin-chip ${f.w ? 'won' : 'lost'}" onclick="openSeason(${f.yr})" role="button" tabindex="0" title="${f.w ? 'Won' : 'Lost'} the ${seasonLabel(f.yr)} Finals">${icon('trophy', f.w ? 'ic-champ' : 'ic-silver')} ${seasonLabel(f.yr)}</span>`).join('')}</div>
-    <div class="fin-key"><span>${icon('trophy', 'ic-champ')} Won ${won.length}</span><span>${icon('trophy', 'ic-silver')} Lost ${lost.length}</span>${earlier ? `<span>+${earlier} title${earlier > 1 ? 's' : ''} before ${seasonLabel(firstHist)}</span>` : ''}</div></div>`);
+    <div class="fin-key"><span>${icon('trophy', 'ic-champ')} Won ${won.length}</span><span>${icon('trophy', 'ic-silver')} Lost ${lost.length}</span>${t['Last Title'] && t['Last Title'] !== '-' ? `<span>Last title ${t['Last Title']}</span>` : ''}${earlier ? `<span>+${earlier} title${earlier > 1 ? 's' : ''} before ${seasonLabel(firstHist)}</span>` : ''}</div></div>`);
   // Finals record against each opponent
   const rivals = {};
   finals.filter(f => f.champ === teamName || f.ru === teamName).forEach(f => {
@@ -3007,16 +3085,18 @@ function renderTeamPage() {
     r.games.push({ yr: f.yr, won: f.champ === teamName });
   });
   const rivalRows = Object.entries(rivals).sort((a, b) => (b[1].w + b[1].l) - (a[1].w + a[1].l) || b[1].w - a[1].w || Math.max(...b[1].games.map(g => g.yr)) - Math.max(...a[1].games.map(g => g.yr)));
-  if (rivalRows.length) main.push(`<div class="chart-card rb-card"><div class="chart-title">${icon('trophy', 'ic-champ')} Finals Rivalries</div>
+  if (rivalRows.length) C.rivals = (`<div class="chart-card rb-card"><div class="chart-title">${icon('trophy', 'ic-champ')} Finals Rivalries</div>
     ${rivalRows.map(([opp, r]) => `<div class="rb-row"><span class="rb-rank"></span><span class="rb-main">${teamLink(opp)}</span>
       <span class="rb-val ${r.w > r.l ? 'rec-win' : r.w < r.l ? 'rec-loss' : ''}">${r.w}-${r.l}</span>
       <span class="rb-sub">${r.games.sort((a, b) => b.yr - a.yr).map(g => `<span class="nowrap">${icon('trophy', g.won ? 'ic-champ' : 'ic-silver')}${seasonLink(g.yr)}</span>`).join(' · ')}</span></div>`).join('')}</div>`);
-  main.push(`<div class="chart-card">${legendsHtml(t.Team)}</div>`);
-  if (seasonInfo.length >= 2) main.push(`<div class="chart-card"><div class="chart-title">${icon('line')} Wins per Season</div>
+  C.legends = `<div class="chart-card">${legendsHtml(t.Team)}</div>`;
+  if (seasonInfo.length >= 2) C.wins = (`<div class="chart-card"><div class="chart-title">${icon('line')} Wins per Season</div>
     <div class="wc-key"><span><i class="wc-dot champ"></i>Champion</span><span><i class="wc-dot silver"></i>Lost Finals</span><span><i class="wc-rule"></i>.500 (41 wins)</span></div>
     <div class="seg wc-range" id="winRange"></div>
     <div class="win-chart" id="winChart"></div></div>`);
-  if (seasonInfo.length) main.push(`<div class="chart-card"><div class="chart-title">${icon('calendar')} Season by Season</div>
+  const latestLine = [t['Est. Date'] ? `Since ${t['Est. Date']}` : '', `${seasonInfo.length} seasons recorded`].filter(Boolean).join(' · ');
+  if (seasonInfo.length) C.sbs = (`<div class="chart-card"><div class="chart-title">${icon('calendar')} Season by Season</div>
+    ${latestLine ? `<p class="sbs-latest fold-keep">${latestLine}</p>` : ''}
     <div class="season-scroll"><table class="standings-table">
       <thead><tr><th>Season</th><th class="num">Record</th><th class="num">Conf</th><th class="num">League</th><th class="num">Win%</th><th>Result</th></tr></thead>
       <tbody>${seasonInfo.map(si => `<tr class="${si.isChamp ? 'row-champ' : si.isRU ? 'row-ru' : si.madePlayoffs ? 'row-playoff' : ''}">
@@ -3027,17 +3107,17 @@ function renderTeamPage() {
     </table></div></div>`);
 
   // Side column: trophy cabinet, best run, best and worst seasons, retired numbers, active players
-  const cabinet = trophyCabinet(teamName, won.length, won.length + lost.length);
-  if (cabinet) side.push(cabinet);
+  const cabinet = trophyCabinet(teamName, won.length, won.length + lost.length, Number(t['Division Titles']) || 0);
+  if (cabinet) C.cabinet = (cabinet);
   const runs = [3, 5, 10].map(len => ({ len, r: teamWindows(len).find(x => x.team === teamName) })).filter(x => x.r);
-  if (runs.length) side.push(`<div class="chart-card rb-card"><div class="chart-title">${icon('star')} Best Runs</div>
+  if (runs.length) C.runs = (`<div class="chart-card rb-card"><div class="chart-title">${icon('star')} Best Runs</div>
     ${runs.map(({ len, r }) => `<div class="rb-row"><span class="rb-rank"></span><span class="rb-main">${len} seasons</span><span class="rb-val">${r.titles} title${r.titles > 1 ? 's' : ''}</span>
       <span class="rb-sub">${runLabel(r)}</span></div>`).join('')}
     <button class="card-link" onclick="showSection('records');setTimeout(()=>document.getElementById('rb-dynasties')?.scrollIntoView(),50)">All dynasties</button></div>`);
   const seasonRow = si => `<div class="rb-row"><span class="rb-rank"></span><span class="rb-main">${seasonLink(si.yr)}</span><span class="rb-val">${si.w}-${si.l}</span>
-    <span class="rb-sub">${si.isChamp ? 'Won the title' : si.isRU ? 'Lost in the Finals' : si.madePlayoffs === false ? `Missed the playoffs (#${si.confRk})` : `#${si.confRk} in the ${confName(si.conf)}`}${si.label ? ` · ${si.label}` : ''}</span></div>`;
+    <span class="rb-sub">${si.isChamp ? 'Won the title' : si.isRU ? 'Conf. Champion' : si.madePlayoffs === false ? `Missed the playoffs (#${si.confRk})` : `#${si.confRk} in the ${confName(si.conf)}`}${si.label ? ` · ${si.label}` : ''}</span></div>`;
   if (seasonInfo.length) {
-    side.push(`<div class="chart-card rb-card bw-card"><div class="card-head"><div class="chart-title">${icon('calendar')} Best &amp; Worst Seasons</div>
+    C.bw = (`<div class="chart-card rb-card bw-card"><div class="card-head"><div class="chart-title">${icon('calendar')} Best &amp; Worst Seasons</div>
       <div class="seg"><button class="active" onclick="bwSwitch(this, 'best')">Best</button><button onclick="bwSwitch(this, 'worst')">Worst</button></div></div>
       <div class="bw-list" data-list="best">${[...seasonInfo].sort((a, b) => b.pct - a.pct || b.w - a.w || b.yr - a.yr).slice(0, 5).map(seasonRow).join('')}</div>
       <div class="bw-list" data-list="worst" hidden>${[...seasonInfo].sort((a, b) => a.pct - b.pct || a.w - b.w || b.yr - a.yr).slice(0, 5).map(seasonRow).join('')}</div></div>`);
@@ -3045,7 +3125,7 @@ function renderTeamPage() {
   const retired = retiredForTeam(teamName);
   const jerseys = retired.filter(r => r.type === 'Player'), others = retired.filter(r => r.type !== 'Player');
   const byNum = (a, b) => (parseInt(a.num) || 999) - (parseInt(b.num) || 999);
-  if (retired.length) side.push(`<div class="chart-card"><div class="chart-title">${icon('jersey')} Retired Numbers <span class="muted">${retired.length}</span></div>
+  if (retired.length) C.retired = (`<div class="chart-card"><div class="chart-title">${icon('jersey')} Retired Numbers <span class="muted">${retired.length}</span></div>
     <div class="chip-row">${jerseys.sort(byNum).map(r => `<div class="jersey" ${r.years ? `title="${r.years}"` : ''}><div class="jersey-num">${r.num}</div>
       <div class="jersey-name">${r.linked ? nameLink(r.player) : `<span class="name-plain">${r.player}</span>`}</div>${r.years ? `<div class="jersey-years">${r.years}</div>` : ''}</div>`).join('')}</div>
     ${others.length ? `<div class="jersey-others"><div class="jo-title">Also honored</div>${others.map(r => `<div class="jo-row"><b>${r.num && r.num !== '—' ? r.num : '—'}</b> ${r.player} <span class="muted">${r.type}${r.years ? ' · ' + r.years : ''}</span></div>`).join('')}</div>` : ''}</div>`);
@@ -3060,27 +3140,216 @@ function renderTeamPage() {
       return `<div class="rb-row"><span class="rb-rank">${posBadge(p.Position)}</span><span class="rb-main">${nameLink(p.Player)}${isActive(p) ? ' <span class="muted">active</span>' : ''}</span>
         <span class="rb-val rb-val-sm">${span ? seasonLabel(span[0]) : ''}</span><span class="rb-sub">${stay}</span></div>`;
     };
-    side.push(`<div class="chart-card rb-card"><div class="chart-title">${icon('people')} Started Here</div>
+    C.started = (`<div class="chart-card rb-card"><div class="chart-title">${icon('people')} Started Here</div>
       ${startedHere.slice(0, 8).map(row).join('')}
       ${startedHere.length > 8 ? `<details class="more-legends"><summary>All ${startedHere.length} players who started here</summary>${startedHere.slice(8).map(row).join('')}</details>` : ''}
       <div class="muted" style="font-size:12px;margin-top:6px">First team on the player's row · season = their first</div></div>`);
   }
-  if (activeHere.length) side.push(`<div class="chart-card rb-card"><div class="chart-title">${icon('people')} Active Players Here</div>
+  if (activeHere.length) C.active = (`<div class="chart-card rb-card"><div class="chart-title">${icon('people')} Active Players Here</div>
     ${activeHere.map(p => `<div class="rb-row"><span class="rb-rank">${posBadge(p.Position)}</span><span class="rb-main">${nameLink(p.Player)}</span><span class="rb-val">${p['All Stars'] || 0}</span>
       <span class="rb-sub">${draftCareer(p)}</span></div>`).join('')}<div class="muted" style="font-size:12px;margin-top:6px">Last team listed on their row · number = All-Star selections</div></div>`);
 
-  parts.push(`<div class="player-grid"><div>${main.join('')}</div><div>${side.join('')}</div></div>`);
+  C.home = teamHomeHtml(t, seasonInfo, won, lost);
+  // Each tab is its own short page; the team always opens on Home
+  const grid = (m, sd) => `<div class="player-grid"><div>${m.filter(Boolean).join('')}</div><div>${sd.filter(Boolean).join('')}</div></div>`;
+  const tabs = {
+    home: C.home,
+    seasons: grid([C.wins, C.sbs], [C.bw, C.runs]),
+    players: (C.lineup || '') + grid([C.legends], [C.retired, C.started, C.active]),
+    trophies: grid([C.finals, C.rivals], [C.cabinet]),
+  };
+  parts.push(Object.entries(tabs).map(([k, html]) => `<div class="tm-tab" data-tab="${k}"${k === teamState.tab ? '' : ' hidden'}>${html}</div>`).join(''));
   const tp = document.getElementById('teamPage');
   tp.innerHTML = parts.join('');
-  applyFolds(tp, TEAM_FOLDS);
+  finishTeamHero(tp);
   winChartData = { team: t, seasons: [...seasonInfo].reverse() };
+}
+
+// =====================================================================
+// TEAM HEADER: the team's colour behind its logo, the franchise numbers with
+// their rank among all franchises, and buttons that jump to each section
+// =====================================================================
+// Main colours of the 30 teams, the darker one where the main colour is too light for white text
+const TEAM_COLORS = {
+  'Atlanta Hawks': '#C8102E', 'Boston Celtics': '#007A33', 'Brooklyn Nets': '#1F1F1F', 'Charlotte Hornets': '#1D1160', 'Chicago Bulls': '#CE1141',
+  'Cleveland Cavaliers': '#860038', 'Dallas Mavericks': '#00538C', 'Denver Nuggets': '#0E2240', 'Detroit Pistons': '#1D42BA', 'Golden State Warriors': '#1D428A',
+  'Houston Rockets': '#BA2A35', 'Indiana Pacers': '#002D62', 'Los Angeles Clippers': '#1B2148', 'Los Angeles Lakers': '#552583', 'Memphis Grizzlies': '#12173F',
+  'Miami Heat': '#98002E', 'Milwaukee Bucks': '#00471B', 'Minnesota Timberwolves': '#236192', 'New Orleans Pelicans': '#0C2340', 'New York Knicks': '#006BB6',
+  'Oklahoma City Thunder': '#007AC1', 'Orlando Magic': '#0077C0', 'Philadelphia 76ers': '#006BB6', 'Phoenix Suns': '#1D1160', 'Portland Trail Blazers': '#C4262E',
+  'Sacramento Kings': '#5A2D81', 'San Antonio Spurs': '#2E3236', 'Toronto Raptors': '#CE1141', 'Utah Jazz': '#4A0F86', 'Washington Wizards': '#002B5C',
+};
+// Logos that are the same colour as their header are shown in white, as the NBA app does
+const TEAM_LOGO_WHITE = new Set(['Houston Rockets', 'Toronto Raptors', 'Utah Jazz']);
+// Darken a colour until white text on it is easy to read (contrast 4.5 or more)
+function readableTeamColor(rgb) {
+  let [r, g, b] = rgb;
+  const lum = c => { c /= 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+  for (let i = 0; i < 30 && 1.05 / (0.2126 * lum(r) + 0.7152 * lum(g) + 0.0722 * lum(b) + 0.05) < 4.5; i++) { r *= 0.9; g *= 0.9; b *= 0.9; }
+  return `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`;
+}
+// Other teams: the most common strong colour in the workbook logo
+const logoColorCache = {};
+function logoColor(src) {
+  if (logoColorCache[src]) return logoColorCache[src];
+  return (logoColorCache[src] = new Promise(res => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const n = 48, c = document.createElement('canvas'); c.width = c.height = n;
+        const g = c.getContext('2d'); g.drawImage(img, 0, 0, n, n);
+        const d = g.getImageData(0, 0, n, n).data, buckets = {};
+        for (let i = 0; i < d.length; i += 4) {
+          const [r, gg, b, a] = [d[i], d[i + 1], d[i + 2], d[i + 3]];
+          const mx = Math.max(r, gg, b), mn = Math.min(r, gg, b);
+          if (a < 200 || mx < 40 || mn > 225 || mx - mn < 50) continue;   // skip clear, black, white and grey pixels
+          const k = (r >> 5) + ',' + (gg >> 5) + ',' + (b >> 5);
+          const e = (buckets[k] = buckets[k] || [0, 0, 0, 0]); e[0] += r; e[1] += gg; e[2] += b; e[3]++;
+        }
+        const top = Object.values(buckets).sort((x, y) => y[3] - x[3])[0];
+        res(top && top[3] > 20 ? readableTeamColor([top[0] / top[3], top[1] / top[3], top[2] / top[3]]) : null);
+      } catch (e) { res(null); }
+    };
+    img.onerror = () => res(null);
+    img.src = src;
+  }));
+}
+// Team Home: the first page of every team, a short summary with links into the other tabs
+function teamHomeHtml(t, seasonInfo, won, lost) {
+  const name = t.Team, L = teamLatest(t), parts = [], side = [];
+  const more = (tab, label) => `<button class="card-link th-more" onclick="setTeamTab('${tab}')">${label} →</button>`;
+  // This season, beyond the record and result already in the header
+  if (L) parts.push(`<div class="chart-card"><div class="card-head"><div class="chart-title">${icon('calendar')} ${seasonLabel(L.yr)} Season</div>${more('seasons', 'All seasons')}</div>
+    <div class="th-strip">
+      <div><span>Games back</span><b>${L.gb ? String(L.gb).replace(/\.0$/, '') : '—'}</b></div>
+      <div><span>League rank</span><b>${ordinalRank(L.me.leagueRk)} <small>of ${L.n}</small></b></div>
+      <div><span>Last season</span><b>${L.prev ? `${L.prev.w}-${L.prev.l}` : '—'}</b></div>
+      <div><span>Change</span><b class="${L.delta > 0 ? 'rec-win' : L.delta < 0 ? 'rec-loss' : ''}">${L.delta === null ? '—' : (L.delta > 0 ? '+' : L.delta < 0 ? '−' : '') + Math.abs(L.delta) + ' win' + (Math.abs(L.delta) === 1 ? '' : 's')}</b></div>
+    </div></div>`);
+  // The last 10 seasons as bars (wins scaled to 82 games)
+  const last = seasonInfo.slice(0, 10).reverse();
+  if (last.length >= 2) parts.push(`<div class="chart-card"><div class="card-head"><div class="chart-title">${icon('chart')} Last ${last.length} Seasons</div>${more('seasons', 'Wins chart')}</div>
+    <div class="th-bars">${last.map(si => `<div class="th-bar ${si.isChamp ? 'is-champ' : si.isRU ? 'is-ru' : si.madePlayoffs ? 'is-po' : ''}" title="${seasonLabel(si.yr)}: ${si.w}-${si.l}${si.isChamp ? ', champion' : si.isRU ? ', conference champion' : si.madePlayoffs ? ', playoffs' : ''}" onclick="openSeason(${si.yr})">
+      <b>${si.w}</b><i style="height:${Math.max(4, Math.round(si.cw / 82 * 100))}%"></i><span>${String(si.yr).slice(-2)}'</span></div>`).join('')}</div>
+    <div class="th-key"><span><i class="k-champ"></i>Champion</span><span><i class="k-ru"></i>Conf. Champion</span><span><i class="k-po"></i>Playoffs</span><span><i class="k-out"></i>Missed</span></div></div>`);
+  // All-Time starting five, compact
+  const LU = franchiseLineup(name);
+  if (LU.list.length >= 5) parts.push(`<div class="chart-card"><div class="card-head"><div class="chart-title">${icon('people')} All-Time Starting Five</div>${more('players', 'Full lineup')}</div>
+    <div class="th-five">${LU.starters.map(x => `<div><span class="lu-pos">${x.pos}</span>${x.p ? nameLink(x.p.Player) : `<span class="name-plain">${x.name}</span>`}</div>`).join('')}</div></div>`);
+  // Face of the franchise
+  const face = franchiseLegends(name)[0];
+  if (face) side.push(`<div class="chart-card th-face"><div class="card-head"><div class="chart-title">${icon('star')} Face of the Franchise</div>${more('players', 'Legends')}</div>
+    <div class="th-face-name">${nameLink(face.p.Player)} ${posBadge(face.p.Position)}</div>
+    <div class="journey-tags">${face.ret.map(r => `<em class="tag-ret">#${r.num} retired</em>`).join('')}${face.titles ? `<em class="tag-gold">${icon('trophy')} ${face.titles} here</em>` : ''}${face.oneTeam ? '<em class="tag-plain">One-team career</em>' : ''}</div>
+    <div class="muted th-face-sub">Career, all teams: ${draftCareer(face.p)}</div></div>`);
+  // Titles at a glance
+  const lastTitle = Number(t['Last Title']) || null, lastFinals = Number(t['Last Finals']) || null;
+  const drought = lastTitle && DB.latestSeason ? DB.latestSeason - lastTitle : null;
+  side.push(`<div class="chart-card"><div class="card-head"><div class="chart-title">${icon('trophy', 'ic-champ')} Titles</div>${more('trophies', 'Trophies')}</div>
+    <div class="th-tiles">
+      <div><b>${won.length + lost.length ? `${won.length}-${lost.length}` : '—'}</b><span>Finals record</span></div>
+      <div><b>${lastTitle || '—'}</b><span>Last title</span></div>
+      <div><b>${lastFinals || '—'}</b><span>Last Finals</span></div>
+      <div><b>${drought === null ? '—' : drought === 0 ? 'Champs' : drought}</b><span>${drought ? 'Seasons since' : 'Title drought'}</span></div>
+    </div></div>`);
+  // Best active players here
+  const act = DB.currentPlayers.filter(p => { const ts = playerTeams(p); return ts[ts.length - 1] === name; }).sort((a, b) => legacy(b).total - legacy(a).total).slice(0, 3);
+  if (act.length) side.push(`<div class="chart-card rb-card"><div class="card-head"><div class="chart-title">${icon('people')} Top Active Players</div>${more('players', 'All')}</div>
+    ${act.map((p, i) => `<div class="rb-row"><span class="rb-rank">${i + 1}</span><span class="rb-main">${nameLink(p.Player)} ${posBadge(p.Position)}</span><span class="rb-val">${p['All Stars'] || 0}</span><span class="rb-sub">${draftCareer(p)}</span></div>`).join('')}
+    <div class="muted" style="font-size:12px;margin-top:6px">Number = All-Star selections</div></div>`);
+  return `<div class="player-grid"><div>${parts.join('')}</div><div>${side.join('')}</div></div>`;
+}
+function setTeamTab(tab) {
+  teamState.tab = tab;
+  const tp = document.getElementById('teamPage');
+  tp.querySelectorAll('.tm-tab').forEach(el => el.hidden = el.dataset.tab !== tab);
+  tp.querySelectorAll('.tm-btns button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  if (tab === 'seasons' && document.getElementById('winChart')) renderWinChart();
+  // Keep the header in view, start the tab at its top
+  const hero = tp.querySelector('.tm-hero');
+  if (hero && scrollY > hero.offsetTop + hero.offsetHeight - 200) scrollTo({ top: hero.offsetTop + hero.offsetHeight - 160 });
+}
+// The latest season for one team: result, games back, league rank and the change from last season
+function teamLatest(t) {
+  const yr = DB.latestSeason, name = t.Team, me = t.seasonRecords?.[yr] && seasonStandings(yr).find(r => r.team === name);
+  if (!me) return null;
+  const st = seasonStandings(yr), top = st.filter(r => r.conf === me.conf).sort((a, b) => b.raw - a.raw)[0];
+  const gb = top === me ? 0 : ((top.w - me.w) + (me.l - top.l)) / 2;
+  const { champ, ru } = finalsTeams(yr);
+  const result = champ === name ? `${icon('trophy', 'ic-champ')} Champion` : ru === name ? `${icon('trophy', 'ic-silver')} Conf. Champion` : me.playoffs ? 'Playoffs' : 'Missed playoffs';
+  const prev = t.seasonRecords?.[yr - 1], pct = r => r.w / Math.max(1, r.w + r.l);
+  const delta = prev ? Math.round((pct(t.seasonRecords[yr]) - pct(prev)) * 82) : null;
+  const mi = mostImproved(yr), best = [...st].sort((a, b) => b.raw - a.raw)[0];
+  const badge = best && best.team === name ? 'Best record in the league' : mi && mi.team === name ? 'Most improved team' : '';
+  return { yr, me, n: st.length, gb, result, prev, delta, badge };
+}
+function teamHeroHtml(t, won, lost) {
+  const name = t.Team, nick = shortTeam(name), city = name.slice(0, name.length - nick.length).trim();
+  const teams = DB.teams.filter(x => !x.defunct);
+  const num = v => { const x = getNum(v); return x === -Infinity ? null : x; };
+  const rankOf = get => { const v = get(t); if (v === null || v === undefined || t.defunct) return { v, rk: '' };
+    const vals = teams.map(get).filter(x => x !== null && x !== undefined), rk = vals.filter(x => x > v).length + 1;
+    return { v, rk: (vals.filter(x => x === v).length > 1 ? 'T-' : '') + ordinalRank(rk) }; };
+  const stats = [
+    ['Titles', x => num(x.Championship) ?? 0, v => v],
+    ['Glory', x => num(x['Glory Score']), v => Math.round(v).toLocaleString()],
+    ['Conf titles', x => num(x['Conference Titles']) ?? 0, v => v],
+    ['Win %', x => allTimeRecord(x).pct, v => v.toFixed(3).replace(/^0/, '')],
+    ['Playoffs', x => num(x.Playoffs) ?? 0, v => v],
+    ['10-yr wins', x => num(x['Avg. W Last 10Y']), v => v.toFixed(1)],
+  ].map(([k, get, fmt]) => { const r = rankOf(get); return r.v === null || r.v === undefined ? '' : `<div class="tm-stat"><span class="tm-k">${k}</span><b>${r.rk}</b><span class="tm-v">${fmt(r.v)}</span></div>`; }).join('');
+  // Latest season, as in "14th in West | 31-51 · Missed playoffs"
+  const L = teamLatest(t);
+  // rank | record, then result | season, lined up in two rows
+  const kicker = L ? `<span>${ordinalRank(L.me.confRk)} in ${confName(L.me.conf)}</span><i>|</i><span>${L.me.w}-${L.me.l}</span><span>${L.result}</span><i>|</i><span>${seasonLabel(L.yr)}</span>` : `<span>${t.defunct ? 'Former franchise' : 'Franchise'}</span>`;
+  const color = TEAM_COLORS[name];
+  return `<section class="tm-hero" ${color ? `style="--tc:${color}"` : ''} data-team="${name}">
+    <button class="tm-back" onclick="teamBack()" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="tm-top">
+      <div class="tm-id"><div class="tm-kicker${L ? ' tm-kicker-grid' : ''}">${kicker}</div>
+        <h1 class="tm-name">${city ? `<span>${city}</span> ` : ''}<span>${nick}</span></h1>
+        ${L && L.badge ? `<span class="tm-badge">${L.badge}</span>` : ''}</div>
+      <div class="tm-logo${TEAM_LOGO_WHITE.has(name) ? ' tm-logo-white' : ''}">${teamLogo(name, 'tm-logo-img')}</div>
+    </div>
+    ${stats ? `<div class="tm-stats">${stats}</div>` : ''}
+    <div class="tm-btns"></div>
+  </section>`;
+}
+// The whole team page in the team's colour: --tc fills (with white text), and an accent for text,
+// lines and icons that is readable on the page: --ta-l (light theme) and --ta-d (dark theme)
+function teamTheme(root, color) {
+  const m = String(color).match(/[0-9a-f]{6}/i), rgb = m ? [0, 2, 4].map(i => parseInt(m[0].slice(i, i + 2), 16)) : (String(color).match(/\d+(\.\d+)?/g) || []).slice(0, 3).map(Number);
+  if (rgb.length < 3) return;
+  const lum = c => { const f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]); };
+  const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+  const css = c => `rgb(${c.map(Math.round).join(',')})`;
+  let l = [...rgb]; for (let i = 0; i < 30 && ratio(l, [255, 255, 255]) < 4.5; i++) l = l.map(v => v * 0.9);
+  // Dark theme: same hue, lighter and kept vivid (mixing with white would turn navy into grey)
+  const toHsl = ([r, g, b]) => { r /= 255; g /= 255; b /= 255; const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, dd = mx - mn;
+    if (!dd) return [0, 0, l]; const s = dd / (1 - Math.abs(2 * l - 1)); const h = mx === r ? ((g - b) / dd) % 6 : mx === g ? (b - r) / dd + 2 : (r - g) / dd + 4; return [h * 60, s, l]; };
+  const fromHsl = ([h, s, l]) => { const c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs(((h / 60) % 2 + 2) % 2 - 1)), m = l - c / 2;
+    const [r, g, b] = h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x] : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x]; return [r, g, b].map(v => (v + m) * 255); };
+  let [hh, ss, ll] = toHsl(rgb); if (ss > 0.15) ss = Math.max(ss, 0.6);
+  let d = fromHsl([hh < 0 ? hh + 360 : hh, ss, ll]); for (let i = 0; i < 40 && ratio(d, [18, 26, 41]) < 4.5; i++) { ll = Math.min(0.95, ll + 0.03); d = fromHsl([hh < 0 ? hh + 360 : hh, ss, ll]); }
+  root.style.setProperty('--tc', css(rgb)); root.style.setProperty('--ta-l', css(l)); root.style.setProperty('--ta-d', css(d));
+  root.classList.add('tm-themed');
+}
+// After the page is drawn: colour from the logo when there's no team colour, and the jump buttons
+function finishTeamHero(root) {
+  const hero = root.querySelector('.tm-hero'); if (!hero) return;
+  root.classList.remove('tm-themed'); ['--tc', '--ta-l', '--ta-d'].forEach(v => root.style.removeProperty(v));
+  if (TEAM_COLORS[hero.dataset.team]) teamTheme(root, TEAM_COLORS[hero.dataset.team]);
+  else {
+    const src = DB.logos && DB.logos[hero.dataset.team], team = hero.dataset.team;
+    if (src) logoColor(src).then(c => { if (c && teamState.t === team) { hero.style.setProperty('--tc', c); teamTheme(root, c); } });
+  }
+  const tabs = [['home', 'Home'], ['seasons', 'Seasons'], ['players', 'Players'], ['trophies', 'Trophies']].filter(([k]) => root.querySelector(`.tm-tab[data-tab="${k}"]`)?.textContent.trim());
+  hero.querySelector('.tm-btns').innerHTML = tabs.map(([k, label]) => `<button data-tab="${k}" class="${teamState.tab === k ? 'active' : ''}" onclick="setTeamTab('${k}')">${label}</button>`).join('');
 }
 
 // =====================================================================
 // FOLDING CARDS: secondary cards on the team and player pages start closed;
 // tapping the title opens or closes them, and the choice is remembered
 // =====================================================================
-const TEAM_FOLDS = { 'Trophy Cabinet': false, 'Finals Rivalries': false, 'Season by Season': false, 'Best Runs': false, 'Started Here': false, 'Active Players Here': false };
 const PLAYER_FOLDS = { 'Closest Match': false, 'Percentile Ranks': false, 'Advanced Stats': false, 'Similar Players': false, 'Legacy Score': false, 'Finals': false };
 function foldState() { return readJSON('nba2k17-folds') || {}; }
 function applyFolds(root, defaults) {
@@ -4696,7 +4965,7 @@ function renderTeamCompare() {
     { label: 'Playoff appearances', get: s => num(s.t.Playoffs) },
     { label: 'Glory Score', get: s => num(s.t['Glory Score']) },
     { header: `Regular season (Team Record)` },
-    { label: 'Win %', get: s => s.seasons ? s.w / (s.w + s.l) : null, fmt: (v, s) => `${v.toFixed(3).replace(/^0/, '')} <span class="muted">(${s.w.toLocaleString()}-${s.l.toLocaleString()})</span>` },
+    { label: 'Win %', get: s => s.seasons ? s.w / (s.w + s.l) : null, fmt: (v, s) => `${v.toFixed(3).replace(/^0/, '')} <span class="muted cmp-rec">(${s.w.toLocaleString()}-${s.l.toLocaleString()})</span>` },
     { label: 'Best season (wins)', get: s => s.best },
     { label: '60-win seasons', get: s => s.sixty },
     { label: 'Avg. wins, last 5 years', get: s => num(parseFloat(s.t['Avg. W Last 5Y'])), fmt: v => v.toFixed(1) },
@@ -4726,8 +4995,8 @@ function renderTeamCompare() {
   const top = Math.max(...wins);
   out.innerHTML = `<div class="cmp-board">${st.map((x, i) => `<div class="cmp-score${wins[i] === top && wins.filter(w => w === top).length === 1 ? ' lead' : ''}">
       <i class="cmp-swatch" style="background:${colors[i]}"></i><span class="cs-name">${teamLink(x.v)}</span><b>${wins[i]}</b><span class="cs-label">categories led</span></div>`).join('')}</div>
-    <div style="overflow-x:auto;margin-top:8px"><table class="cmp-table"><thead><tr><th>Stat</th>${st.map((x, i) => `<th><i class="cmp-swatch" style="background:${colors[i]}"></i>${teamLink(x.v)}
-      <div class="cmp-sub">${x.s.t.Conference === 'EAST' ? 'East' : 'West'} · Est. ${x.s.t['Est. Date'] || '—'}${x.s.legend ? ` · top legend ${nameLink(x.s.legend.p.Player)}` : ''}</div></th>`).join('')}</tr></thead>
+    <div style="overflow-x:auto;margin-top:8px"><table class="cmp-table cmp-teams cmp-n${st.length}"><thead><tr><th>Stat</th>${st.map((x, i) => `<th><div class="cmp-name" data-code="${teamCode(x.v)}"><i class="cmp-swatch" style="background:${colors[i]}"></i><span class="cmp-full">${teamLink(x.v)}</span><span class="cmp-short">${teamLink(x.v, shortTeam(x.v))}</span></div>
+      <div class="cmp-sub">${x.s.t.Conference === 'EAST' ? 'East' : 'West'} · Est. ${x.s.t['Est. Date'] || '—'}${x.s.legend ? `<span class="cmp-legend"> · top legend ${nameLink(x.s.legend.p.Player)}</span><span class="cmp-legend-s">legend: ${nameLink(x.s.legend.p.Player, { label: x.s.legend.p.Player.split(' ').slice(-1)[0] })}</span>` : ''}</div></th>`).join('')}</tr></thead>
       <tbody>${rows}</tbody></table></div>
     <div class="chart-card rb-card" style="margin-top:16px"><div class="chart-title">${icon('trophy', 'ic-champ')} Finals Meetings</div>
       ${h2h.length ? h2h.join('') : '<p class="muted">These teams have never met in the Finals.</p>'}</div>`;
@@ -5219,7 +5488,7 @@ function legendsHtml(team) {
 // and the Finals card on player pages. Built from NBA History: Finals, Champion Stars, Runner-Up Stars.
 
 // One entry per Finals: both teams and their listed stars ("Name (rating)")
-const UPSET_GAP = 5;
+const UPSET_EDGE = 3.5;
 function finalsData() {
   return cached('finalsData', () => DB.history.map(h => {
     const yr = Number(h.Season), { champ, ru } = finalsTeams(yr);
@@ -5232,12 +5501,18 @@ function finalsData() {
     const cs = stars([h.Star1, h.Star2, h.Star3]), rs = stars([h.RU1, h.RU2, h.RU3]);
     const top = s => s.length && s[0].r !== null ? Math.max(...s.filter(x => x.r !== null).map(x => x.r)) : null;
     const ct = top(cs), rt = top(rs);
-    // Star power: every listed star adds the points they are rated above 80, so depth counts
-    // (three 95s = 45 beat a 97 + 88 = 25). An upset: the runner-up's star power was 5+ higher
-    const power = s => s.reduce((a, x) => a + Math.max(0, (x.r ?? 80) - 80), 0);
+    // Star power: each listed star adds the points they are rated above 80; the 3rd star counts half,
+    // since many teams list only two (three 95s = 37.5 still beat a 97 + 88 = 25)
+    const power = s => { const v = s.map(x => Math.max(0, (x.r ?? 80) - 80)).sort((a, b) => b - a); return (v[0] || 0) + (v[1] || 0) + 0.5 * (v[2] || 0); };
     const cp = power(cs), rp = power(rs);
-    const upset = cs.length && rs.length && rp - cp >= UPSET_GAP ? rp - cp : 0;
-    return { yr, h, champ, ru, score: finalsScore(h), cs, rs, ct, rt, cp, rp, upset, fmvp: h.FMVP && h.FMVP !== '-' ? h.FMVP : null };
+    // Regular-season win gap (82 games), when both teams have a record
+    const st = seasonStandings(yr), cr = st.find(r => r.team === champ), rr = st.find(r => r.team === ru);
+    const pct = r => r.w / Math.max(1, r.w + r.l), wins = cr && rr ? Math.round((pct(rr) - pct(cr)) * 82) : null;
+    // Favorite edge: half stars, half record (an injury can sink a record, a thin star list can hide depth).
+    // Without a record only the star half counts. Upset: the runner-up's edge was 3.5 or more
+    const edge = cs.length && rs.length ? 0.5 * (rp - cp) + 0.5 * (wins ?? 0) : 0;
+    const upset = edge >= UPSET_EDGE ? edge : 0;
+    return { yr, h, champ, ru, score: finalsScore(h), cs, rs, ct, rt, cp, rp, cr, rr, wins, edge, upset, fmvp: h.FMVP && h.FMVP !== '-' ? h.FMVP : null };
   }).filter(Boolean).sort((a, b) => b.yr - a.yr));
 }
 // Star duels: each team's top listed star against the other's, met in two or more Finals
@@ -5289,7 +5564,7 @@ function finalsStars(list, yr, roleMap) {
 }
 function finalsCard(f) {
   return `<div class="fx-card${f.upset ? ' fx-upset' : ''}">
-    <div class="fx-head"><span class="fx-season">${seasonLink(f.yr)}</span>${f.upset ? `<span class="fx-badge" title="The runner-up's star power was ${f.upset} higher">Upset</span>` : ''}${f.cs.length && f.rs.length ? `<span class="fx-power" title="Star power: each listed star adds their rating above 80">star power ${f.cp} vs ${f.rp}</span>` : ''}<span class="fx-score">${f.h.Finals || ''}</span></div>
+    <div class="fx-head"><span class="fx-season">${seasonLink(f.yr)}</span>${f.upset ? `<span class="fx-badge" title="The runner-up was the favorite by ${f.upset} (half star power, half record)">Upset</span>` : ''}${f.cs.length && f.rs.length ? `<span class="fx-power" title="Star power: each listed star adds their rating above 80, the 3rd star half">star power ${f.cp} vs ${f.rp}${f.cr && f.rr ? ` · ${f.cr.w}-${f.cr.l} vs ${f.rr.w}-${f.rr.l}` : ''}</span>` : ''}<span class="fx-score">${f.h.Finals || ''}</span></div>
     <div class="fx-sides">
       <div class="fx-side fx-win"><div class="fx-team">${icon('trophy', 'ic-champ')} ${teamIn(f.champ, f.yr)}</div><div class="fx-stars">${finalsStars(f.cs, f.yr, 'roles')}</div>
         ${f.fmvp ? `<div class="fx-fmvp">Finals MVP · ${nameLink(f.fmvp, { season: f.yr })}</div>` : ''}</div>
@@ -5324,7 +5599,7 @@ function renderFinals() {
   document.getElementById('finalsContent').innerHTML = `
     <div class="stats-cards">
       ${tile('Finals played', all.length, `${seasonLabel(all[all.length - 1].yr)} to ${seasonLabel(all[0].yr)}`)}
-      ${hasRu ? tile('Upsets', upsets.length, biggest ? `biggest: ${seasonLabel(biggest.yr)}, ${teamCode(biggest.champ)} over ${teamCode(biggest.ru)} (${biggest.cp} vs ${biggest.rp} star power)` : '') : ''}
+      ${hasRu ? tile('Upsets', upsets.length, biggest ? `biggest: ${seasonLabel(biggest.yr)}, ${teamCode(biggest.champ)} over ${teamCode(biggest.ru)} (runner-up favored by ${biggest.upset})` : '') : ''}
       ${mu[0] ? tile('Most common Finals', `${teamCode(mu[0].x)} vs ${teamCode(mu[0].y)}`, `${mu[0].n} times`) : ''}
       ${riv[0] ? (() => { const sx = riv[0].x.split(' ').pop(), sy = riv[0].y.split(' ').pop(), same = sx === sy;
         return tile('Top Finals rivalry', same ? `${riv[0].x} vs ${riv[0].y}` : `${sx} vs ${sy}`, `${riv[0].n} Finals, ${riv[0].wins[riv[0].x]}–${riv[0].wins[riv[0].y]}`); })() : ''}
@@ -5344,7 +5619,7 @@ function renderFinals() {
           ${mu.slice(0, 10).map(muRow).join('') || '<p class="muted">No repeat matchups yet.</p>'}</div>
         <div class="chart-card rb-card"><div class="chart-title">${icon('list')} Finals Record by Franchise</div>
           ${fr.slice(0, 15).map((r, i) => `<div class="rb-row"><span class="rb-rank">${i + 1}</span><span class="rb-main">${teamLink(r.team)}</span><span class="rb-val">${r.w}–${r.l}</span><span class="rb-sub">${r.w + r.l} Finals</span></div>`).join('')}</div>
-        ${hasRu ? `<p class="muted fx-note">Star power: each listed star adds the points they're rated above 80 (a 95 adds 15). Upset: the runner-up's star power was ${UPSET_GAP} or more higher than the champion's.</p>` : ''}
+        ${hasRu ? `<p class="muted fx-note">Star power: each listed star adds the points they're rated above 80 (a 95 adds 15); the 3rd star counts half. Favorite edge = half the star power gap + half the regular-season win gap (stars only when there's no team record). Upset: the runner-up was favored by ${UPSET_EDGE} or more.</p>` : ''}
       </div>
     </div>`;
   renderFinalsList();
@@ -5505,33 +5780,6 @@ function franchiseStats(teamName) {
     <p class="muted fx-note">Win % is all-time since the franchise began; wins are the average per season over the last 5 and 10 seasons.</p></div>`;
 }
 
-// Team page: the latest season at a glance, over a faded logo
-function teamSeasonCard(teamName) {
-  const t = DB.teams.find(x => x.Team === teamName); if (!t) return '';
-  const yr = DB.latestSeason, rec = t.seasonRecords?.[yr]; if (!rec) return '';
-  const st = seasonStandings(yr), me = st.find(r => r.team === teamName); if (!me) return '';
-  const conf = st.filter(r => r.conf === me.conf).sort((a, b) => b.raw - a.raw), top = conf[0];
-  const gb = top === me ? '—' : (((top.w - me.w) + (me.l - top.l)) / 2).toString().replace(/\.0$/, '');
-  const { champ, ru } = finalsTeams(yr);
-  const result = champ === teamName ? `${icon('trophy', 'ic-champ')} Champion` : ru === teamName ? `${icon('trophy', 'ic-silver')} Lost the Finals` : me.playoffs ? 'Playoffs' : 'Missed playoffs';
-  const prev = t.seasonRecords?.[yr - 1];
-  const pct = r => r.w / Math.max(1, r.w + r.l);
-  const delta = prev ? Math.round((pct(rec) - pct(prev)) * 82) : null;
-  const mi = mostImproved(yr), best = [...st].sort((a, b) => b.raw - a.raw)[0];
-  const badge = best && best.team === teamName ? 'Best record in the league' : mi && mi.team === teamName ? 'Most improved team' : '';
-  return `<section class="ts-card">
-    <div class="ts-mark" aria-hidden="true">${teamLogo(teamName, 'ts-logo')}</div>
-    <div class="ts-main"><div class="ts-kicker">${seasonLabel(yr)} season</div>
-      <div class="ts-rec">${me.w}-${me.l}</div>
-      <div class="ts-sub">${ordinalRank(me.confRk)} in ${confName(me.conf)} · ${result}${badge ? ` · <span class="ts-badge">${badge}</span>` : ''}</div></div>
-    <div class="ts-strip">
-      <div><span>Games back</span><b>${gb}</b></div>
-      <div><span>League rank</span><b>${ordinalRank(me.leagueRk)} of ${st.length}</b></div>
-      <div><span>Last season</span><b>${prev ? `${prev.w}-${prev.l}` : '—'}</b></div>
-      <div><span>Change</span><b class="${delta > 0 ? 'ts-up' : delta < 0 ? 'ts-down' : ''}">${delta === null ? '—' : (delta > 0 ? '+' : '') + delta + ' wins'}</b></div>
-    </div></section>`;
-}
-
 // Header button: switch light and dark in one tap
 function toggleThemeQuick() {
   const dark = document.documentElement.getAttribute('data-theme') === 'dark' || (!document.documentElement.getAttribute('data-theme') && matchMedia('(prefers-color-scheme: dark)').matches);
@@ -5542,6 +5790,101 @@ function syncThemeButton() {
   const dark = document.documentElement.getAttribute('data-theme') === 'dark' || (!document.documentElement.getAttribute('data-theme') && matchMedia('(prefers-color-scheme: dark)').matches);
   b.innerHTML = `<svg class="ic"><use href="#i-${dark ? 'sun' : 'moon'}"/></svg>`;
   b.setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode'); b.title = b.getAttribute('aria-label');
+}
+
+// =====================================================================
+// ALL-TIME LINEUP: best Guard-Guard-Forward-Forward-Center and 3 bench for a franchise.
+// Only players with a clear tie to the team qualify: a retired number there, an award or stat
+// title won there (NBA History logos, Season Stat Leader teams), or a listed champion or
+// runner-up star there. They are ranked by a franchise score: what they did with this team.
+// =====================================================================
+function posGroup(pos) { const p = String(pos || '').toUpperCase(); return /^(PG|SG|G)$/.test(p) ? 'G' : /^(SF|PF|F)$/.test(p) ? 'F' : p === 'C' ? 'C' : ''; }
+// Positions for players without a row: All-NBA and Decade team slots ("H.McDaniels" -> G)
+function sheetPositions() {
+  return cached('sheetPositions', () => {
+    const out = {};
+    const put = (name, pos) => { const g = posGroup(pos); if (!g || !name) return; const n = normName(String(name).replace(/\./g, '. ')); (out[n] = out[n] || {})[g] = ((out[n] || {})[g] || 0) + 1; };
+    DB.allNbaSeasons.forEach(s => s.teams.forEach(t => t.slots.forEach(sl => put(sl.player, sl.pos))));
+    (DB.decades || []).forEach(d => (d.starter || []).forEach((n, i) => put(n, (d.positions || [])[i])));
+    return out;
+  });
+}
+function guessPosition(name) {
+  const sp = sheetPositions(), n = normName(name), parts = n.split(' '), abbr = parts.length > 1 ? parts[0][0] + ' ' + parts.slice(1).join(' ') : n;
+  const hit = sp[n] || sp[abbr]; if (!hit) return '';
+  return Object.entries(hit).sort((a, b) => b[1] - a[1])[0][0];
+}
+function franchiseLineup(team) {
+  return cached('lineup|' + team, () => {
+    const w = legacyWeights(), ctx = legacyContext(), q = {};
+    const get = (name, yr) => { const p = resolvePlayer(name, yr), k = p ? p.Player : String(name).trim(); return (q[k] = q[k] || { key: k, p, name: k, here: { mvp: [], fmvp: [], dpoy: [], roty: [], stat: [], titles: [], finals: [] }, retired: null }); };
+    retiredForTeam(team).filter(r => r.type === 'Player').forEach(r => { get(r.player).retired = r.num; });
+    DB.history.forEach(h => {
+      const yr = Number(h.Season), f = finalsTeams(yr);
+      [['MVP', 'mvp'], ['FMVP', 'fmvp'], ['DPOY', 'dpoy'], ['ROTY', 'roty']].forEach(([k, key]) => { if (h[k] && h[k] !== '-' && h[k + 'Team'] === team) coNames(h[k]).forEach(n => get(n, yr).here[key].push(yr)); });
+      if (f.champ === team) [h.Star1, h.Star2, h.Star3].forEach(x => { if (x) get(String(x).replace(/\s*\(\d+\)\s*$/, '').trim(), yr).here.titles.push(yr); });
+      if (f.ru === team) [h.RU1, h.RU2, h.RU3].forEach(x => { if (x) get(String(x).replace(/\s*\(\d+\)\s*$/, '').trim(), yr).here.finals.push(yr); });
+    });
+    const statW = { Pts: w.ptsTitle, Reb: w.rebTitle, Ast: w.astTitle, Stl: w.stlTitle, Blk: w.blkTitle };
+    DB.statLeaders.forEach(r => Object.keys(statW).forEach(k => { if (r[k + 'Leader'] && teamByCode(r[k + 'Team'])?.Team === team) get(r[k + 'Leader'], r.Season).here.stat.push({ yr: Number(r.Season), w: statW[k], k }); }));
+    // Franchise score
+    const list = Object.values(q).map(x => {
+      const p = x.p, H = x.here;
+      // Title and Finals roles as the legacy score values them (franchise player, co-star...)
+      const role = (map, yrs, fallback) => yrs.reduce((a, yr) => { const r = p && (ctx[map][p.Player] || []).find(z => z.yr === yr); return a + (r ? w[r.key] : fallback); }, 0);
+      let score = H.mvp.length * w.mvp + H.fmvp.length * w.fmvp + H.dpoy.length * w.dpoy + H.roty.length * w.roy + H.stat.reduce((a, s) => a + s.w, 0)
+        + role('roles', H.titles, w.roleCore) + role('ruRoles', H.finals, w.ruCore) + (x.retired !== null ? 100 : 0);
+      // Titles won here without being a listed champion star (red team cells in the player sheet)
+      // count as a rotation player's title
+      const rowTitles = p ? titlesWithTeam(p, team) : 0, extraTitles = Math.max(0, rowTitles - H.titles.length);
+      score += extraTitles * w.roleRotation;
+      const titleCount = H.titles.length + extraTitles;
+      // Career parts with no season (All-Stars, All-NBA, production) count by the share of the
+      // career spent here: a one-team career gets all of it
+      let share = 0;
+      if (p) {
+        const teams = playerTeams(p), uniq = new Set(teams);
+        share = uniq.has(team) ? (uniq.size === 1 ? 1 : 1 / uniq.size) : 0;
+        const L = legacy(p).parts; score += share * ((L.allStar || 0) + (L.production || 0) + (L.teams || 0) + (L.other || 0) * 0.5);
+      }
+      const pos = p ? posGroup(p.Position) : guessPosition(x.name);
+      const tags = [];
+      if (titleCount) tags.push(`${titleCount} title${titleCount > 1 ? 's' : ''}`);
+      if (H.mvp.length) tags.push(`${H.mvp.length > 1 ? H.mvp.length + ' ' : ''}MVP${H.mvp.length > 1 ? 's' : ''}`);
+      if (H.fmvp.length) tags.push(`${H.fmvp.length > 1 ? H.fmvp.length + ' ' : ''}Finals MVP${H.fmvp.length > 1 ? 's' : ''}`);
+      if (H.dpoy.length) tags.push(`${H.dpoy.length > 1 ? H.dpoy.length + ' ' : ''}DPOY`);
+      if (H.stat.length) tags.push(`${H.stat.length} stat title${H.stat.length > 1 ? 's' : ''}`);
+      if (H.finals.length) tags.push(`${H.finals.length} conf. title${H.finals.length > 1 ? 's' : ''}`);
+      if (H.roty.length) tags.push('ROTY');
+      if (x.retired !== null) tags.push(`#${x.retired} retired`);
+      return { ...x, score, pos, tags, oneTeam: share === 1 };
+    }).filter(x => x.score > 0).sort((a, b) => b.score - a.score);
+    // Starting five: 2 guards, 2 forwards, 1 center; bench: the next 3 of any position
+    const starters = [], need = { G: 2, F: 2, C: 1 };
+    list.forEach(x => { if (x.pos && need[x.pos] > 0) { need[x.pos]--; starters.push(x); } });
+    // A position with no qualifying player goes to the best remaining player with a known
+    // position (a team with no center plays G-G-G-F-F or G-G-F-F-F)
+    let open = Object.values(need).reduce((a, b) => a + b, 0);
+    list.forEach(x => { if (open > 0 && x.pos && !starters.includes(x)) { starters.push(x); open--; } });
+    Object.keys(need).forEach(k => need[k] = 0); if (open > 0) need.F = open;
+    const order = { G: 0, F: 1, C: 2 }; starters.sort((a, b) => order[a.pos] - order[b.pos] || b.score - a.score);
+    const bench = list.filter(x => !starters.includes(x)).slice(0, 3);
+    return { list, starters, bench, open: need };
+  });
+}
+function franchiseLineupHtml(team) {
+  const L = franchiseLineup(team);
+  if (L.list.length < 5) return `<div class="chart-card lu-card"><div class="chart-title">${icon('people')} All-Time Lineup</div><p class="muted">Not enough franchise history yet: ${L.list.length} player${L.list.length === 1 ? '' : 's'} with a retired number, award or Finals star role here.</p></div>`;
+  const posName = { G: 'Guard', F: 'Forward', C: 'Center' };
+  const card = (x, slot) => `<div class="lu-player${slot ? '' : ' lu-bench'}">
+      <span class="lu-pos">${slot || (x.pos || '—')}</span>
+      <span class="lu-name">${x.p ? nameLink(x.p.Player) : `<span class="name-plain">${x.name}</span>`}</span>
+      <span class="lu-tags">${x.tags.join(' · ') || (x.oneTeam ? 'one-team career' : '')}</span></div>`;
+  const slots = [...L.starters.map(x => card(x, x.pos)), ...Object.entries(L.open).flatMap(([pos, n]) => Array(n).fill(`<div class="lu-player lu-open"><span class="lu-pos">${pos}</span><span class="lu-name muted">No qualifying ${posName[pos].toLowerCase()}</span></div>`))];
+  return `<div class="chart-card lu-card"><div class="chart-title">${icon('people')} All-Time Lineup</div>
+    <div class="lu-label">Starting five</div><div class="lu-five">${slots.join('')}</div>
+    ${L.bench.length ? `<div class="lu-label">Bench</div><div class="lu-five lu-bench-row">${L.bench.map(x => card(x)).join('')}</div>` : ''}
+    <p class="muted fx-note">Players with a retired number, an award or stat title won here, or a champion or runner-up star role here. Ranked by what they did with this team; career stats count by the share of the career spent here.</p></div>`;
 }
 </script>
 <script>
@@ -5924,13 +6267,15 @@ function fitNames() {
     const link = td.querySelector('.team-link'), text = link && [...link.childNodes].reverse().find(n => n.nodeType === 3 && n.textContent.trim());
     if (text) { link.title = link.title || text.textContent.trim(); text.textContent = shortTeam(text.textContent.trim()); }
   });
-  document.querySelectorAll('.ha-name, .value-name, .cmp-name').forEach(el => {
+  document.querySelectorAll('.ha-name, .value-name, .cmp-name, .spot-name').forEach(el => {
     if (!el.offsetWidth) return;
     el.style.fontSize = '';
     let size = parseFloat(getComputedStyle(el).fontSize);
     el.classList.remove('fit-wrap');
     const min = el.classList.contains('cmp-name') ? 10 : 14;
     while (el.scrollWidth > el.clientWidth + 1 && size > min) { size -= 1; el.style.fontSize = size + 'px'; }
+    // Compare headers: a team nickname that still doesn't fit becomes its code (MIN)
+    if (el.scrollWidth > el.clientWidth + 1 && el.dataset.code) { const s = el.querySelector('.cmp-short .team-link'), tn = s && [...s.childNodes].reverse().find(n => n.nodeType === 3); if (tn) tn.textContent = el.dataset.code; }
     // Still too long at the smallest size: wrap between words rather than cut the name off
     if (el.scrollWidth > el.clientWidth + 1) el.classList.add('fit-wrap');
   });

@@ -257,6 +257,9 @@ function renderPlayerPage() {
   // Finals the player played in as a listed star
   const finalsHtml = playerFinalsHtml(p);
   if (finalsHtml) parts.push(finalsHtml);
+  // Badges: career milestones with Bronze to Legendary levels
+  const badgesHtml = playerBadgesHtml(p);
+  if (badgesHtml) parts.push(badgesHtml);
 
   // Career numbers
   if (hasStats) {
@@ -389,6 +392,8 @@ function compareMetrics() {
     { label: 'DPOY', get: award('DPOY'), fmt: v => v, awards: true },
     { label: 'All-Defensive selections', get: p => award('1st D Team')(p) + award('2nd D Team')(p), fmt: v => v, awards: true },
     { label: 'Legacy score', get: p => legacy(p).total, fmt: v => Math.round(v).toLocaleString(), awards: true },
+    { label: 'Badges', get: p => playerBadges(p).length, fmt: v => v, awards: true },
+    { label: 'Gold + Legendary badges', get: p => playerBadges(p).filter(x => x.lv >= 3).length, fmt: v => v, awards: true },
   ];
 }
 // =====================================================================

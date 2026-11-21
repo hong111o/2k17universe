@@ -96,6 +96,7 @@
     <button data-sec="current" data-group="players" onclick="showSection('current')">Active Players</button>
     <button data-sec="draft" data-group="players" onclick="showSection('draft')">Draft</button>
     <button data-sec="compare" data-group="players" onclick="showSection('compare')">Compare</button>
+    <button data-sec="badges" data-group="players" onclick="showSection('badges')">Badges</button>
     <button data-sec="player" data-group="players" class="nav-ghost" tabindex="-1" aria-hidden="true">Player</button>
     <button data-sec="teams" data-group="teams" onclick="showSection('teams')">Franchises</button>
     <button data-sec="ring" data-group="teams" onclick="showSection('ring')">Ring of Honor</button>
@@ -398,6 +399,11 @@
 </div>
 
 <!-- COMPARE -->
+<div id="sec-badges" class="section">
+  <div class="section-title">Badges</div>
+  <div class="section-sub">Career milestones and feats, each with Bronze, Silver, Gold and Legendary levels set for this league</div>
+  <div id="badgesContent"></div>
+</div>
 <div id="sec-compare" class="section">
   <div class="section-title">Compare</div>
   <div class="section-sub" id="cmpSub">Pick two or three players to compare side by side</div>
@@ -477,6 +483,7 @@
 <script src="js/finals.js"></script>
 <script src="js/ring.js"></script>
 <script src="js/viz.js"></script>
+<script src="js/badges.js"></script>
 <script src="js/settings.js"></script>
 <script src="js/main.js"></script>
 </body>

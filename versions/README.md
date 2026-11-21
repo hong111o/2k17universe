@@ -10,7 +10,6 @@ they are still in the git history if ever needed.
 |---|---|---|
 | `v20.html` | v20: phone app, custom icon, locked table headers | player pages, compare v2, draft, legacy ranking, search, data check |
 | `v22.html` | v22: player pages, compare v2, draft, simple legacy formula, search, data check | points-system legacy formula |
-| `v76.html` | v76: player Compare fits phones | team Compare fits phones |
 | `v77.html` | v77: team Compare fits phones | All-Time Lineup on team pages |
 | `v78.html` | v78: All-Time Lineup | lineup counts titles won as a non-listed player |
 | `v79.html` | v79: lineup counts non-listed titles | Legend Spotlight names fit small phones |
@@ -20,6 +19,7 @@ they are still in the git history if ever needed.
 | `v83.html` | v83: team colours and header | header in two rows, Conf. Champion, no Compare button, logo retry fix |
 | `v84.html` | v84: team header in two rows | team pages split into Home, Seasons, Players and Trophies tabs |
 | `v85.html` | v85: team tabs | season numbers lined up, years shown as 77' |
+| `v86.html` | v86: season numbers lined up | player badges (93 badges, Bronze to Legendary) and Badges page |
 
 Online: https://hong111o.github.io/2k17universe/versions/v20.html and .../versions/v22.html
 
