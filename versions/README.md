@@ -10,7 +10,6 @@ they are still in the git history if ever needed.
 |---|---|---|
 | `v20.html` | v20: phone app, custom icon, locked table headers | player pages, compare v2, draft, legacy ranking, search, data check |
 | `v22.html` | v22: player pages, compare v2, draft, simple legacy formula, search, data check | points-system legacy formula |
-| `v81.html` | v81: all-time record sort | upsets judged half on star power, half on record |
 | `v82.html` | v82: upsets half stars, half record | team pages in team colours, new header, NBA logos stored with the site |
 | `v83.html` | v83: team colours and header | header in two rows, Conf. Champion, no Compare button, logo retry fix |
 | `v84.html` | v84: team header in two rows | team pages split into Home, Seasons, Players and Trophies tabs |
@@ -20,6 +19,7 @@ they are still in the git history if ever needed.
 | `v88.html` | v88: badge box with player number and next level | badge box shows only the level and what it needs |
 | `v89.html` | v89: simple badge box | Settings → Badges: switch badges on or off, rename them, change their levels |
 | `v90.html` | v90: Settings → Badges | Legacy Formula and Badges as Settings sub pages with Save and Discard |
+| `v91.html` | v91: Settings sub pages | Grand badges (no levels), 17 new badges switched off, Levels/Grand switch |
 
 Online: https://hong111o.github.io/2k17universe/versions/v20.html and .../versions/v22.html
 

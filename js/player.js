@@ -393,7 +393,8 @@ function compareMetrics() {
     { label: 'All-Defensive selections', get: p => award('1st D Team')(p) + award('2nd D Team')(p), fmt: v => v, awards: true },
     { label: 'Legacy score', get: p => legacy(p).total, fmt: v => Math.round(v).toLocaleString(), awards: true },
     { label: 'Badges', get: p => playerBadges(p).length, fmt: v => v, awards: true },
-    { label: 'Gold + Legendary badges', get: p => playerBadges(p).filter(x => x.lv >= 3).length, fmt: v => v, awards: true },
+    { label: 'Gold + Legendary badges', get: p => playerBadges(p).filter(x => x.lv === 3 || x.lv === 4).length, fmt: v => v, awards: true },
+    { label: 'Grand badges', get: p => playerBadges(p).filter(x => x.lv === 5).length, fmt: v => v, awards: true },
   ];
 }
 // =====================================================================
