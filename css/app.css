@@ -1106,3 +1106,7 @@ button.bd-chip:focus-visible{outline:2px solid var(--link);outline-offset:2px;}
 .pl-hero .pl-stopbox{flex:none;width:var(--box,30px);height:var(--box,30px);padding:calc(var(--box,30px) * .1);}
 .pl-hero .pl-stopbox .tlogo{width:calc(var(--box,30px) * .8) !important;height:calc(var(--box,30px) * .8) !important;max-width:none;max-height:none;object-fit:contain;}
 .pl-hero .pl-stops{margin-top:26px;} @media (max-width:640px){.pl-hero .pl-stops{margin-top:22px;}}
+.pl-hero .pl-statrow span{white-space:nowrap;font-size:var(--lbl,13px);min-width:0;} .pl-hero .pl-statrow span b{font-size:calc(34px * 13 / 13);}
+@media (max-width:640px){.pl-hero .pl-statrow span{letter-spacing:.03em;} .pl-hero .pl-statrow span b{font-size:27px;}}
+@media (max-width:380px){.pl-hero .pl-statrow span b{font-size:23px;}}
+.pl-hero .pl-statrow span{padding-right:6px;}

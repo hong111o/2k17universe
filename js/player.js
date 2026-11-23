@@ -351,11 +351,20 @@ function playerHeroHtml(p) {
   // Rows: per-game stats, his three biggest awards, his rankings
   const one = v => v === null || v === undefined || isNaN(v) ? '—' : v.toFixed(1);
   const statRow = hasStats ? [['PPG', 'PTS'], ['RPG', 'REB'], ['APG', 'AST'], ['SPG', 'STL'], ['BPG', 'BLK']].map(([l, k]) => `<span><b>${one(perGame(p, k))}</b> ${l}</span>`).join('')
-    : [['All-Star', n('All Stars')], ['All-NBA', n('All NBA Team')], ['1st Team', n('1st Team')], ['All-D', n('1st D Team') + n('2nd D Team')], ['Finals', n('Finals App')]].map(([l, v]) => `<span><b>${v}</b> ${l}</span>`).join('');
+    // Active players have no career stats yet: seasons, teams, then the first three of the rest he has (skipping the awards row), badges last
+    : null;
   // Up to four awards, in this order: MVP, titles, FMVP, DPOY, All-NBA, All-Defensive, All-Star, then ROTY, MIP, 6th Man
   const awards = [[n('MVP'), 'MVP'], [n('Champions'), n('Champions') === 1 ? 'Title' : 'Titles'], [n('FMVP'), 'FMVP'], [n('DPOY'), 'DPOY'],
     [n('All NBA Team'), 'All-NBA'], [n('1st D Team') + n('2nd D Team'), 'All-D'], [n('All Stars'), 'All-Star'],
     [isRoty(p) ? 1 : 0, 'ROTY'], [otherAward(p, 'MIP'), 'MIP'], [otherAward(p, '6th Man'), '6th Man']].filter(([v]) => v > 0).slice(0, 4);
+  const statRowHtml = statRow !== null ? statRow : (() => {
+    const shown = new Set(awards.map(([, l]) => l.replace(/s$/, '')));
+    const statTitles = DB.statLeaders.filter(r => ['Pts', 'Reb', 'Ast', 'Stl', 'Blk'].some(k => r[k + 'Leader'] && resolvePlayer(r[k + 'Leader'], r.Season) === p)).length;
+    const sp = careerSpan(p.Season), seasons = Number(p.Exp) || (sp ? Math.max(1, (DB.latestSeason || sp[0]) - sp[0] + 1) : 0);
+    return [['Seasons', seasons], ['Teams', new Set(playerTeams(p)).size], ['Finals', n('Finals App')], ['Stat titles', statTitles], ['1st Team', n('1st Team')],
+      ['All-D', n('1st D Team') + n('2nd D Team')], ['Badges', playerBadges(p).length]]
+      .filter(([l, v]) => v > 0 && !shown.has(l)).slice(0, 5).map(([l, v]) => `<span><b>${v}</b> ${v === 1 && /s$/.test(l) && l !== 'Finals' && l !== 'Badges' ? l.slice(0, -1) : v === 1 && l === 'Badges' ? 'Badge' : l}</span>`).join('');
+  })();
   const top20 = DB.top20.find(x => x.Player === p.Player), posRank = (DB.positions[p.Position] || []).find(x => x.Player === p.Player), lr = legacyRankOf(p);
   // Career years from his first season's start to his last season's end, e.g. 1992–2011
   const years = span ? `${span[0] - 1}–${span[1] === Infinity || active ? 'now' : span[1]}` : (p.Season || '');
@@ -373,9 +382,10 @@ function playerHeroHtml(p) {
       ${stops ? `<div class="pl-stops" aria-label="Team journey">${stops}</div>` : ''}
     </div>
     <div class="pl-rows">
-      <div class="pl-row pl-statrow">${statRow}</div>
+      <div class="pl-row pl-statrow">${statRowHtml}</div>
       ${awards.length ? `<div class="pl-row">${awards.map(([v, l]) => `<span><b>${v}</b> ${l}</span>`).join('<i>|</i>')}</div>` : ''}
-      ${(() => { const r = [lr ? `<b>#${lr}</b> Legacy` : '', posRank ? `<b>#${posRank.Rank}</b> ${p.Position}` : '', top20 ? `<b>#${top20.Rank}</b> All-Time` : ''].filter(Boolean);
+      ${(() => { const cur = active ? (() => { const pool = DB.currentPlayers.map(x => resolvePlayer(x.Player) || x).filter(x => isActive(x)); const me = legacy(p).total; return pool.filter(x => legacy(x).total > me).length + 1; })() : null;
+        const r = [lr ? `<b>#${lr}</b> Legacy` : '', cur ? `<b>#${cur}</b> Active` : '', posRank ? `<b>#${posRank.Rank}</b> ${p.Position}` : '', top20 ? `<b>#${top20.Rank}</b> All-Time` : ''].filter(Boolean);
         return r.length ? `<div class="pl-row pl-rankrow">${r.map(x => `<span>${x}</span>`).join('<i>|</i>')}</div>` : ''; })()}
     </div>
     <div class="tm-btns">${[['home', 'Home'], ['stats', 'Stats'], ['career', 'Career'], ['honors', 'Honors']].map(([k, l]) => `<button data-tab="${k}" class="${playerState.tab === k ? 'active' : ''}" onclick="setPlayerTab('${k}')">${l}</button>`).join('')}</div>
@@ -386,6 +396,14 @@ function fitStatRow(root) {
   // Team journey on one row: boxes shrink (30 px at most) so every team fits
   const stops = root.querySelector('.pl-stops');
   if (stops) { const n = stops.children.length, gap = 7, w = stops.clientWidth; stops.style.setProperty('--box', Math.min(30, Math.floor((w - gap * (n - 1)) / n)) + 'px'); }
+  // Stat labels stay on one line: shrink all five labels together until the widest fits its column
+  const sr = root.querySelector('.pl-statrow');
+  if (sr) { sr.style.removeProperty('--lbl'); const spans = [...sr.querySelectorAll('span')]; let size = 13;
+    // A label must leave at least 8 px before the next column's line
+    const tooWide = x => { const t = [...x.childNodes].find(c => c.nodeType === 3 && c.textContent.trim()); if (!t) return false;
+      const r = document.createRange(); r.selectNodeContents(t); const pl = parseFloat(getComputedStyle(x).paddingLeft) || 0;
+      return r.getBoundingClientRect().width > x.clientWidth - pl - 8; };
+    for (let i = 0; i < 14 && spans.some(tooWide); i++) { size -= 0.5; sr.style.setProperty('--lbl', size + 'px'); } }
   root.querySelectorAll('.pl-name, .pl-kicker').forEach(row => {
     row.style.fontSize = '';
     let size = parseFloat(getComputedStyle(row).fontSize);

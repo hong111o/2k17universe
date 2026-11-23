@@ -10,7 +10,6 @@ they are still in the git history if ever needed.
 |---|---|---|
 | `v20.html` | v20: phone app, custom icon, locked table headers | player pages, compare v2, draft, legacy ranking, search, data check |
 | `v22.html` | v22: player pages, compare v2, draft, simple legacy formula, search, data check | points-system legacy formula |
-| `v83.html` | v83: team colours and header | header in two rows, Conf. Champion, no Compare button, logo retry fix |
 | `v84.html` | v84: team header in two rows | team pages split into Home, Seasons, Players and Trophies tabs |
 | `v85.html` | v85: team tabs | season numbers lined up, years shown as 77' |
 | `v86.html` | v86: season numbers lined up | player badges (93 badges, Bronze to Legendary) and Badges page |
@@ -20,6 +19,7 @@ they are still in the git history if ever needed.
 | `v90.html` | v90: Settings → Badges | Legacy Formula and Badges as Settings sub pages with Save and Discard |
 | `v91.html` | v91: Settings sub pages | Grand badges (no levels), 17 new badges switched off, Levels/Grand switch |
 | `v92.html` | v92: Grand badges | new player page: team-colour header, journey, Home/Stats/Career/Honors tabs, main teams, one back button |
+| `v93.html` | v93: new player page | active players: seasons/teams/Finals/stat titles row, #Active rank |
 
 Online: https://hong111o.github.io/2k17universe/versions/v20.html and .../versions/v22.html
 
