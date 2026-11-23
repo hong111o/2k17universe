@@ -11,7 +11,7 @@ const { chromium, devices } = require(process.argv[2] + '/node_modules/playwrigh
       const card = p.locator('.chart-card:has-text("Legacy Score")');
       r[`${label} ${name}`] = (await card.innerText()).replace(/\s+/g, ' ');
       if (name === "Shaquille O'Neal") {
-        await p.locator('.player-grid').screenshot({ path: `${out}/lgc-${label}.png` });
+        await p.evaluate(() => setPlayerTab('honors')); await p.locator('.pl-tab[data-tab="honors"] .player-grid').screenshot({ path: `${out}/lgc-${label}.png` });
         r[`${label} timeline`] = await p.evaluate(() => [...document.querySelectorAll('.timeline .tl-chip')].filter(c => c.textContent.includes('Champion')).map(c => c.title).join(' | '));
         r[`${label} role chips left`] = await p.locator('.tl-chip', { hasText: 'Title role' }).count();
       }

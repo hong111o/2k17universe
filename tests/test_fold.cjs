@@ -20,10 +20,14 @@ const { chromium, devices } = require(process.argv[2] + '/node_modules/playwrigh
     R[label + ' new team on home'] = await p.evaluate(() => teamState.tab === 'home' && !document.querySelector('#teamPage .standings-table').checkVisibility());
     if (!R[label + ' table visible after tap'] || !R[label + ' new team on home'] || R[label + ' home only'] !== 'home') { console.log(JSON.stringify(R, null, 1)); process.exit(1); }
     await p.evaluate(() => openPlayerModal('LeBron James')); await p.waitForTimeout(600);
-    R[label + ' player folded'] = await p.evaluate(() => [...document.querySelectorAll('#playerPage .fold')].map(c => c.querySelector('.chart-title').textContent.trim() + (c.classList.contains('folded') ? ' [closed]' : ' [open]')).join(' | '));
-    R[label + ' legacy total visible'] = await p.locator('#playerPage .legacy-total').isVisible();
-    await p.locator('#playerPage .fold-head:has-text("Legacy Score") .card-link').click(); await p.waitForTimeout(300);
+    // Player pages open on Home; the Legacy card links to Honors, whose Legacy Score links to the full ranking
+    R[label + ' player tabs'] = await p.evaluate(() => [...document.querySelectorAll('#playerPage .pl-hero .tm-btns button')].map(b => b.textContent + (b.classList.contains('active') ? '*' : '')).join(' | '));
+    R[label + ' legacy total visible'] = await p.locator('#playerPage .pl-tab[data-tab="home"] .legacy-total').isVisible();
+    await p.locator('#playerPage .pl-tab[data-tab="home"] .card-link:has-text("Full breakdown")').click(); await p.waitForTimeout(300);
+    R[label + ' honors open'] = await p.evaluate(() => playerState.tab === 'honors');
+    await p.locator('#playerPage .pl-tab[data-tab="honors"] .card-link:has-text("Full ranking")').click(); await p.waitForTimeout(300);
     R[label + ' full ranking link works'] = await p.evaluate(() => document.getElementById('sec-legacy').classList.contains('active'));
+    if (!R[label + ' legacy total visible'] || !R[label + ' honors open'] || !R[label + ' full ranking link works']) { console.log(JSON.stringify(R, null, 1)); process.exit(1); }
     await p.evaluate(() => openPlayerModal('LeBron James')); await p.waitForTimeout(500);
     await p.screenshot({ path: `${out}/fold-player-${label}.png`, fullPage: true });
     R[label + ' overflow'] = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth);

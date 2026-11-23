@@ -64,7 +64,52 @@ function allTimeRanks(p) {
 // =====================================================================
 // PLAYER PAGE (replaces the old player popup; every player link lands here)
 // =====================================================================
-let playerState = { p: null, pool: 'all' };
+let playerState = { p: null, pool: 'all', tab: 'home' };
+
+// ---------------------------------------------------------------------
+// MAIN TEAM: the team a player is most tied to, which colours his page.
+// 1 retired number (if several teams retired it, the steps below decide among them)
+// 2 Finals as a listed star: title 2 points, conference title 1
+// 3 awards and stat titles won there (MVP, Finals MVP, DPOY, ROTY, stat titles)
+// 4 rotation titles, except one won with his last team once his career is over
+// 5 the first of the tied teams in his career order
+// A team chosen in Settings → Main Teams always wins.
+// ---------------------------------------------------------------------
+const MAIN_TEAM_KEY = 'nba2k17-main-team';
+const mainTeamOverrides = () => readJSON(MAIN_TEAM_KEY) || {};
+function awardTeamCounts() {
+  return cached('awardTeams', () => {
+    const out = {}, add = (p, t) => { if (!p || !t) return; const m = (out[p.Player] = out[p.Player] || {}); m[t] = (m[t] || 0) + 1; };
+    DB.history.forEach(h => { const yr = Number(h.Season); ['MVP', 'FMVP', 'DPOY', 'ROTY'].forEach(k => {
+      if (h[k] && h[k] !== '-' && h[k + 'Team']) coNames(h[k]).forEach(nm => add(resolvePlayer(nm, yr), fullTeamName(h[k + 'Team']))); }); });
+    ['Pts', 'Reb', 'Ast', 'Stl', 'Blk'].forEach(k => DB.statLeaders.forEach(r => { if (r[k + 'Leader']) add(resolvePlayer(r[k + 'Leader'], r.Season), teamByCode(r[k + 'Team'])?.Team); }));
+    return out;
+  });
+}
+function autoMainTeam(p) {
+  const teams = [...new Set(playerTeams(p))].filter(Boolean);
+  if (!teams.length) return { team: null, why: 'No team listed' };
+  if (teams.length === 1) return { team: teams[0], why: 'His only team' };
+  const ret = [...new Set(retiredFor(p).map(r => r.team))].filter(t => teams.includes(t));
+  if (ret.length === 1) return { team: ret[0], why: 'Retired his number' };
+  const ctx = legacyContext(), aw = awardTeamCounts()[p.Player] || {};
+  const star = t => (ctx.roles[p.Player] || []).filter(r => finalsTeams(r.yr).champ === t).length;
+  const conf = t => (ctx.ruRoles[p.Player] || []).filter(r => finalsTeams(r.yr).ru === t).length;
+  const last = teams[teams.length - 1], done = !isActive(p);
+  const rotation = t => (done && t === playerTeams(p)[playerTeams(p).length - 1]) ? 0 : Math.max(0, titlesWithTeam(p, t) - star(t));
+  let pool = ret.length > 1 ? ret : teams;
+  const steps = [['Finals as a star', t => 2 * star(t) + conf(t)], ['Awards won there', t => aw[t] || 0], ['Titles there', rotation]];
+  for (const [why, f] of steps) {
+    const best = Math.max(...pool.map(f)); if (best > 0) pool = pool.filter(t => f(t) === best);
+    if (pool.length === 1) return { team: pool[0], why: (ret.length > 1 ? 'Retired his number · ' : '') + why };
+  }
+  return { team: teams.find(t => pool.includes(t)), why: 'First of the tied teams' + (last ? '' : '') };
+}
+function mainTeam(p) {
+  const o = mainTeamOverrides()[p.Player];
+  if (o && playerTeams(p).includes(o)) return { team: o, why: 'Chosen in Settings' };
+  return autoMainTeam(p);
+}
 // Kept under its old name because every player link in the app calls it
 function openPlayerModal(rawName) {
   const p = resolvePlayer(rawName);
@@ -73,7 +118,7 @@ function openPlayerModal(rawName) {
 function openPlayer(p, fromHistory) {
   closeModal();
   closeSearch();
-  playerState.p = p;
+  playerState.p = p; playerState.tab = 'home';
   const hash = '#player-' + playerSlug(p.Player);
   if (!fromHistory && location.hash !== hash) history.pushState(null, '', hash);
   renderPlayerPage();
@@ -106,37 +151,12 @@ function renderPlayerPage() {
   const top20 = DB.top20.find(x => x.Player === p.Player);
   const posRank = (DB.positions[p.Position] || []).find(x => x.Player === p.Player);
   const draft = draftInfo(p);
-  const parts = [];
+  const parts = [], C = {};
 
-  // Header: name, bio strip, headline numbers
-  const bio = [
-    ['Position', POS_NAMES[p.Position] || p.Position || '—'],
-    ['Career', `${span ? seasonLabel(span[0]) + ' to ' + (span[1] === Infinity ? 'present' : seasonLabel(span[1])) : (p.Season || '—')}`],
-    ['Seasons', p.Exp || '—'],
-    ['Draft', draftLabel(draft)],
-    ['Teams', playerTeams(p).length || '—'],
-    ['Legacy rank', lr ? `#${lr} of ${everyPlayer().length}` : '—'],
-    ...(top20 ? [['Your Top 20', '#' + top20.Rank]] : []),
-    ...(posRank ? [[`Your ${p.Position} rank`, '#' + posRank.Rank]] : []),
-  ];
-  const headline = hasStats
-    ? [['PPG', one(perGame(p, 'PTS'))], ['RPG', one(perGame(p, 'REB'))], ['APG', one(perGame(p, 'AST'))]]
-    : [['All-Stars', n('All Stars')], ['Titles', n('Champions')], ['MVPs', n('MVP')]];
-  parts.push(`<section class="player-hero">
-    <button class="hero-back" onclick="playerBack()" aria-label="Back">← Back</button>
-    <div class="ph-main">
-      <div class="hero-kicker">${p.Position ? posBadge(p.Position) : ''} ${active ? '<span class="badge-active">ACTIVE</span>' : 'Retired'}</div>
-      <h1 class="ph-name">${p.Player}</h1>
-      <dl class="bio-strip">${bio.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>
-    </div>
-    <div class="ph-stats">${headline.map(([k, v]) => `<div><b>${v}</b><span>${k}</span></div>`).join('')}
-      ${hasStats ? `<div class="ph-sub">${numFmt(p.GP)} games · ${one(perGame(p, 'MIN'))} min</div>` : ''}
-      <button class="btn-primary ph-compare" onclick="compareWith('${jsArg(p.Player)}')">Compare</button>
-    </div>
-  </section>`);
+  // Header and tabs are built at the end (playerHeroHtml)
 
   const ranks = allTimeRanks(p);
-  if (ranks.length) parts.push(`<div class="rank-badges">${ranks.map(r => `<span class="rank-badge${r.rank <= 3 ? ' rb-podium' : ''}"><b>#${r.rank}</b> all-time ${r.label}</span>`).join('')}</div>`);
+  if (ranks.length) C.ranks = (`<div class="rank-badges">${ranks.map(r => `<span class="rank-badge${r.rank <= 3 ? ' rb-podium' : ''}"><b>#${r.rank}</b> all-time ${r.label}</span>`).join('')}</div>`);
 
   // Trophy shelf
   const shelf = [
@@ -184,12 +204,11 @@ function renderPlayerPage() {
         <span class="pct-track"><i style="width:${Math.max(r.pct, 2)}%" class="${r.pct >= 90 ? 'elite' : r.pct >= 60 ? 'good' : ''}"></i></span>
         <span class="pct-num">${r.pct}</span><span class="pct-val">${r.m.fmt(r.v)}</span></div>`).join('')}</div></div>`;
   }
-  parts.push(`<div class="player-grid">${pctHtml ? `<div class="pg-wide">${pctHtml}</div>` : ''}<div class="${pctHtml ? 'pg-side' : 'pg-full'}">${shelfHtml}${legacyHtml}</div></div>`);
 
   // Advanced stats
   if (hasStats) {
     const adv = advStats(p);
-    parts.push(`<div class="chart-card"><div class="chart-title">${icon('line')} Advanced Stats</div>
+    C.adv = (`<div class="chart-card"><div class="chart-title">${icon('line')} Advanced Stats</div>
       <div class="adv-grid">${ADV_DEFS.map(d => `<div class="adv" title="${d.how}"><b>${adv[d.key] === null ? '—' : d.fmt(adv[d.key])}</b><span>${d.label}</span></div>`).join('')}</div></div>`);
   }
 
@@ -241,7 +260,7 @@ function renderPlayerPage() {
       return covering === undefined ? i === stops[0] : covering === i;
     }).length;
   };
-  if (teams.length) parts.push(`<div class="chart-card"><div class="chart-title">${icon('jersey')} Team Journey</div>
+  if (teams.length) C.journey = (`<div class="chart-card"><div class="chart-title">${icon('jersey')} Team Journey</div>
     <div class="journey">${teams.map((t, i) => {
       const red = p._titleStints, ret = retired.filter(r => r.team === t);
       // With red cells, mark the exact stint; a team with two red stints gets no count (it isn't known per stint)
@@ -256,15 +275,15 @@ function renderPlayerPage() {
 
   // Finals the player played in as a listed star
   const finalsHtml = playerFinalsHtml(p);
-  if (finalsHtml) parts.push(finalsHtml);
+  if (finalsHtml) C.finals = (finalsHtml);
   // Badges: career milestones with Bronze to Legendary levels
   const badgesHtml = playerBadgesHtml(p);
-  if (badgesHtml) parts.push(badgesHtml);
+  if (badgesHtml) C.badges = (badgesHtml);
 
   // Career numbers
   if (hasStats) {
     const avg = k => { const v = perGame(p, k); return v === null ? '—' : v.toFixed(1); };
-    parts.push(`<div class="chart-card"><div class="chart-title">${icon('list')} Career Stats</div>
+    C.stats = (`<div class="chart-card"><div class="chart-title">${icon('list')} Career Stats</div>
       <div class="modal-section-title" style="border:0;margin:0 0 6px;padding:0;font-size:13px;color:var(--ink-3)">Per game</div>
       <div class="stat-grid">${[['PPG',avg('PTS')],['RPG',avg('REB')],['APG',avg('AST')],['SPG',avg('STL')],['BPG',avg('BLK')],['MPG',avg('MIN')],['FG%',pctFmt(p['FG%'])],['3P%',pctFmt(p['3P%'])],['FT%',pctFmt(p['FT%'])],['TOV',avg('TO')]].map(([l,v])=>`<div class="stat-box avg-box"><div class="sv">${v}</div><div class="sl">${l}</div></div>`).join('')}</div>
       <div class="modal-section-title" style="border:0;margin:16px 0 6px;padding:0;font-size:13px;color:var(--ink-3)">Totals</div>
@@ -272,12 +291,12 @@ function renderPlayerPage() {
         const r = ranks.find(x => x.key === k);
         return `<div class="stat-box${String(v).includes('/') ? ' wide' : ''}"><div class="sv">${v}</div><div class="sl">${l}</div>${r ? `<div class="srank${r.rank <= 3 ? ' podium' : ''}">#${r.rank} all-time</div>` : ''}</div>`; }).join('')}</div></div>`);
   } else {
-    parts.push(`<div class="chart-card"><p class="muted">Career stats appear once the player retires and is added to your All Players sheet. Active players are tracked by awards in the Current Player sheet.</p></div>`);
+    C.stats = (`<div class="chart-card"><p class="muted">Career stats appear once the player retires and is added to your All Players sheet. Active players are tracked by awards in the Current Player sheet.</p></div>`);
   }
 
   // Timeline
   const timeline = careerEvents(p.Player);
-  if (timeline.length) parts.push(`<div class="chart-card"><div class="chart-title">${icon('calendar')} Career Timeline</div>
+  if (timeline.length) C.timeline = (`<div class="chart-card"><div class="chart-title">${icon('calendar')} Career Timeline</div>
     <div class="tl-key">${[['ev-champ', 'Title'], ['ev-fmvp', 'Finals MVP'], ['ev-mvp', 'MVP'], ['ev-dpoy', 'DPOY'], ['ev-ru', 'Conference Title'], ['ev-nba1', 'All-NBA'], ['ev-stat', 'Stat leader'], ['ev-roy', 'Rookie']]
       .filter(([c]) => timeline.some(t => t.items.some(e => c === 'ev-nba1' ? /^ev-nba/.test(e.cls) : c === 'ev-roy' ? /^ev-(roy|rookie)$/.test(e.cls) : e.cls === c)))
       .map(([c, l]) => `<span class="tl-chip ${c}">${l}</span>`).join('')}</div>
@@ -286,17 +305,132 @@ function renderPlayerPage() {
 
   // Similar players
   const sim = similarPlayers(p, 5);
-  if (sim.length) parts.push(`<div class="chart-card"><div class="chart-title">${icon('people')} Similar Players</div>
+  if (sim.length) C.similar = (`<div class="chart-card"><div class="chart-title">${icon('people')} Similar Players</div>
     <div class="sim-grid">${sim.map(sp => `<div class="sim" role="button" tabindex="0" onclick="openPlayerModal('${jsArg(sp.p.Player)}')" onkeydown="if(event.key==='Enter')this.click()">
       <div class="sim-match">${sp.match}%</div><div class="sim-name">${sp.p.Player} ${posBadge(sp.p.Position)}</div>
       <div class="sim-line">${one(perGame(sp.p, 'PTS'))} PPG · ${one(perGame(sp.p, 'REB'))} RPG · ${one(perGame(sp.p, 'AST'))} APG</div>
       <button class="card-link" onclick="event.stopPropagation();compareWith('${jsArg(p.Player)}','${jsArg(sp.p.Player)}')">Compare</button></div>`).join('')}</div></div>`);
   // Closest match, drawn as a percentile fingerprint
-  if (sim.length) parts.push(fingerprintHtml([p, sim[0].p], ['var(--p1)', 'var(--p2)'], { title: 'Closest Match', sub: `${p.Player} vs ${sim[0].p.Player}, a ${sim[0].match}% statistical match` }));
+  if (sim.length) C.closest = (fingerprintHtml([p, sim[0].p], ['var(--p1)', 'var(--p2)'], { title: 'Closest Match', sub: `${p.Player} vs ${sim[0].p.Player}, a ${sim[0].match}% statistical match` }));
 
+  C.pct = pctHtml; C.shelf = shelfHtml; C.legacy = legacyHtml;
+  const grid = (m, sd) => `<div class="player-grid"><div>${m.filter(Boolean).join('')}</div><div>${sd.filter(Boolean).join('')}</div></div>`;
+  const tabs = {
+    home: grid([playerHomeLegacy(p), playerHomeBadges(p)], [C.shelf, sim.length ? playerHomeMatch(p, sim[0]) : '']),
+    stats: (C.stats || '') + grid([C.pct, C.closest], [C.adv, C.similar]),
+    career: (C.journey || '') + grid([C.timeline], [C.finals]),
+    honors: (C.ranks || '') + grid([C.badges], [C.legacy]),
+  };
+  parts.push(playerHeroHtml(p));
+  parts.push(Object.entries(tabs).map(([k, html]) => `<div class="tm-tab pl-tab" data-tab="${k}"${k === playerState.tab ? '' : ' hidden'}>${html || '<p class="muted">Nothing here yet.</p>'}</div>`).join(''));
   const pp = document.getElementById('playerPage');
   pp.innerHTML = parts.join('');
-  applyFolds(pp, PLAYER_FOLDS);
+  finishPlayerHero(pp);
+}
+// ---------------------------------------------------------------------
+// PLAYER HEADER AND TABS (same design as the team page, in his main team's colour)
+// ---------------------------------------------------------------------
+function playerRankAmong(p, get, pool) {
+  const v = get(p); if (v === null || v === undefined || isNaN(v)) return null;
+  const vals = pool.map(get).filter(x => x !== null && x !== undefined && !isNaN(x));
+  const rk = vals.filter(x => x > v).length + 1, tie = vals.filter(x => x === v).length > 1;
+  return { v, rk: (tie ? 'T-' : '') + ordinalRank(rk) };
+}
+function playerHeroHtml(p) {
+  const n = k => { const v = getNum(p[k]); return v === -Infinity ? 0 : v; };
+  const span = careerSpan(p.Season), active = isActive(p), hasStats = careerPlayers().includes(p);
+  const nameParts = String(p.Player).split(' '), last = nameParts.length > 1 ? nameParts.pop() : '', first = nameParts.join(' ');
+  const mt = mainTeam(p), team = mt.team, ctx = legacyContext();
+  // Team journey: one box per stop, gold for a title there, silver for a conference title, rainbow ring for the main team
+  const stops = playerTeams(p).map((t, i, arr) => {
+    const ti = titlesWithTeam(p, t), cf = (ctx.ruRoles[p.Player] || []).filter(r => finalsTeams(r.yr).ru === t).length;
+    const seen = arr.indexOf(t) !== i;   // a second spell with the same team: show the box again, counts only once
+    const tip = `${t}${!seen && ti ? ` · ${ti} title${ti > 1 ? 's' : ''}` : ''}${!seen && cf ? ` · ${cf} conf. title${cf > 1 ? 's' : ''}` : ''}${t === team ? ' · main team' : ''}`;
+    return `<button type="button" class="pl-stopbox${!seen && ti ? ' is-title' : !seen && cf ? ' is-conf' : ''}${t === team ? ' is-main' : ''}" title="${tip}" aria-label="${tip}" onclick="openTeamModal('${jsArg(t)}')">${teamLogo(t) || `<span>${teamCode(t)}</span>`}</button>`;
+  }).join('');
+  // Rows: per-game stats, his three biggest awards, his rankings
+  const one = v => v === null || v === undefined || isNaN(v) ? '—' : v.toFixed(1);
+  const statRow = hasStats ? [['PPG', 'PTS'], ['RPG', 'REB'], ['APG', 'AST'], ['SPG', 'STL'], ['BPG', 'BLK']].map(([l, k]) => `<span><b>${one(perGame(p, k))}</b> ${l}</span>`).join('')
+    : [['All-Star', n('All Stars')], ['All-NBA', n('All NBA Team')], ['1st Team', n('1st Team')], ['All-D', n('1st D Team') + n('2nd D Team')], ['Finals', n('Finals App')]].map(([l, v]) => `<span><b>${v}</b> ${l}</span>`).join('');
+  // Up to four awards, in this order: MVP, titles, FMVP, DPOY, All-NBA, All-Defensive, All-Star, then ROTY, MIP, 6th Man
+  const awards = [[n('MVP'), 'MVP'], [n('Champions'), n('Champions') === 1 ? 'Title' : 'Titles'], [n('FMVP'), 'FMVP'], [n('DPOY'), 'DPOY'],
+    [n('All NBA Team'), 'All-NBA'], [n('1st D Team') + n('2nd D Team'), 'All-D'], [n('All Stars'), 'All-Star'],
+    [isRoty(p) ? 1 : 0, 'ROTY'], [otherAward(p, 'MIP'), 'MIP'], [otherAward(p, '6th Man'), '6th Man']].filter(([v]) => v > 0).slice(0, 4);
+  const top20 = DB.top20.find(x => x.Player === p.Player), posRank = (DB.positions[p.Position] || []).find(x => x.Player === p.Player), lr = legacyRankOf(p);
+  // Career years from his first season's start to his last season's end, e.g. 1992–2011
+  const years = span ? `${span[0] - 1}–${span[1] === Infinity || active ? 'now' : span[1]}` : (p.Season || '');
+  // One line above the name: position | years | draft | seasons
+  const d = draftInfo(p);
+  const draft = !d ? '' : d.kind === 'undrafted' ? 'Undrafted' : d.kind === 'territorial' ? `${d.year} Territorial` : `${d.year}${d.league === 'ABA' ? ' ABA' : ''} ${d.round > 1 ? `R${d.round} ` : ''}#${d.pick ?? '?'} pick`;
+  const kicker = [POS_NAMES[p.Position] || p.Position || 'Player', years, draft]
+    .filter(Boolean).map(x => `<span>${x}</span>`).join('<i>|</i>');
+  const color = team && TEAM_COLORS[team];
+  return `<section class="tm-hero pl-hero" ${color ? `style="--tc:${color}"` : ''} data-team="${team || ''}">
+    <div class="pl-actions">${backButton('Back', 'playerBack()', true)}<button type="button" class="back-btn on-hero pl-cmp" onclick="compareWith('${jsArg(p.Player)}')" aria-label="Compare ${p.Player.replace(/"/g, '&quot;')}" title="Compare"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16M17 4v16M3 8h8M13 16h8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>Compare</button></div>
+    <div class="pl-top">
+      <div class="tm-kicker pl-kicker">${kicker}</div>
+      <h1 class="tm-name pl-name">${p.Player}</h1>
+      ${stops ? `<div class="pl-stops" aria-label="Team journey">${stops}</div>` : ''}
+    </div>
+    <div class="pl-rows">
+      <div class="pl-row pl-statrow">${statRow}</div>
+      ${awards.length ? `<div class="pl-row">${awards.map(([v, l]) => `<span><b>${v}</b> ${l}</span>`).join('<i>|</i>')}</div>` : ''}
+      ${(() => { const r = [lr ? `<b>#${lr}</b> Legacy` : '', posRank ? `<b>#${posRank.Rank}</b> ${p.Position}` : '', top20 ? `<b>#${top20.Rank}</b> All-Time` : ''].filter(Boolean);
+        return r.length ? `<div class="pl-row pl-rankrow">${r.map(x => `<span>${x}</span>`).join('<i>|</i>')}</div>` : ''; })()}
+    </div>
+    <div class="tm-btns">${[['home', 'Home'], ['stats', 'Stats'], ['career', 'Career'], ['honors', 'Honors']].map(([k, l]) => `<button data-tab="${k}" class="${playerState.tab === k ? 'active' : ''}" onclick="setPlayerTab('${k}')">${l}</button>`).join('')}</div>
+  </section>`;
+}
+// The name and the five stats each stay on one line: shrink the text until it fits
+function fitStatRow(root) {
+  // Team journey on one row: boxes shrink (30 px at most) so every team fits
+  const stops = root.querySelector('.pl-stops');
+  if (stops) { const n = stops.children.length, gap = 7, w = stops.clientWidth; stops.style.setProperty('--box', Math.min(30, Math.floor((w - gap * (n - 1)) / n)) + 'px'); }
+  root.querySelectorAll('.pl-name, .pl-kicker').forEach(row => {
+    row.style.fontSize = '';
+    let size = parseFloat(getComputedStyle(row).fontSize);
+    for (let i = 0; i < 60 && row.scrollWidth > row.clientWidth + 1 && size > 9; i++) { size -= 0.5; row.style.fontSize = size + 'px'; }
+  });
+}
+addEventListener('resize', () => { const pp = document.getElementById('playerPage'); if (pp && pp.querySelector('.pl-statrow')) fitStatRow(pp); });
+function finishPlayerHero(root) {
+  const hero = root.querySelector('.pl-hero'); if (!hero) return;
+  fitStatRow(root); if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => fitStatRow(root));
+  root.classList.remove('tm-themed'); ['--tc', '--ta-l', '--ta-d'].forEach(v => root.style.removeProperty(v));
+  const team = hero.dataset.team; if (!team) return;
+  if (TEAM_COLORS[team]) teamTheme(root, TEAM_COLORS[team]);
+  else { const src = DB.logos && DB.logos[team], who = playerState.p; if (src) logoColor(src).then(c => { if (c && playerState.p === who) { hero.style.setProperty('--tc', c); teamTheme(root, c); } }); }
+}
+function setPlayerTab(tab) {
+  playerState.tab = tab;
+  const pp = document.getElementById('playerPage');
+  pp.querySelectorAll('.pl-tab').forEach(el => el.hidden = el.dataset.tab !== tab);
+  pp.querySelectorAll('.pl-hero .tm-btns button[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  hideBadgeTip && hideBadgeTip();
+  const hero = pp.querySelector('.pl-hero');
+  if (hero && scrollY > hero.offsetTop + hero.offsetHeight - 200) scrollTo({ top: hero.offsetTop + hero.offsetHeight - 160 });
+}
+const plMore = (tab, label) => `<button class="card-link th-more" onclick="setPlayerTab('${tab}')">${label} →</button>`;
+// Home: short versions of each tab
+function playerHomeLegacy(p) {
+  const L = legacy(p), rk = legacyRankOf(p);
+  const rows = LEGACY_PARTS.map(([k, label]) => ({ label, v: L.parts[k] })).filter(r => r.v > 0).sort((a, b) => b.v - a.v).slice(0, 3);
+  return `<div class="chart-card"><div class="card-head"><div class="chart-title">${icon('chart')} Legacy</div>${plMore('honors', 'Full breakdown')}</div>
+    <div class="legacy-total"><b>${Math.round(L.total).toLocaleString()}</b><span>points${rk ? ` · #${rk} of ${everyPlayer().length}` : ''}</span></div>
+    ${rows.length ? `<div class="lg-parts">${rows.map(r => `<div class="lg-part"><span>${r.label}</span><span class="lg-track"><i style="width:${Math.max(2, r.v / rows[0].v * 100)}%"></i></span><b>${Math.round(r.v).toLocaleString()}</b></div>`).join('')}</div>` : ''}</div>`;
+}
+function playerHomeBadges(p) {
+  const list = playerBadges(p); if (!list.length) return '';
+  const top = [...list.filter(x => x.lv === 4), ...list.filter(x => x.lv === 5)];
+  const counts = [4, 3, 2, 1, 5].map(lv => [lv, list.filter(x => x.lv === lv).length]).filter(([, c]) => c);
+  return `<div class="chart-card bd-card"><div class="card-head"><div class="chart-title">${icon('star')} Badges <span class="muted">${list.length}</span></div>${plMore('honors', 'All badges')}</div>
+    <div class="bd-counts">${counts.map(([lv, c]) => `<span class="bd-count ${tierClass(lv)}" title="${BADGE_TIERS[lv - 1]}"><i></i>${c}</span>`).join('')}</div>
+    <div class="bd-chips">${top.length ? top.map(x => badgeChip(x.b, x.lv)).join('') : '<span class="muted">No Legendary or Grand badges yet.</span>'}</div></div>`;
+}
+function playerHomeMatch(p, m) {
+  return `<div class="chart-card"><div class="card-head"><div class="chart-title">${icon('people')} Closest Match</div>${plMore('stats', 'Stats')}</div>
+    <div class="pl-match">${nameLink(m.p.Player)} ${posBadge(m.p.Position)} <b>${m.match}%</b></div>
+    <p class="muted fx-note">The most similar career by the numbers.</p></div>`;
 }
 // Open Compare with one or two players already picked
 function compareWith(a, b) {

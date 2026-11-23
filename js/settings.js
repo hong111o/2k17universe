@@ -208,6 +208,7 @@ function openSettingsView(v) {
   settingsState.view = v; settingsState.dirty = false;
   if (v === 'legacy') settingsState.legacyDraft = legacyWeights();
   if (v === 'badges') badgeDraftStart();
+  if (v === 'mainteams') { settingsState.mainDraft = { ...mainTeamOverrides() }; settingsState.mainQ = ''; settingsState.mainShow = 'tied'; }
   renderSettings(); scrollTo(0, 0);
 }
 function settingsBack() { settingsDiscard(true); settingsState.view = 'main'; renderSettings(); scrollTo(0, 0); }
@@ -232,17 +233,19 @@ function settingsSave() {
     engineCache = {}; renderLegacy(); renderDraft();
   }
   if (settingsState.view === 'badges') badgeDraftSave();
+  if (settingsState.view === 'mainteams') writeJSON(MAIN_TEAM_KEY, settingsState.mainDraft || {});
   settingsState.dirty = false; renderSettings();
 }
 function settingsDiscard(quiet) {
   if (settingsState.view === 'legacy') settingsState.legacyDraft = legacyWeights();
   if (settingsState.view === 'badges') badgeDraftDiscard();
+  if (settingsState.view === 'mainteams') settingsState.mainDraft = { ...mainTeamOverrides() };
   settingsState.dirty = false;
   if (!quiet) renderSettings();
 }
 function renderSettings() {
   const el = document.getElementById('settingsContent');
-  const back = title => `<div class="settings-sub-head"><button type="button" class="card-link" onclick="settingsBack()">← Settings</button><h2>${title}</h2></div>`;
+  const back = title => `<div class="settings-sub-head">${backButton('Settings', 'settingsBack()')}<h2>${title}</h2></div>`;
   if (settingsState.view === 'legacy') {
     const w = settingsState.legacyDraft || legacyWeights();
     el.innerHTML = back('Legacy Formula') + `<div class="chart-card"><div class="card-head"><div class="chart-title">${icon('trophy')} Legacy Formula</div><button class="card-link" onclick="legacyDraftReset()">Reset to defaults</button></div>
@@ -252,6 +255,7 @@ function renderSettings() {
     return;
   }
   if (settingsState.view === 'badges') { el.innerHTML = back('Badges') + badgeSettingsHtml() + saveBarHtml(); return; }
+  if (settingsState.view === 'mainteams') { el.innerHTML = back('Main Teams') + mainTeamsHtml() + saveBarHtml(); return; }
   const res = dataCheckResults;
   const freshKeys = new Set(newDataProblems().map(dcKey));
   const by = l => res.filter(r => r.level === l);
@@ -262,6 +266,7 @@ function renderSettings() {
     <div class="settings-links">
       ${link('legacy', 'trophy', 'Legacy Formula', changedW ? `${changedW} value${changedW === 1 ? '' : 's'} changed from the defaults` : 'The points behind the Legacy Ranking')}
       ${link('badges', 'star', 'Badges', `${activeBadges().length} of ${BADGES.length} on · switch on or off, rename, change levels`)}
+      ${link('mainteams', 'jersey', 'Main Teams', (() => { const n = Object.keys(mainTeamOverrides()).length; return n ? `${n} chosen by you · the team colour of each player page` : 'The team colour of each player page'; })())}
     </div>
     <div class="chart-card"><div class="card-head"><div class="chart-title">${icon('list')} Data Check</div><button class="card-link" onclick="updateDataCheckDot();renderSettings()">Run again</button></div>
       <div class="dc-summary">${groups.map(([l, t]) => `<div class="dc-pill dc-${l}"><b>${by(l).length}</b><span>${t}</span></div>`).join('')}</div>
@@ -274,6 +279,33 @@ function renderSettings() {
     <div class="chart-card"><div class="chart-title">${icon('file')} Saved Workbook</div><p id="settingsSaved" class="muted"></p>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn-primary" onclick="showLoadOverlay()">Load a new workbook</button>${readJSON(RECAP_KEY)?.groups?.length ? '<button class="icon-btn" onclick="showRecap()">Show last update recap</button>' : ''}<button class="icon-btn" onclick="forgetSavedWorkbook();renderSettings()">Forget saved file</button></div></div>`;
   getSavedWorkbook().then(saved => { const s2 = document.getElementById('settingsSaved'); if (s2) s2.textContent = saved ? `${saved.name}, saved ${new Date(saved.savedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })} on this device.` : 'No workbook saved on this device.'; });
+}
+// Settings → Main Teams: each player's team colour, picked by the rule unless chosen here
+function mainTeamsHtml() {
+  const d = settingsState.mainDraft || {}, q = (settingsState.mainQ || '').toLowerCase(), show = settingsState.mainShow;
+  const rows = everyPlayer().filter(p => new Set(playerTeams(p)).size > 1).map(p => ({ p, auto: autoMainTeam(p) }))
+    .filter(r => !q || r.p.Player.toLowerCase().includes(q))
+    .filter(r => show === 'all' || (show === 'tied' ? /tied|Titles there|Awards/.test(r.auto.why) : show === 'chosen' ? d[r.p.Player] : true))
+    .sort((a, b) => a.p.Player.localeCompare(b.p.Player));
+  return `<div class="chart-card" id="mainTeams"><div class="chart-title">${icon('jersey')} Main Teams</div>
+    <p class="muted" style="margin-bottom:10px">Each player page takes the colour and logo of his main team. The rule picks it: a retired number, then Finals as a listed star (title 2 points, conference title 1), then awards won there, then other titles (not a last-team ring), then his first team. Choose a team here to change it. Players with one team are not listed.</p>
+    <div class="toolbar mt-toolbar"><div class="search-wrap"><span class="icon"><svg class="ic"><use href="#i-search"/></svg></span><input type="text" id="mtSearch" placeholder="Search players..." value="${(settingsState.mainQ || '').replace(/"/g, '&quot;')}" oninput="settingsState.mainQ=this.value;refreshMainTeams()" aria-label="Search players"></div>
+      <div class="seg">${[['tied', 'Close calls'], ['chosen', 'Chosen by you'], ['all', 'All']].map(([k, l]) => `<button class="${show === k ? 'active' : ''}" onclick="settingsState.mainShow='${k}';refreshMainTeams()">${l}</button>`).join('')}</div></div>
+    <div class="mt-list">${rows.map(({ p, auto }) => { const pick = d[p.Player] || '';
+      return `<div class="mt-row"><div class="mt-who">${nameLink(p.Player)}<small class="muted">${pick ? 'Chosen by you' : `${shortTeam(auto.team)} · ${auto.why}`}</small></div>
+        <select id="mt-${playerSlug(p.Player)}" aria-label="Main team for ${p.Player.replace(/"/g, '&quot;')}" onchange="setMainTeamDraft('${jsArg(p.Player)}',this.value)">
+          <option value="">Rule: ${auto.team}</option>${[...new Set(playerTeams(p))].map(t => `<option value="${t}"${pick === t ? ' selected' : ''}>${t}</option>`).join('')}</select></div>`; }).join('') || '<p class="muted">Nothing matches.</p>'}</div></div>`;
+}
+function refreshMainTeams() {
+  const el = document.getElementById('mainTeams'); if (!el) return;
+  const pos = document.activeElement && document.activeElement.id === 'mtSearch' ? document.activeElement.selectionStart : null;
+  el.outerHTML = mainTeamsHtml();
+  if (pos !== null) { const i = document.getElementById('mtSearch'); i.focus(); i.setSelectionRange(pos, pos); }
+}
+function setMainTeamDraft(player, team) {
+  const d = settingsState.mainDraft || (settingsState.mainDraft = { ...mainTeamOverrides() });
+  if (team) d[player] = team; else delete d[player];
+  markSettingsDirty(); refreshMainTeams();
 }
 function legacyDraftSet(k, v) { settingsState.legacyDraft[k] = Math.max(0, Number(v) || 0); markSettingsDirty(); }
 function legacyDraftReset() { settingsState.legacyDraft = { ...LEGACY_DEFAULTS }; settingsState.dirty = true; renderSettings(); }

@@ -53,7 +53,7 @@ const { chromium, devices } = require(process.argv[2] + '/node_modules/playwrigh
   await p.click('text=Reset to defaults'); await p.click('#settingsSaveBar button:has-text("Save")');
   r.legacyTopReset = await p.evaluate(() => legacyRanking().slice(0, 3).map(x => x.p.Player).join(', '));
   if (r.legacyBeforeSave !== r.legacyTop0 || !r.resetIsDraft || !r.discardKept || r.legacyTopReset !== r.legacyTop0) { console.log(JSON.stringify(r, null, 1)); process.exit(1); }
-  await p.click('text=← Settings');
+  await p.click('.settings-sub-head .back-btn');
   r.errors = errs;
   console.log(JSON.stringify(r, null, 1));
   // phone screenshots

@@ -71,6 +71,10 @@ function teamLink(team, label) {
   return known ? `<span class="team-link" title="${full}" onclick="event.stopPropagation();openTeamModal('${jsArg(full)}')">${teamLogo(full)}${text}</span>` : text;
 }
 // Escape a value for use inside a single-quoted JS string in an HTML attribute
+// The one Back button used everywhere: a small pill with an arrow (hero = on a coloured header)
+function backButton(label, action, hero) {
+  return `<button type="button" class="back-btn${hero ? ' on-hero' : ''}" onclick="${action}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>${label}</button>`;
+}
 function jsArg(v) { return String(v).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
 
 // =====================================================================

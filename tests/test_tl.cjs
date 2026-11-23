@@ -10,7 +10,7 @@ const { chromium, devices } = require(process.argv[2] + '/node_modules/playwrigh
     const card = p.locator('.chart-card:has(.season-nav select[aria-label="Draft year"])');
     await card.screenshot({ path: `${out}/draftnav-${label}.png` });
     R[label + ' nav fits'] = await p.evaluate(() => { const c = document.querySelector('select[aria-label="Draft year"]').closest('.chart-card').getBoundingClientRect(); return [...document.querySelectorAll('select[aria-label="Draft year"] ~ button, .season-nav button')].every(b => { const r = b.getBoundingClientRect(); return !r.width || r.right <= c.right + 0.5; }); });
-    await p.evaluate(() => openPlayerModal('Owen Horton')); await p.waitForTimeout(400);
+    await p.evaluate(() => { openPlayerModal('Owen Horton'); setPlayerTab('career'); }); await p.waitForTimeout(400);
     await p.locator('.chart-card:has-text("Career Timeline")').screenshot({ path: `${out}/tl-${label}.png` });
     R[label + ' overflow'] = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth);
     R[label + ' errors'] = errs; await ctx.close(); }
