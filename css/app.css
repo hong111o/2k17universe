@@ -1110,3 +1110,10 @@ button.bd-chip:focus-visible{outline:2px solid var(--link);outline-offset:2px;}
 @media (max-width:640px){.pl-hero .pl-statrow span{letter-spacing:.03em;} .pl-hero .pl-statrow span b{font-size:27px;}}
 @media (max-width:380px){.pl-hero .pl-statrow span b{font-size:23px;}}
 .pl-hero .pl-statrow span{padding-right:6px;}
+/* Eras */
+.pl-era{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin-top:-6px;font-weight:700;font-size:16px;color:#ffe08a;}
+.pl-era span{font-weight:500;color:rgba(255,255,255,.75);}
+.pl-era .ic{width:18px;height:18px;}
+.season-era{display:inline-flex;align-items:center;gap:6px;margin:2px 0 4px;font-family:var(--font-display);font-weight:700;font-size:18px;color:var(--champ-ink);}
+.season-era .ic{width:18px;height:18px;color:var(--champ);}
+.season-era .player-link,.season-era .name-link{color:inherit;}

@@ -195,7 +195,9 @@ const BADGES = [
   statBadge('lineup', 'All-Time Starter', 'Legacy', "Teams' All-Time starting fives he is in", p => yrsOf(bc().lineups, p).length, [null, 1, 2, 3]),
   // Draft, era and shooting combos
   flagBadge('latepick', 'Late Bloomer', 'Legacy', 'Drafted 15th or later, then won MVP', p => { const d = draftPick(p); return !!d && (d.rnd - 1) * 30 + d.pick >= 15 && (bN(p, 'MVP') ?? 0) > 0; }),
-  statBadge('decade', 'Era Definer', 'Legacy', 'Decade Team selections', p => (DB.decades || []).filter(d => [...(d.starter || []), ...(d.subs || [])].some(n => resolvePlayer(n)?.Player === p.Player)).length || null, [null, null, 2, 3]),
+  statBadge('decade', 'Era Definer', 'Legacy', 'Decade Team starting five selections', p => playerDecades(p).filter(x => x.role === 'starter').length || null, [null, null, 1, 2]),
+  switchedOff(flagBadge('eraface', 'Face of an Era', 'Legacy', 'The player an era is named after', p => playerDecades(p).some(x => x.era))),
+  switchedOff(statBadge('decademain', 'Decade Mainstay', 'Legacy', 'Decade Team selections, starting five or bench', p => playerDecades(p).length || null, [1, 2, 3, null])),
   asGrand(clubBadge('steal', 'Second-Round Steal', 'Legacy', 'Drafted in round 2 or later, then All-Star selections', [p => (draftPick(p)?.rnd ?? 0) >= 2 ? 1 : null, p => bN(p, 'All Stars')], [[1, 3], [1, 6], [1, 10], [1, 14]], t => `${t[1]} All-Stars`), [1, 10]),
   flagBadge('oldschool', 'Old School', 'Legacy', 'Career began before 1980, with 10+ All-Star selections', p => { const s = careerSpan(p.Season); return s && s[0] < 1980 && (bN(p, 'All Stars') ?? 0) >= 10; }),
   clubBadge('volsniper', 'Volume Sniper', 'Shooting', 'Threes made per game and career 3P% together', [p => bN(p, 'GP') ? (bN(p, '3PM') ?? 0) / bN(p, 'GP') : null, p => bN(p, '3P%')], [[2.5, 37.5], [3, 40], [3.2, 41], [3.5, 42]], t => `${t[0]} 3PM/g + ${t[1]}%`),

@@ -463,6 +463,8 @@ function renderSeason() {
   document.getElementById('seasonPrev').disabled = list.indexOf(yr) >= list.length - 1;
   document.getElementById('seasonNext').disabled = list.indexOf(yr) <= 0;
   document.getElementById('seasonTitle').textContent = `${seasonLabel(yr)} Season`;
+  const se = seasonEra(yr), seEl = document.getElementById('seasonEra');
+  seEl.hidden = !se; if (se) seEl.innerHTML = `${icon('crown')} ${se.player ? `The ${nameLink(se.player.Player, { label: se.name })} Era` : se.label}`;
 
   const h = DB.history.find(x => Number(x.Season) === yr);
   const { champ, ru } = finalsTeams(yr);
@@ -920,7 +922,8 @@ function decadeInfoItem(label, vals) {
   </div>`;
 }
 function initDecades() {
-  document.getElementById('decadeGrid').innerHTML = DB.decades.map(d => {
+  // Newest decade first
+  document.getElementById('decadeGrid').innerHTML = [...DB.decades].sort((a, b) => (decadeStart(b) || 0) - (decadeStart(a) || 0)).map(d => {
     const chip = (name, cls, posLabel) => {
       const p = resolvePlayer(name);
       const click = p ? ` onclick="openPlayerModal('${jsArg(p.Player)}')"` : '';

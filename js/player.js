@@ -319,7 +319,7 @@ function renderPlayerPage() {
     home: grid([playerHomeLegacy(p), playerHomeBadges(p)], [C.shelf, sim.length ? playerHomeMatch(p, sim[0]) : '']),
     stats: (C.stats || '') + grid([C.pct, C.closest], [C.adv, C.similar]),
     career: (C.journey || '') + grid([C.timeline], [C.finals]),
-    honors: (C.ranks || '') + grid([C.badges], [C.legacy]),
+    honors: (C.ranks || '') + grid([C.badges], [C.shelf, C.legacy]),
   };
   parts.push(playerHeroHtml(p));
   parts.push(Object.entries(tabs).map(([k, html]) => `<div class="tm-tab pl-tab" data-tab="${k}"${k === playerState.tab ? '' : ' hidden'}>${html || '<p class="muted">Nothing here yet.</p>'}</div>`).join(''));
@@ -379,6 +379,7 @@ function playerHeroHtml(p) {
     <div class="pl-top">
       <div class="tm-kicker pl-kicker">${kicker}</div>
       <h1 class="tm-name pl-name">${p.Player}</h1>
+      ${(() => { const eras = playerDecades(p).filter(x => x.era); return eras.length ? `<div class="pl-era">${icon('crown')} Face of an Era <span>· ${eras.map(x => x.decade).join(' & ')}</span></div>` : ''; })()}
       ${stops ? `<div class="pl-stops" aria-label="Team journey">${stops}</div>` : ''}
     </div>
     <div class="pl-rows">

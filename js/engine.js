@@ -251,6 +251,33 @@ function syncRatioBar() {
 function legacyRanking() {
   return cached('legacyRanking', () => withRanks(everyPlayer().map(p => ({ p, score: legacy(p).total })).sort((a, b) => b.score - a.score), r => Math.round(r.score)));
 }
+// ---------------------------------------------------------------------
+// DECADE TEAMS AND ERAS (Decade NBA Team sheet): the best five of each decade start,
+// eight more on the bench; the era is named after the decade's best player.
+// ---------------------------------------------------------------------
+const decadeStart = d => { const m = String(d.decade || '').match(/(\d{4})/); return m ? Number(m[1]) : null; };
+// The era's name as written between the quote marks ("The ”LeBron” Era" → LeBron); any quote style
+const eraName = d => { const s = String(d.era || ''); const m = s.match(/[\"'“”‘’]\s*([^\"'“”‘’]+?)\s*[\"'“”‘’]/); return m ? m[1].trim() : s.replace(/^the\s+|\s+era$/gi, '').trim(); };
+// The decade's era player: the starter whose first or last name is the era name
+function eraPlayer(d) {
+  const nm = eraName(d).toLowerCase(); if (!nm) return null;
+  const starters = (d.starter || []).map(n => resolvePlayer(n)).filter(Boolean);
+  return starters.find(p => p.Player.toLowerCase().split(/\s+/).includes(nm)) || starters.find(p => p.Player.toLowerCase().includes(nm)) || null;
+}
+// Every Decade Team spot a player holds: [{ decade, start, role: 'starter' | 'bench', era }]
+function playerDecades(p) {
+  return cached('decades|' + p.Player, () => (DB.decades || []).flatMap(d => {
+    const has = list => (list || []).some(n => resolvePlayer(n) === p);
+    const role = has(d.starter) ? 'starter' : has(d.subs) ? 'bench' : null;
+    return role ? [{ decade: d.decade.replace(/\s*era$/i, ''), start: decadeStart(d), role, era: eraPlayer(d) === p }] : [];
+  }).sort((a, b) => a.start - b.start));
+}
+// The era a season belongs to (2077–78 is in the 2070s)
+function seasonEra(yr) {
+  const start = Math.floor((Number(yr) - 1) / 10) * 10;
+  const d = (DB.decades || []).find(x => decadeStart(x) === start);
+  return d && eraName(d) ? { name: eraName(d), label: String(d.era).replace(/[\"'“”‘’]/g, '').replace(/\s+/g, ' ').trim(), player: eraPlayer(d), decade: start + 's' } : null;
+}
 const legacyRankOf = p => legacyRanking().find(r => r.p === p)?.rank;
 // Legacy score and rank for any list row (Top 20 and position sheets hold copies of the player)
 const legacyRow = row => { const p = everyPlayer().includes(row) ? row : resolvePlayer(row.Player); return p ? { p, score: legacy(p).total, rank: legacyRankOf(p) } : null; };
