@@ -1210,3 +1210,10 @@ button.bd-chip:focus-visible{outline:2px solid var(--link);outline-offset:2px;}
 .rb-grid{align-items:stretch;}
 @media (max-width:900px){.list-side > div:last-child{position:static;} .aw-grid > div:first-child > .table-wrap{flex:none;max-height:70vh;}}
 .rb-grid > .rb-wide{grid-column:1/-1;} .rb-cols{columns:3 300px;column-gap:32px;} .rb-cols .rb-row{break-inside:avoid;}
+/* Player header: the main team's logo, faded behind the top right (as on Compare); no rainbow frame */
+.pl-bglogo{position:absolute;right:-40px;top:-30px;opacity:.15;pointer-events:none;z-index:0;}
+.pl-bglogo .tlogo{width:340px;height:340px;background:none !important;padding:0 !important;object-fit:contain;}
+.pl-hero > *:not(.pl-bglogo){position:relative;z-index:1;}
+.pl-stopbox.is-main::before{content:none;}
+
+@media (max-width:640px){.pl-bglogo{right:-30px;top:-10px;} .pl-bglogo .tlogo{width:210px;height:210px;}}

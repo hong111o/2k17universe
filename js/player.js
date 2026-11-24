@@ -377,6 +377,7 @@ function playerHeroHtml(p) {
     .filter(Boolean).map(x => `<span>${x}</span>`).join('<i>|</i>');
   const color = team && TEAM_COLORS[team];
   return `<section class="tm-hero pl-hero" ${color ? `style="--tc:${color}"` : ''} data-team="${team || ''}">
+    ${team ? `<div class="pl-bglogo${TEAM_LOGO_WHITE.has(team) ? ' tm-logo-white' : ''}" aria-hidden="true">${teamLogo(team)}</div>` : ''}
     <div class="pl-actions">${backButton('Back', 'playerBack()', true)}<button type="button" class="back-btn on-hero pl-cmp" onclick="compareWith('${jsArg(p.Player)}')" aria-label="Compare ${p.Player.replace(/"/g, '&quot;')}" title="Compare"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16M17 4v16M3 8h8M13 16h8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>Compare</button></div>
     <div class="pl-top">
       <div class="tm-kicker pl-kicker">${kicker}</div>
