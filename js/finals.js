@@ -118,7 +118,7 @@ function renderFinals() {
       ${riv[0] ? (() => { const sx = riv[0].x.split(' ').pop(), sy = riv[0].y.split(' ').pop(), same = sx === sy;
         return tile('Top Finals rivalry', same ? `${riv[0].x} vs ${riv[0].y}` : `${sx} vs ${sy}`, `${riv[0].n} Finals, ${riv[0].wins[riv[0].x]}–${riv[0].wins[riv[0].y]}`); })() : ''}
     </div>
-    <div class="player-grid fx-grid">
+    <div class="player-grid fx-grid list-side">
       <div>
         <div class="toolbar fx-toolbar"><div class="search-wrap"><span class="icon"><svg class="ic"><use href="#i-search"/></svg></span><input type="text" placeholder="Search season, team, player..." value="${finalsState.q}" oninput="onFinalsSearch(this.value)" aria-label="Search Finals"></div>
           <div class="seg">${[['all', 'All Finals'], ['upsets', 'Upsets']].map(([k, l]) => `<button class="${finalsState.filter === k ? 'active' : ''}" onclick="setFinalsFilter('${k}')">${l}</button>`).join('')}</div></div>

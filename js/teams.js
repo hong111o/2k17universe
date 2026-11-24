@@ -64,6 +64,7 @@ let teamState = { t: null, tab: 'home' };
 function openTeamModal(teamName, fromHistory) {
   const t = DB.teams.find(x => x.Team === teamName);
   if (!t) return;
+  noteRecent('team', teamName); queueBalance();
   closeModal();
   closeSearch();
   teamState.t = t.Team; teamState.tab = 'home';
@@ -222,15 +223,16 @@ function renderTeamPage() {
   // Players whose first listed team is this one
   const startedHere = everyPlayer().filter(p => playerTeams(p)[0] === teamName).sort((a, b) => legacy(b).total - legacy(a).total);
   if (startedHere.length) {
-    const row = p => {
+    const row = (p, i, attr = '') => {
       const span = careerSpan(p.Season), teams = [...new Set(playerTeams(p))];
       const stay = teams.length === 1 ? 'One-team career' : `Then ${teams.slice(1).map(x => teamLink(x)).join(', ')}`;
-      return `<div class="rb-row"><span class="rb-rank">${posBadge(p.Position)}</span><span class="rb-main">${nameLink(p.Player)}${isActive(p) ? ' <span class="muted">active</span>' : ''}</span>
+      return `<div class="rb-row"${attr}><span class="rb-rank">${posBadge(p.Position)}</span><span class="rb-main">${nameLink(p.Player)}${isActive(p) ? ' <span class="muted">active</span>' : ''}</span>
         <span class="rb-val rb-val-sm">${span ? seasonLabel(span[0]) : ''}</span><span class="rb-sub">${stay}</span></div>`;
     };
     C.started = (`<div class="chart-card rb-card"><div class="chart-title">${icon('people')} Started Here</div>
-      ${startedHere.slice(0, 8).map(row).join('')}
-      ${startedHere.length > 8 ? `<details class="more-legends"><summary>All ${startedHere.length} players who started here</summary>${startedHere.slice(8).map(row).join('')}</details>` : ''}
+      ${startedHere.slice(0, 8).map(p => row(p)).join('')}
+      ${startedHere.slice(8).map((p, i) => row(p, i, ` class="fill-x" data-dup="st${i}" hidden`).replace('<div class="rb-row" class="fill-x"', '<div class="rb-row fill-x"')).join('')}
+      ${startedHere.length > 8 ? `<details class="more-legends" data-dups><summary data-label="{n} more players who started here">${startedHere.length - 8} more players who started here</summary>${startedHere.slice(8).map((p, i) => row(p, i, ` data-dupof="st${i}"`)).join('')}</details>` : ''}
       <div class="muted" style="font-size:12px;margin-top:6px">First team on the player's row · season = their first</div></div>`);
   }
   if (activeHere.length) C.active = (`<div class="chart-card rb-card"><div class="chart-title">${icon('people')} Active Players Here</div>
@@ -243,7 +245,7 @@ function renderTeamPage() {
   const tabs = {
     home: C.home,
     seasons: grid([C.wins, C.sbs], [C.bw, C.runs]),
-    players: (C.lineup || '') + grid([C.legends], [C.retired, C.started, C.active]),
+    players: (C.lineup || '') + grid([C.legends, teamDecadesHtml(teamName)], [C.retired, C.started, C.active]),
     trophies: grid([C.finals, C.rivals], [C.cabinet]),
   };
   parts.push(Object.entries(tabs).map(([k, html]) => `<div class="tm-tab" data-tab="${k}"${k === teamState.tab ? '' : ' hidden'}>${html}</div>`).join(''));
@@ -322,7 +324,8 @@ function teamHomeHtml(t, seasonInfo, won, lost) {
   // All-Time starting five, compact
   const LU = franchiseLineup(name);
   if (LU.list.length >= 5) parts.push(`<div class="chart-card"><div class="card-head"><div class="chart-title">${icon('people')} All-Time Starting Five</div>${more('players', 'Full lineup')}</div>
-    <div class="th-five">${LU.starters.map(x => `<div><span class="lu-pos">${x.pos}</span>${x.p ? nameLink(x.p.Player) : `<span class="name-plain">${x.name}</span>`}</div>`).join('')}</div></div>`);
+    <div class="th-five">${LU.starters.map(x => `<div><span class="lu-pos">${x.pos}</span>${x.p ? nameLink(x.p.Player) : `<span class="name-plain">${x.name}</span>`}</div>`).join('')}</div>
+    ${(LU.bench || []).length ? `<div class="fill-x th-bench" hidden><span class="lu-pos">Bench</span>${LU.bench.map(x => x.p ? nameLink(x.p.Player) : `<span class="name-plain">${x.name || ''}</span>`).join(' · ')}</div>` : ''}</div>`);
   // Face of the franchise
   const face = franchiseLegends(name)[0];
   if (face) side.push(`<div class="chart-card th-face"><div class="card-head"><div class="chart-title">${icon('star')} Face of the Franchise</div>${more('players', 'Legends')}</div>
@@ -338,15 +341,20 @@ function teamHomeHtml(t, seasonInfo, won, lost) {
       <div><b>${lastTitle || '—'}</b><span>Last title</span></div>
       <div><b>${lastFinals || '—'}</b><span>Last Finals</span></div>
       <div><b>${drought === null ? '—' : drought === 0 ? 'Champs' : drought}</b><span>${drought ? 'Seasons since' : 'Title drought'}</span></div>
+      ${(() => { const tn = x => { const v = Number(x); return isNaN(v) ? '—' : v; };
+        const bestSeason = seasonInfo.length ? seasonInfo.reduce((a, b) => (b.cw > a.cw ? b : a)) : null;
+        return `<div class="fill-x" hidden><div><b>${tn(t['Conference Titles'])}</b><span>Conf. titles</span></div><div><b>${tn(t.Playoffs)}</b><span>Playoff trips</span></div></div>
+          <div class="fill-x" hidden><div><b>${bestSeason ? `${bestSeason.w}-${bestSeason.l}` : '—'}</b><span>Best record${bestSeason ? ` · ${seasonLabel(bestSeason.yr)}` : ''}</span></div><div><b>${(() => { const d = [...won].map(Number).sort((a, b) => b - a); return d.length >= 2 ? Math.min(...d.slice(1).map((y, i) => d[i] - y)) + ' yr' : '—'; })()}</b><span>Shortest wait between titles</span></div></div>`; })()}
     </div></div>`);
   // Best active players here
-  const act = DB.currentPlayers.filter(p => { const ts = playerTeams(p); return ts[ts.length - 1] === name; }).sort((a, b) => legacy(b).total - legacy(a).total).slice(0, 3);
+  const act = DB.currentPlayers.filter(p => { const ts = playerTeams(p); return ts[ts.length - 1] === name; }).sort((a, b) => legacy(b).total - legacy(a).total).slice(0, 8);
   if (act.length) side.push(`<div class="chart-card rb-card"><div class="card-head"><div class="chart-title">${icon('people')} Top Active Players</div>${more('players', 'All')}</div>
-    ${act.map((p, i) => `<div class="rb-row"><span class="rb-rank">${i + 1}</span><span class="rb-main">${nameLink(p.Player)} ${posBadge(p.Position)}</span><span class="rb-val">${p['All Stars'] || 0}</span><span class="rb-sub">${draftCareer(p)}</span></div>`).join('')}
+    ${act.map((p, i) => `<div class="rb-row${i >= 3 ? ' fill-x' : ''}"${i >= 3 ? ' hidden' : ''}><span class="rb-rank">${i + 1}</span><span class="rb-main">${nameLink(p.Player)} ${posBadge(p.Position)}</span><span class="rb-val">${p['All Stars'] || 0}</span><span class="rb-sub">${draftCareer(p)}</span></div>`).join('')}
     <div class="muted" style="font-size:12px;margin-top:6px">Number = All-Star selections</div></div>`);
   return `<div class="player-grid"><div>${parts.join('')}</div><div>${side.join('')}</div></div>`;
 }
 function setTeamTab(tab) {
+  queueBalance();
   teamState.tab = tab;
   const tp = document.getElementById('teamPage');
   tp.querySelectorAll('.tm-tab').forEach(el => el.hidden = el.dataset.tab !== tab);
@@ -369,6 +377,25 @@ function teamLatest(t) {
   const mi = mostImproved(yr), best = [...st].sort((a, b) => b.raw - a.raw)[0];
   const badge = best && best.team === name ? 'Best record in the league' : mi && mi.team === name ? 'Most improved team' : '';
   return { yr, me, n: st.length, gb, result, prev, delta, badge };
+}
+// Eras whose era player has this team as his main team (as on his own page)
+function teamEras(team) {
+  return (DB.decades || []).map(d => ({ d, player: eraPlayer(d) })).filter(x => x.player && mainTeam(x.player).team === team)
+    .sort((a, b) => decadeStart(b.d) - decadeStart(a.d)).map(x => ({ name: eraName(x.d), player: x.player, decade: decadeStart(x.d) + 's' }));
+}
+// Players tab: Decade Team players who played here, newest decade first
+function teamDecadesHtml(team) {
+  const rows = [...(DB.decades || [])].sort((a, b) => decadeStart(b) - decadeStart(a)).map(d => {
+    const here = list => (list || []).map(n => resolvePlayer(n)).filter(p => p && playerTeams(p).includes(team));
+    return { d, st: here(d.starter), be: here(d.subs) };
+  }).filter(r => r.st.length || r.be.length);
+  if (!rows.length) return '';
+  const total = rows.reduce((a, r) => a + r.st.length + r.be.length, 0), starters = rows.reduce((a, r) => a + r.st.length, 0);
+  return `<div class="chart-card rb-card"><div class="chart-title">${icon('star')} All-Decade Players <span class="muted">${total}</span></div>
+    <p class="muted fx-note" style="margin-top:-4px">${starters} in a decade's starting five · players who played here at any point of their career</p>
+    ${rows.map(r => `<div class="rb-row"><span class="rb-rank"></span><span class="rb-main">${decadeStart(r.d)}s${eraName(r.d) ? ` <span class="muted">· ${eraName(r.d)} Era</span>` : ''}</span><span class="rb-val">${r.st.length + r.be.length}</span>
+      <span class="rb-sub">${[...r.st.map(p => `<b>${nameLink(p.Player)}</b>`), ...r.be.map(p => nameLink(p.Player))].join(', ')}</span></div>`).join('')}
+    <div class="muted" style="font-size:12px;margin-top:6px">Bold = starting five</div></div>`;
 }
 function teamHeroHtml(t, won, lost) {
   const name = t.Team, nick = shortTeam(name), city = name.slice(0, name.length - nick.length).trim();
@@ -395,6 +422,7 @@ function teamHeroHtml(t, won, lost) {
     <div class="tm-top">
       <div class="tm-id"><div class="tm-kicker${L ? ' tm-kicker-grid' : ''}">${kicker}</div>
         <h1 class="tm-name">${city ? `<span>${city}</span> ` : ''}<span>${nick}</span></h1>
+        ${(() => { const eras = teamEras(name); return eras.length ? `<div class="tm-era">${eras.map(e => `<div class="pl-era">${icon('crown')}<b>Home of the ${e.player ? nameLink(e.player.Player, { label: e.name }) : e.name} Era</b><span>· ${e.decade}</span></div>`).join('')}</div>` : ''; })()}
         ${L && L.badge ? `<span class="tm-badge">${L.badge}</span>` : ''}</div>
       <div class="tm-logo${TEAM_LOGO_WHITE.has(name) ? ' tm-logo-white' : ''}">${teamLogo(name, 'tm-logo-img')}</div>
     </div>

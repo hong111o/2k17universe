@@ -293,7 +293,7 @@ function buildPlayerHead(tblKey, mode, extraCols) {
     ${th('DTeam','D-Team')}
     ${exp ? th('1st D Team','1st-D')+th('2nd D Team','2nd-D') : ''}
     ${th('DPOY','DPOY')}
-    ${th('Legacy','Legacy')}
+    ${th('Legacy','Legacy')} ${th('Badges','Badges')}
     <th>Retired#</th><th>Teams</th>`;
 }
 // Combined All-Defensive selections; a blank cell counts as 0
@@ -335,6 +335,7 @@ function buildPlayerRow(row, tblKey, mode, rank, showPos) {
     ${exp ? `<td class="num">${row['1st D Team']||0}</td><td class="num">${row['2nd D Team']||0}</td>` : ''}
     <td class="num">${row.DPOY||0}</td>
     <td class="num">${legacyCell(row)}</td>
+    <td class="num">${badgeCell(row)}</td>
     <td class="retired">${retiredNums(row).join(' · ')||'—'}</td>
     <td>${teamTags(row)}</td>
   </tr>`;
@@ -351,6 +352,7 @@ function sortedByMode(arr, key, mode) {
     }
     if (col === 'DTeam') return (dTeamTotal(a) - dTeamTotal(b)) * dir;
     if (col === 'Legacy') return ((legacyRow(a)?.score ?? -1) - (legacyRow(b)?.score ?? -1)) * dir;
+    if (col === 'Badges') return (badgeSortVal(a) - badgeSortVal(b)) * dir;
     // Season column: sort by the numeric year part (e.g. "2004-24" -> 2004)
     if (col === 'Season') {
       const ay = parseInt(String(a[col]||'0').split('-')[0]) || 0;
@@ -364,3 +366,39 @@ function onSort(key, col) {
   toggleSortState(key, col);
   TABLE_RENDERERS[key]?.();
 }
+
+// =====================================================================
+// BALANCED CARDS: cards side by side end level on wide screens. The shorter side first shows
+// more of what it has (rows or tiles marked .fill-x, hidden until there is room for them),
+// then its last card stretches by whatever is left. On phones the cards stack and nothing changes.
+// =====================================================================
+function balanceBoxes(boxes, holder) {
+  if (boxes.length < 2) return;
+  holder.classList.add('bal-measure');
+  boxes.forEach(b => b.querySelectorAll('.fill-x').forEach(x => x.hidden = true));
+  const tall = Math.max(...boxes.map(b => b.offsetHeight));
+  boxes.forEach(b => { for (const x of b.querySelectorAll('.fill-x')) { x.hidden = false; if (b.offsetHeight > tall + 1) { x.hidden = true; break; } } });
+  holder.classList.remove('bal-measure');
+  // A row revealed here no longer needs its copy in the card's "show all" list
+  boxes.forEach(b => b.querySelectorAll('[data-dupof]').forEach(d => { const shown = b.querySelector(`.fill-x[data-dup="${d.dataset.dupof}"]:not([hidden])`); d.hidden = !!shown; }));
+  boxes.forEach(b => b.querySelectorAll('details[data-dups]').forEach(det => { const left = det.querySelectorAll('[data-dupof]:not([hidden])').length;
+    det.hidden = !left; const s = det.querySelector('summary'); if (s && s.dataset.label) s.textContent = s.dataset.label.replace('{n}', left); }));
+}
+function balanceCards(root = document) {
+  // A long list beside a short sidebar: nothing to fill, so the sidebar stays in view instead
+  root.querySelectorAll('.list-side').forEach(g => { const side = g.children[1]; if (side) side.style.top = Math.min(72, innerHeight - side.offsetHeight - 16) + 'px'; });
+  root.querySelectorAll('.player-grid:not(.list-side)').forEach(g => {
+    const cols = [...g.children].filter(c => c.offsetParent !== null);
+    if (cols.length < 2 || cols[0].offsetTop !== cols[1].offsetTop) { g.querySelectorAll('.fill-x').forEach(x => x.hidden = true); return; }
+    balanceBoxes(cols, g);
+  });
+  root.querySelectorAll('.home-grid, .bal-grid, .rb-grid').forEach(g => {
+    const cards = [...g.children].filter(c => c.offsetParent !== null), rows = {};
+    g.classList.add('bal-measure'); cards.forEach(c => (rows[c.offsetTop] = rows[c.offsetTop] || []).push(c)); g.classList.remove('bal-measure');
+    Object.values(rows).forEach(r => r.length > 1 ? balanceBoxes(r, g) : r[0].querySelectorAll('.fill-x').forEach(x => x.hidden = true));
+  });
+}
+let balanceTimer = 0;
+function queueBalance() { cancelAnimationFrame(balanceTimer); balanceTimer = requestAnimationFrame(() => requestAnimationFrame(() => balanceCards())); }
+addEventListener('resize', queueBalance);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(queueBalance);

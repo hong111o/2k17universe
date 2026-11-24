@@ -10,7 +10,7 @@ const { chromium, devices } = require(process.argv[2] + '/node_modules/playwrigh
     const hasHistory = await p.evaluate(() => (DB.teamHistoryRows || []).length > 0);
     R[label + ' history rows'] = await p.evaluate(() => (DB.teamHistoryRows || []).length);
     await p.evaluate(() => openTeamModal('Boston Celtics')); await p.waitForTimeout(800);
-    R[label + ' celtics hero'] = (await p.locator('.tm-hero .tm-kicker').innerText()).replace(/\s+/g, ' ');
+    R[label + ' celtics hero'] = (await p.locator('#teamPage .tm-hero .tm-kicker').innerText()).replace(/\s+/g, ' ');
     R[label + ' retired'] = (await p.locator('#teamPage .chart-card:has-text("Retired Numbers")').innerText()).replace(/\s+/g, ' ').slice(0, 160);
     R[label + ' chart points'] = await p.evaluate(() => winChartData && winChartData.seasons.length);
     await p.screenshot({ path: `${out}/hist-team-${label}.png`, fullPage: true });

@@ -6,6 +6,7 @@
 // =====================================================================
 const SECTIONS = ['overview','players','top20','bypos','current','draft','compare','badges','player','legacy','settings','teams','team','awards','finals','ring','season','history','statleaders','allnba','decades','records','leaders'];
 function showSection(id) {
+  queueBalance();
   if (!SECTIONS.includes(id)) id = 'overview';
   if (id !== 'settings' && typeof settingsLeave === 'function') settingsLeave();
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));

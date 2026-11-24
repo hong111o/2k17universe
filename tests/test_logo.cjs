@@ -9,13 +9,13 @@ const { chromium, devices } = require(process.argv[2] + '/node_modules/playwrigh
     await p.waitForTimeout(800);
     R[label + ' logos'] = await p.evaluate(() => { const have = Object.keys(DB.logos); return { n: have.length, missing: DB.teams.map(t => t.Team).filter(t => !DB.logos[t]) }; });
     R[label + ' broken'] = await p.evaluate(() => [...document.querySelectorAll('img.tlogo')].filter(i => i.complete && !i.naturalWidth).length);
-    await p.locator('.home-hero').screenshot({ path: `${out}/logo-hero-${label}.png` });
+    await p.locator('.hm-banner').screenshot({ path: `${out}/logo-hero-${label}.png` });
     await p.waitForTimeout(2500); R[label + ' unloaded'] = await p.evaluate(() => [...document.querySelectorAll('img.tlogo')].filter(i => !i.complete || !i.naturalWidth).length);
     await p.locator('.home-grid .chart-card').first().screenshot({ path: `${out}/logo-stand-${label}.png` });
     await p.evaluate(() => showSection('teams')); await p.waitForTimeout(500);
     await p.screenshot({ path: `${out}/logo-teams-${label}.png` });
     await p.evaluate(() => openTeamModal('Brooklyn Nets')); await p.waitForTimeout(500);
-    await p.locator('.tm-hero').screenshot({ path: `${out}/logo-teamhero-${label}.png` });
+    await p.locator('#teamPage .tm-hero').screenshot({ path: `${out}/logo-teamhero-${label}.png` });
     R[label + ' overflow'] = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth);
     R[label + ' errors'] = errs; await ctx.close(); }
   console.log(JSON.stringify(R, null, 1)); await b.close(); })();

@@ -910,8 +910,6 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
 
 /* Team page header in the team's colour */
 .tm-hero{--tc:var(--hero);position:relative;background:var(--tc);color:#fff;border-radius:12px;padding:18px 24px 18px;margin-bottom:16px;overflow:hidden;transition:background .3s;}
-.tm-back{width:44px;height:44px;border-radius:50%;border:none;background:rgba(255,255,255,.82);color:color-mix(in srgb,var(--tc) 70%,#000);display:grid;place-items:center;cursor:pointer;margin-bottom:10px;}
-.tm-back svg{width:22px;height:22px;}
 .tm-top{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,.22);}
 .tm-kicker{font-size:16px;color:rgba(255,255,255,.92);}
 .tm-up,.tm-down{color:#fff;font-weight:700;}
@@ -938,9 +936,9 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
 @media (max-width:380px){.tm-name{font-size:32px;} .tm-logo-img{width:92px;height:92px;} .tm-stat{font-size:13.5px;}}
 
 /* The rest of the team page takes the team's colour */
-#teamPage.tm-themed{--ta:var(--ta-l);--link:var(--ta);--link-hover:var(--ta);background:linear-gradient(180deg,color-mix(in srgb,var(--tc) 12%,transparent) 0,transparent 900px);border-radius:12px;}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) #teamPage.tm-themed{--ta:var(--ta-d);background:linear-gradient(180deg,color-mix(in srgb,var(--tc) 30%,transparent) 0,transparent 900px);}}
-:root[data-theme="dark"] #teamPage.tm-themed{--ta:var(--ta-d);background:linear-gradient(180deg,color-mix(in srgb,var(--tc) 30%,transparent) 0,transparent 900px);}
+#teamPage.tm-themed,#playerPage.tm-themed{--ta:var(--ta-l);--link:var(--ta);--link-hover:var(--ta);background:linear-gradient(180deg,color-mix(in srgb,var(--tc) 12%,transparent) 0,transparent 900px);border-radius:12px;}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) #teamPage.tm-themed,:root:not([data-theme="light"]) #playerPage.tm-themed{--ta:var(--ta-d);background:linear-gradient(180deg,color-mix(in srgb,var(--tc) 30%,transparent) 0,transparent 900px);}}
+:root[data-theme="dark"] #teamPage.tm-themed,:root[data-theme="dark"] #playerPage.tm-themed{--ta:var(--ta-d);background:linear-gradient(180deg,color-mix(in srgb,var(--tc) 30%,transparent) 0,transparent 900px);}
 .tm-themed .chart-card{border-top:3px solid var(--ta);}
 .tm-themed .chart-title .ic:not(.ic-champ):not(.ic-silver),.tm-themed .modal-section-title .ic{color:var(--ta);}
 .tm-themed .seg button.active{background:var(--tc);color:#fff;}
@@ -949,8 +947,8 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
 .tm-themed .lu-player{border-top:3px solid var(--ta);}
 .tm-themed .fold .fold-head .chart-title::after,.tm-themed .fold > .chart-title.fold-head::after{border-color:var(--ta);}
 .tm-themed .rb-rank{color:var(--ta);}
-@media (max-width:640px){#teamPage.tm-themed,:root[data-theme="dark"] #teamPage.tm-themed{background:none;}}
-@media (max-width:640px) and (prefers-color-scheme: dark){:root:not([data-theme="light"]) #teamPage.tm-themed{background:none;}}
+@media (max-width:640px){#teamPage.tm-themed,#playerPage.tm-themed,:root[data-theme="dark"] #teamPage.tm-themed,:root[data-theme="dark"] #playerPage.tm-themed{background:none;}}
+@media (max-width:640px) and (prefers-color-scheme: dark){:root:not([data-theme="light"]) #teamPage.tm-themed,:root:not([data-theme="light"]) #playerPage.tm-themed{background:none;}}
 .sbs-latest{font-size:13px;color:var(--ink-3);margin:-4px 0 10px;line-height:1.6;}
 .tm-hero .tm-badge{margin:2px 0 0;}
 .tm-kicker .ic{vertical-align:-2px;}
@@ -961,7 +959,8 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
 /* Team Home tab */
 .th-more{margin-left:auto;}
 .th-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
-.th-strip > div{background:var(--surface-2);border-radius:8px;padding:10px 12px;}
+.th-strip > div{background:var(--surface-2);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;}
+.th-strip > div b{margin-top:auto;padding-top:4px;}
 .th-strip span,.th-tiles span{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);}
 .th-strip b{font-family:var(--font-display);font-size:22px;font-weight:800;} .th-strip small{font-size:13px;color:var(--ink-3);font-weight:600;}
 .th-bars{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px;height:150px;align-items:end;}
@@ -983,6 +982,163 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
 .th-tiles b{display:block;font-family:var(--font-display);font-size:24px;font-weight:800;line-height:1.1;}
 @media (max-width:640px){.th-strip{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;} .th-strip > div{padding:8px 8px;} .th-strip span{font-size:9.5px;letter-spacing:.04em;} .th-strip b{font-size:17px;} .th-strip small{display:none;} .th-five{grid-template-columns:1fr 1fr;} .th-bars{height:120px;gap:4px;}}
 
+
+/* Badges */
+.bd-chip,.bd-count,.bd-level{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 10px 4px 6px;font-size:13px;font-weight:600;background:var(--surface-2);border:1px solid var(--line);color:var(--ink);white-space:nowrap;}
+.bd-chip i,.bd-count i,.bd-level i{width:14px;height:14px;flex:none;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:var(--bd);}
+.bd-bronze{--bd:linear-gradient(135deg,#d7925a,#8a5226);} .bd-silver{--bd:linear-gradient(135deg,#eef1f5,#8b95a3);} .bd-gold{--bd:linear-gradient(135deg,#ffe07a,#c99212);}
+.bd-legend{--bd:conic-gradient(from 0deg,#ff5f6d,#ffc371,#47e5bc,#4facfe,#a66bff,#ff5f6d);}
+.bd-chip.bd-legend{border-color:color-mix(in srgb,#a66bff 45%,var(--line));background:color-mix(in srgb,#a66bff 8%,var(--surface-2));}
+.bd-grand{--bd:radial-gradient(circle at 35% 30%,#fff6d6 0,#e9b949 38%,#9a6a00 75%,#5c3d00 100%);}
+.bd-grand i{clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%) !important;width:16px !important;height:16px !important;}
+.bd-chip.bd-grand{border-color:color-mix(in srgb,#9a6a00 50%,var(--line));background:color-mix(in srgb,#e9b949 12%,var(--surface-2));}
+.bd-chip.bd-gold{border-color:color-mix(in srgb,#c99212 45%,var(--line));}
+.bd-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.bd-counts{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+.bd-count{font-size:14px;background:none;cursor:pointer;font-family:var(--font-body);font-variant-numeric:tabular-nums;padding:5px 12px 5px 8px;}
+.bd-count.bd-all{padding-left:12px;}
+button.bd-count.on{background:var(--ink);color:var(--surface);border-color:var(--ink);}
+button.bd-count:focus-visible{outline:2px solid var(--link);outline-offset:2px;}
+.bd-chips > span:not([hidden]){display:contents;}
+.bd-groups{flex-wrap:wrap;margin-bottom:12px;}
+.bd-list{display:grid;gap:8px;}
+.bd-row{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;}
+.bd-row-head{display:flex;gap:12px;align-items:flex-start;cursor:pointer;}
+.bd-row-head > div{flex:1;min-width:0;}
+.bd-group{font-size:12px;margin-left:4px;} .bd-desc{font-size:12px;margin-top:2px;}
+.bd-total{font-family:var(--font-display);font-weight:800;font-size:20px;color:var(--ink-2);}
+.bd-levels{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.bd-level{font-size:12px;} .bd-level em{font-style:normal;color:var(--ink-3);margin-left:2px;}
+.bd-holders{margin-top:10px;padding-top:10px;border-top:1px solid var(--line);display:grid;gap:8px;font-size:13px;line-height:1.7;}
+button.bd-chip{font-family:var(--font-body);cursor:pointer;}
+button.bd-chip:focus-visible{outline:2px solid var(--link);outline-offset:2px;}
+.bd-tip{position:absolute;z-index:60;background:var(--surface);color:var(--ink);border:1px solid var(--line-strong);border-radius:10px;padding:10px 12px;box-shadow:0 8px 24px rgba(0,0,0,.18);font-size:13px;display:grid;gap:6px;}
+.bd-tip-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;} .bd-tip-head b{font-family:var(--font-display);font-size:18px;}
+.bd-tip-head .bd-count{font-size:12px;padding:2px 8px 2px 5px;}
+.bd-tip-desc{color:var(--ink-2);} .bd-tip-desc b{color:var(--ink);font-variant-numeric:tabular-nums;}
+/* Settings → Badges */
+.bs-summary{font-size:14px;margin-bottom:10px;color:var(--ink-2);} .bs-summary b{color:var(--ink);font-family:var(--font-display);font-size:18px;}
+.bs-list{display:grid;gap:8px;margin-top:10px;}
+.bs-row{display:block;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--surface);}
+.bs-row.off{opacity:.55;}
+.bs-on{display:inline-flex;} .bs-on input{width:20px;height:20px;margin:0;accent-color:var(--link);}
+.bs-head{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;}
+.bs-name{font-family:var(--font-display);font-weight:700;font-size:18px;border:1px solid transparent;border-radius:6px;background:none;color:var(--ink);padding:1px 4px;min-width:0;width:min(240px,100%);}
+.bs-name:hover,.bs-name:focus{border-color:var(--line);background:var(--surface-2);}
+.bs-total{font-size:12px;font-weight:700;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:1px 8px;}
+.bs-desc{font-size:12px;margin:2px 0 4px;}
+.bs-row .bd-level input{width:70px;font:600 13px var(--font-body);background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:5px;padding:2px 5px;font-variant-numeric:tabular-nums;}
+.bs-row .bd-level select{font:600 13px var(--font-body);background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:5px;}
+.bs-row .bd-level .part{display:inline-flex;align-items:center;gap:3px;} .bs-row .bd-level small{color:var(--ink-3);font-size:11px;}
+.bs-row .bd-level.unused{opacity:.6;}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
+.bs-groups{display:flex;flex-wrap:wrap;gap:6px;}
+.bs-groups button{font:600 13px var(--font-body);border:1px solid var(--line);background:var(--surface);color:var(--ink-2);border-radius:999px;padding:5px 11px;cursor:pointer;}
+.bs-groups button.active{background:var(--ink);color:var(--surface);border-color:var(--ink);} .bs-groups button.active .muted{color:inherit;opacity:.7;}
+.bs-row .bd-levels{gap:5px;}
+@media (max-width:640px){.bs-row .bd-level{padding:3px 8px 3px 5px;gap:4px;} .bs-row .bd-level input{width:58px;font-size:12px;} .bs-name{font-size:16px;}}
+/* Settings sub pages */
+.settings-links{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-bottom:16px;}
+.settings-link{display:flex;align-items:center;gap:12px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;color:var(--ink);cursor:pointer;font-family:var(--font-body);}
+.settings-link:hover{border-color:var(--line-strong);} .settings-link:focus-visible{outline:2px solid var(--link);outline-offset:2px;}
+.settings-link .ic{width:22px;height:22px;flex:none;color:var(--link);}
+.settings-link span{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1;} .settings-link b{font-family:var(--font-display);font-size:19px;} .settings-link small{color:var(--ink-3);font-size:13px;}
+.settings-arrow{font-size:28px;color:var(--ink-3);flex:none !important;}
+.settings-sub-head{display:flex;align-items:center;gap:14px;margin-bottom:12px;flex-wrap:wrap;} .settings-sub-head h2{font-family:var(--font-display);font-size:26px;margin:0;}
+.save-bar{position:sticky;bottom:12px;z-index:40;display:flex;align-items:center;gap:10px;justify-content:flex-end;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px;box-shadow:0 6px 20px rgba(0,0,0,.12);margin-top:12px;}
+.save-bar span{margin-right:auto;color:var(--ink-3);font-weight:600;font-size:14px;}
+.save-bar.dirty{border-color:var(--accent,#e8862a);} .save-bar.dirty span{color:var(--ink);}
+.save-bar button[disabled]{opacity:.45;cursor:default;}
+@media (max-width:768px){.save-bar{bottom:calc(76px + env(safe-area-inset-bottom,0px));}}
+.bd-card .bd-counts{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;gap:5px;} .bd-card .bd-counts::-webkit-scrollbar{display:none;}
+.bd-card .bd-counts .bd-count{flex:none;}
+@media (max-width:640px){.bd-card .bd-counts .bd-count{padding:4px 9px 4px 6px;font-size:13px;gap:4px;} .bd-card .bd-counts .bd-all{padding-left:10px;} .bd-card .bd-counts .bd-count i{width:13px;height:13px;}}
+.bs-type{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;margin-right:4px;}
+.bs-type button{font:600 12px var(--font-body);border:0;background:var(--surface);color:var(--ink-3);padding:4px 10px;cursor:pointer;}
+.bs-type button.on{background:var(--ink);color:var(--surface);}
+.bs-row .bd-level.bd-grand input{width:70px;}
+/* Player page header and Home tab (team page design) */
+.pl-main{display:inline-flex;align-items:center;margin-left:6px;font-size:14px;} .pl-main .team-link{color:#fff;font-weight:600;}
+.pl-hero .tm-badge{margin:2px 6px 0 0;}
+.pl-journey{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;}
+.pl-stop{display:inline-flex;align-items:center;gap:6px;background:var(--surface-2);border-radius:8px;padding:6px 10px;font-weight:600;}
+.pl-stop .tlogo{width:22px;height:22px;margin:0;}
+.pl-match{font-family:var(--font-display);font-size:22px;font-weight:800;display:flex;align-items:center;gap:8px;flex-wrap:wrap;} .pl-match b{margin-left:auto;color:var(--ta,var(--link));}
+.mt-toolbar{margin-bottom:10px;}
+.mt-list{display:grid;gap:6px;}
+.mt-row{display:flex;align-items:center;gap:10px;justify-content:space-between;border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--surface);flex-wrap:wrap;}
+.mt-who{display:flex;flex-direction:column;min-width:0;font-weight:600;} .mt-who small{font-weight:400;font-size:12px;}
+.mt-row select{font:600 13px var(--font-body);background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:5px 8px;max-width:100%;}
+.tm-themed .lg-track i,.tm-themed .pct-track i:not(.elite):not(.good){background:var(--ta);}
+/* Player header: journey boxes and stat rows */
+.pl-top{padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.22);}
+.pl-stops{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+.pl-stopbox{width:24px;height:24px;border-radius:6px;border:none;background:#fff;display:grid;place-items:center;cursor:pointer;padding:2px;position:relative;box-shadow:0 1px 2px rgba(0,0,0,.18);}
+.pl-stopbox .tlogo{display:block;width:20px;height:20px;max-width:100%;max-height:100%;object-fit:contain;margin:0;vertical-align:top;background:none !important;padding:0 !important;border-radius:0 !important;}
+.pl-stopbox span{font-family:var(--font-display);font-weight:800;color:#111;font-size:10px;}
+.pl-stopbox.is-title{background:linear-gradient(145deg,#fff1b8,#e9b949 55%,#c99212);}
+.pl-stopbox.is-conf{background:linear-gradient(145deg,#ffffff,#d5dbe3 55%,#a7b0bc);}
+.pl-stopbox.is-main{outline:3px solid transparent;}
+.pl-stopbox.is-main::before{content:"";position:absolute;inset:-3px;border-radius:8px;padding:2px;background:conic-gradient(from 0deg,#ff5f6d,#ffc371,#47e5bc,#4facfe,#a66bff,#ff5f6d);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
+.pl-stopbox:focus-visible{outline:2px solid #fff;outline-offset:3px;}
+.pl-rows{display:grid;gap:6px;padding:14px 0 4px;}
+.pl-row{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;font-size:15px;color:rgba(255,255,255,.82);}
+.pl-row b{color:#fff;font-weight:700;font-variant-numeric:tabular-nums;}
+.pl-row i{font-style:normal;color:rgba(255,255,255,.45);}
+.pl-statrow{font-size:17px;flex-wrap:nowrap;white-space:nowrap;overflow:hidden;} .pl-statrow b{font-family:var(--font-display);font-size:1.45em;font-weight:800;}
+.muted-w{color:rgba(255,255,255,.6);font-size:13px;}
+@media (max-width:640px){.pl-statrow{font-size:14px;gap:2px 6px;} .pl-row{font-size:14px;gap:2px 8px;}}
+@media (max-width:380px){.pl-statrow{gap:2px 4px;}}
+.pl-name{text-transform:none;letter-spacing:0;white-space:nowrap;overflow:hidden;font-size:72px;line-height:1;margin:22px 0 18px;}
+@media (max-width:640px){.pl-name{font-size:50px;}}
+@media (max-width:380px){.pl-name{font-size:44px;}}
+/* Back button (one style everywhere) */
+.back-btn{display:inline-flex;align-items:center;gap:4px;height:32px;padding:0 12px 0 8px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);font:600 14px var(--font-body);cursor:pointer;}
+.back-btn svg{width:16px;height:16px;flex:none;}
+.back-btn:hover{color:var(--ink);border-color:var(--line-strong);}
+.back-btn:focus-visible{outline:2px solid var(--link);outline-offset:2px;}
+.back-btn.on-hero{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.28);color:#fff;margin-bottom:10px;}
+.pl-actions{display:flex;justify-content:space-between;gap:8px;} .pl-actions .back-btn{margin-bottom:10px;}
+.pl-cmp svg{width:15px;height:15px;}
+.pl-tab .rank-badges{gap:6px;margin-bottom:12px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;} .pl-tab .rank-badges::-webkit-scrollbar{display:none;} .pl-tab .rank-badge{font-size:12px;padding:3px 10px;white-space:nowrap;flex:none;} .pl-tab .rank-badge b{font-size:13px;}
+.back-btn.on-hero:hover{background:rgba(255,255,255,.28);color:#fff;}
+.pl-kicker{display:flex;flex-wrap:nowrap;white-space:nowrap;overflow:hidden;align-items:center;gap:8px;} .pl-kicker i{font-style:normal;color:rgba(255,255,255,.55);}
+.rank-badge.rb-mine{background:color-mix(in srgb,var(--ta,var(--link)) 16%,var(--surface));} .rank-badge.rb-mine b{color:var(--ta,var(--link));}
+/* Player header: larger text and boxes next to the big name */
+.pl-hero .pl-kicker{font-size:18px;}
+.pl-hero .pl-stopbox{width:30px;height:30px;border-radius:7px;padding:3px;}
+.pl-hero .pl-stopbox .tlogo{width:24px;height:24px;}
+.pl-hero .pl-stops{gap:7px;margin-top:8px;}
+.pl-hero .pl-statrow{font-size:19px;}
+.pl-hero .pl-row:not(.pl-statrow){font-size:18px;}
+.pl-hero .pl-row:not(.pl-statrow) b{font-family:var(--font-display);font-size:1.3em;font-weight:800;}
+@media (max-width:640px){.pl-hero .pl-kicker{font-size:16px;} .pl-hero .pl-statrow{font-size:16px;} .pl-hero .pl-row:not(.pl-statrow){font-size:16px;}}
+/* Stats as five columns: big number, small label under it */
+.pl-hero .pl-statrow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;white-space:normal;overflow:visible;font-size:13px !important;}
+.pl-hero .pl-statrow span{display:flex;flex-direction:column;align-items:flex-start;color:rgba(255,255,255,.75);letter-spacing:.06em;font-weight:600;}
+.pl-hero .pl-statrow span + span{border-left:1px solid rgba(255,255,255,.22);padding-left:12px;}
+.pl-hero .pl-statrow b{font-family:var(--font-display);font-size:34px;font-weight:800;line-height:1;letter-spacing:0;}
+@media (max-width:640px){.pl-hero .pl-statrow span + span{padding-left:9px;} .pl-hero .pl-statrow b{font-size:27px;}}
+@media (max-width:380px){.pl-hero .pl-statrow span + span{padding-left:6px;} .pl-hero .pl-statrow b{font-size:23px;} .pl-hero .pl-statrow{font-size:11px !important;}}
+.pl-hero .pl-statrow .muted-w{grid-column:1/-1;border:0;padding:0;}
+.pl-active{background:rgba(255,255,255,.2);border-radius:999px;padding:1px 9px;font-size:.8em;letter-spacing:.06em;text-transform:uppercase;}
+@media (max-width:640px){.pl-name{margin:16px 0 14px;}}
+/* Team journey always one row: boxes shrink when there are many teams */
+.pl-hero .pl-stops{flex-wrap:nowrap;}
+.pl-hero .pl-stopbox{flex:none;width:var(--box,30px);height:var(--box,30px);padding:calc(var(--box,30px) * .1);}
+.pl-hero .pl-stopbox .tlogo{width:calc(var(--box,30px) * .8) !important;height:calc(var(--box,30px) * .8) !important;max-width:none;max-height:none;object-fit:contain;}
+.pl-hero .pl-stops{margin-top:26px;} @media (max-width:640px){.pl-hero .pl-stops{margin-top:22px;}}
+.pl-hero .pl-statrow span{white-space:nowrap;font-size:var(--lbl,13px);min-width:0;} .pl-hero .pl-statrow span b{font-size:calc(34px * 13 / 13);}
+@media (max-width:640px){.pl-hero .pl-statrow span{letter-spacing:.03em;} .pl-hero .pl-statrow span b{font-size:27px;}}
+@media (max-width:380px){.pl-hero .pl-statrow span b{font-size:23px;}}
+.pl-hero .pl-statrow span{padding-right:6px;}
+/* Eras */
+.pl-era{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin-top:-6px;font-weight:700;font-size:16px;color:#ffe08a;}
+.pl-era span{font-weight:500;color:rgba(255,255,255,.75);}
+.pl-era .ic{width:18px;height:18px;}
+.season-era{display:inline-flex;align-items:center;gap:6px;margin:2px 0 4px;font-family:var(--font-display);font-weight:700;font-size:18px;color:var(--champ-ink);}
+.season-era .ic{width:18px;height:18px;color:var(--champ);}
+.season-era .player-link,.season-era .name-link{color:inherit;}
 </style>
 </head>
 <body>
@@ -1061,6 +1217,7 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
     <button data-sec="current" data-group="players" onclick="showSection('current')">Active Players</button>
     <button data-sec="draft" data-group="players" onclick="showSection('draft')">Draft</button>
     <button data-sec="compare" data-group="players" onclick="showSection('compare')">Compare</button>
+    <button data-sec="badges" data-group="players" onclick="showSection('badges')">Badges</button>
     <button data-sec="player" data-group="players" class="nav-ghost" tabindex="-1" aria-hidden="true">Player</button>
     <button data-sec="teams" data-group="teams" onclick="showSection('teams')">Franchises</button>
     <button data-sec="ring" data-group="teams" onclick="showSection('ring')">Ring of Honor</button>
@@ -1164,7 +1321,7 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
 <!-- SETTINGS -->
 <div id="sec-settings" class="section">
   <div class="section-title">Settings</div>
-  <div class="section-sub">Data check, legacy formula and saved workbook</div>
+  <div class="section-sub">Legacy formula, badges, data check and saved workbook</div>
   <div id="settingsContent"></div>
 </div>
 
@@ -1293,6 +1450,7 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
   <div class="season-head">
     <div>
       <div class="section-title" id="seasonTitle">Season</div>
+      <div class="season-era" id="seasonEra" hidden></div>
       <div class="section-sub" id="seasonSub">Champion, awards, standings and leaders</div>
     </div>
     <div class="season-nav">
@@ -1363,6 +1521,11 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
 </div>
 
 <!-- COMPARE -->
+<div id="sec-badges" class="section">
+  <div class="section-title">Badges</div>
+  <div class="section-sub">Career milestones and feats, each with Bronze, Silver, Gold and Legendary levels set for this league</div>
+  <div id="badgesContent"></div>
+</div>
 <div id="sec-compare" class="section">
   <div class="section-title">Compare</div>
   <div class="section-sub" id="cmpSub">Pick two or three players to compare side by side</div>
@@ -2312,6 +2475,10 @@ function teamLink(team, label) {
   return known ? `<span class="team-link" title="${full}" onclick="event.stopPropagation();openTeamModal('${jsArg(full)}')">${teamLogo(full)}${text}</span>` : text;
 }
 // Escape a value for use inside a single-quoted JS string in an HTML attribute
+// The one Back button used everywhere: a small pill with an arrow (hero = on a coloured header)
+function backButton(label, action, hero) {
+  return `<button type="button" class="back-btn${hero ? ' on-hero' : ''}" onclick="${action}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>${label}</button>`;
+}
 function jsArg(v) { return String(v).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
 
 // =====================================================================
@@ -2609,9 +2776,10 @@ function onSort(key, col) {
 // =====================================================================
 // SECTION NAVIGATION
 // =====================================================================
-const SECTIONS = ['overview','players','top20','bypos','current','draft','compare','player','legacy','settings','teams','team','awards','finals','ring','season','history','statleaders','allnba','decades','records','leaders'];
+const SECTIONS = ['overview','players','top20','bypos','current','draft','compare','badges','player','legacy','settings','teams','team','awards','finals','ring','season','history','statleaders','allnba','decades','records','leaders'];
 function showSection(id) {
   if (!SECTIONS.includes(id)) id = 'overview';
+  if (id !== 'settings' && typeof settingsLeave === 'function') settingsLeave();
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('sec-' + id).classList.add('active');
   // Masthead highlights the section; the sub-nav shows only that section's pages
@@ -2640,6 +2808,7 @@ function showSection(id) {
   if (id === 'awards') renderAwards();
   if (id === 'finals') renderFinals();
   if (id === 'ring') renderRing();
+  if (id === 'badges') renderBadges();
   if (id === 'legacy') renderLegacy();
   if (id === 'settings') { renderSettings(); markDataProblemsSeen(); }
   if (id !== 'player' && id !== 'team') { try { localStorage.setItem('nba2k17-tab', id); } catch(e) {} }
@@ -3228,7 +3397,7 @@ function teamHomeHtml(t, seasonInfo, won, lost) {
   const last = seasonInfo.slice(0, 10).reverse();
   if (last.length >= 2) parts.push(`<div class="chart-card"><div class="card-head"><div class="chart-title">${icon('chart')} Last ${last.length} Seasons</div>${more('seasons', 'Wins chart')}</div>
     <div class="th-bars">${last.map(si => `<div class="th-bar ${si.isChamp ? 'is-champ' : si.isRU ? 'is-ru' : si.madePlayoffs ? 'is-po' : ''}" title="${seasonLabel(si.yr)}: ${si.w}-${si.l}${si.isChamp ? ', champion' : si.isRU ? ', conference champion' : si.madePlayoffs ? ', playoffs' : ''}" onclick="openSeason(${si.yr})">
-      <b>${si.w}</b><i style="height:${Math.max(4, Math.round(si.cw / 82 * 100))}%"></i><span>${String(si.yr).slice(-2)}</span></div>`).join('')}</div>
+      <b>${si.w}</b><i style="height:${Math.max(4, Math.round(si.cw / 82 * 100))}%"></i><span>${String(si.yr).slice(-2)}'</span></div>`).join('')}</div>
     <div class="th-key"><span><i class="k-champ"></i>Champion</span><span><i class="k-ru"></i>Conf. Champion</span><span><i class="k-po"></i>Playoffs</span><span><i class="k-out"></i>Missed</span></div></div>`);
   // All-Time starting five, compact
   const LU = franchiseLineup(name);
@@ -3302,7 +3471,7 @@ function teamHeroHtml(t, won, lost) {
   const kicker = L ? `<span>${ordinalRank(L.me.confRk)} in ${confName(L.me.conf)}</span><i>|</i><span>${L.me.w}-${L.me.l}</span><span>${L.result}</span><i>|</i><span>${seasonLabel(L.yr)}</span>` : `<span>${t.defunct ? 'Former franchise' : 'Franchise'}</span>`;
   const color = TEAM_COLORS[name];
   return `<section class="tm-hero" ${color ? `style="--tc:${color}"` : ''} data-team="${name}">
-    <button class="tm-back" onclick="teamBack()" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    ${backButton('Back', 'teamBack()', true)}
     <div class="tm-top">
       <div class="tm-id"><div class="tm-kicker${L ? ' tm-kicker-grid' : ''}">${kicker}</div>
         <h1 class="tm-name">${city ? `<span>${city}</span> ` : ''}<span>${nick}</span></h1>
@@ -3995,6 +4164,8 @@ function renderSeason() {
   document.getElementById('seasonPrev').disabled = list.indexOf(yr) >= list.length - 1;
   document.getElementById('seasonNext').disabled = list.indexOf(yr) <= 0;
   document.getElementById('seasonTitle').textContent = `${seasonLabel(yr)} Season`;
+  const se = seasonEra(yr), seEl = document.getElementById('seasonEra');
+  seEl.hidden = !se; if (se) seEl.innerHTML = `${icon('crown')} ${se.player ? `The ${nameLink(se.player.Player, { label: se.name })} Era` : se.label}`;
 
   const h = DB.history.find(x => Number(x.Season) === yr);
   const { champ, ru } = finalsTeams(yr);
@@ -4452,7 +4623,8 @@ function decadeInfoItem(label, vals) {
   </div>`;
 }
 function initDecades() {
-  document.getElementById('decadeGrid').innerHTML = DB.decades.map(d => {
+  // Newest decade first
+  document.getElementById('decadeGrid').innerHTML = [...DB.decades].sort((a, b) => (decadeStart(b) || 0) - (decadeStart(a) || 0)).map(d => {
     const chip = (name, cls, posLabel) => {
       const p = resolvePlayer(name);
       const click = p ? ` onclick="openPlayerModal('${jsArg(p.Player)}')"` : '';
@@ -4543,7 +4715,52 @@ function allTimeRanks(p) {
 // =====================================================================
 // PLAYER PAGE (replaces the old player popup; every player link lands here)
 // =====================================================================
-let playerState = { p: null, pool: 'all' };
+let playerState = { p: null, pool: 'all', tab: 'home' };
+
+// ---------------------------------------------------------------------
+// MAIN TEAM: the team a player is most tied to, which colours his page.
+// 1 retired number (if several teams retired it, the steps below decide among them)
+// 2 Finals as a listed star: title 2 points, conference title 1
+// 3 awards and stat titles won there (MVP, Finals MVP, DPOY, ROTY, stat titles)
+// 4 rotation titles, except one won with his last team once his career is over
+// 5 the first of the tied teams in his career order
+// A team chosen in Settings → Main Teams always wins.
+// ---------------------------------------------------------------------
+const MAIN_TEAM_KEY = 'nba2k17-main-team';
+const mainTeamOverrides = () => readJSON(MAIN_TEAM_KEY) || {};
+function awardTeamCounts() {
+  return cached('awardTeams', () => {
+    const out = {}, add = (p, t) => { if (!p || !t) return; const m = (out[p.Player] = out[p.Player] || {}); m[t] = (m[t] || 0) + 1; };
+    DB.history.forEach(h => { const yr = Number(h.Season); ['MVP', 'FMVP', 'DPOY', 'ROTY'].forEach(k => {
+      if (h[k] && h[k] !== '-' && h[k + 'Team']) coNames(h[k]).forEach(nm => add(resolvePlayer(nm, yr), fullTeamName(h[k + 'Team']))); }); });
+    ['Pts', 'Reb', 'Ast', 'Stl', 'Blk'].forEach(k => DB.statLeaders.forEach(r => { if (r[k + 'Leader']) add(resolvePlayer(r[k + 'Leader'], r.Season), teamByCode(r[k + 'Team'])?.Team); }));
+    return out;
+  });
+}
+function autoMainTeam(p) {
+  const teams = [...new Set(playerTeams(p))].filter(Boolean);
+  if (!teams.length) return { team: null, why: 'No team listed' };
+  if (teams.length === 1) return { team: teams[0], why: 'His only team' };
+  const ret = [...new Set(retiredFor(p).map(r => r.team))].filter(t => teams.includes(t));
+  if (ret.length === 1) return { team: ret[0], why: 'Retired his number' };
+  const ctx = legacyContext(), aw = awardTeamCounts()[p.Player] || {};
+  const star = t => (ctx.roles[p.Player] || []).filter(r => finalsTeams(r.yr).champ === t).length;
+  const conf = t => (ctx.ruRoles[p.Player] || []).filter(r => finalsTeams(r.yr).ru === t).length;
+  const last = teams[teams.length - 1], done = !isActive(p);
+  const rotation = t => (done && t === playerTeams(p)[playerTeams(p).length - 1]) ? 0 : Math.max(0, titlesWithTeam(p, t) - star(t));
+  let pool = ret.length > 1 ? ret : teams;
+  const steps = [['Finals as a star', t => 2 * star(t) + conf(t)], ['Awards won there', t => aw[t] || 0], ['Titles there', rotation]];
+  for (const [why, f] of steps) {
+    const best = Math.max(...pool.map(f)); if (best > 0) pool = pool.filter(t => f(t) === best);
+    if (pool.length === 1) return { team: pool[0], why: (ret.length > 1 ? 'Retired his number · ' : '') + why };
+  }
+  return { team: teams.find(t => pool.includes(t)), why: 'First of the tied teams' + (last ? '' : '') };
+}
+function mainTeam(p) {
+  const o = mainTeamOverrides()[p.Player];
+  if (o && playerTeams(p).includes(o)) return { team: o, why: 'Chosen in Settings' };
+  return autoMainTeam(p);
+}
 // Kept under its old name because every player link in the app calls it
 function openPlayerModal(rawName) {
   const p = resolvePlayer(rawName);
@@ -4552,7 +4769,7 @@ function openPlayerModal(rawName) {
 function openPlayer(p, fromHistory) {
   closeModal();
   closeSearch();
-  playerState.p = p;
+  playerState.p = p; playerState.tab = 'home';
   const hash = '#player-' + playerSlug(p.Player);
   if (!fromHistory && location.hash !== hash) history.pushState(null, '', hash);
   renderPlayerPage();
@@ -4585,37 +4802,12 @@ function renderPlayerPage() {
   const top20 = DB.top20.find(x => x.Player === p.Player);
   const posRank = (DB.positions[p.Position] || []).find(x => x.Player === p.Player);
   const draft = draftInfo(p);
-  const parts = [];
+  const parts = [], C = {};
 
-  // Header: name, bio strip, headline numbers
-  const bio = [
-    ['Position', POS_NAMES[p.Position] || p.Position || '—'],
-    ['Career', `${span ? seasonLabel(span[0]) + ' to ' + (span[1] === Infinity ? 'present' : seasonLabel(span[1])) : (p.Season || '—')}`],
-    ['Seasons', p.Exp || '—'],
-    ['Draft', draftLabel(draft)],
-    ['Teams', playerTeams(p).length || '—'],
-    ['Legacy rank', lr ? `#${lr} of ${everyPlayer().length}` : '—'],
-    ...(top20 ? [['Your Top 20', '#' + top20.Rank]] : []),
-    ...(posRank ? [[`Your ${p.Position} rank`, '#' + posRank.Rank]] : []),
-  ];
-  const headline = hasStats
-    ? [['PPG', one(perGame(p, 'PTS'))], ['RPG', one(perGame(p, 'REB'))], ['APG', one(perGame(p, 'AST'))]]
-    : [['All-Stars', n('All Stars')], ['Titles', n('Champions')], ['MVPs', n('MVP')]];
-  parts.push(`<section class="player-hero">
-    <button class="hero-back" onclick="playerBack()" aria-label="Back">← Back</button>
-    <div class="ph-main">
-      <div class="hero-kicker">${p.Position ? posBadge(p.Position) : ''} ${active ? '<span class="badge-active">ACTIVE</span>' : 'Retired'}</div>
-      <h1 class="ph-name">${p.Player}</h1>
-      <dl class="bio-strip">${bio.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>
-    </div>
-    <div class="ph-stats">${headline.map(([k, v]) => `<div><b>${v}</b><span>${k}</span></div>`).join('')}
-      ${hasStats ? `<div class="ph-sub">${numFmt(p.GP)} games · ${one(perGame(p, 'MIN'))} min</div>` : ''}
-      <button class="btn-primary ph-compare" onclick="compareWith('${jsArg(p.Player)}')">Compare</button>
-    </div>
-  </section>`);
+  // Header and tabs are built at the end (playerHeroHtml)
 
   const ranks = allTimeRanks(p);
-  if (ranks.length) parts.push(`<div class="rank-badges">${ranks.map(r => `<span class="rank-badge${r.rank <= 3 ? ' rb-podium' : ''}"><b>#${r.rank}</b> all-time ${r.label}</span>`).join('')}</div>`);
+  if (ranks.length) C.ranks = (`<div class="rank-badges">${ranks.map(r => `<span class="rank-badge${r.rank <= 3 ? ' rb-podium' : ''}"><b>#${r.rank}</b> all-time ${r.label}</span>`).join('')}</div>`);
 
   // Trophy shelf
   const shelf = [
@@ -4663,12 +4855,11 @@ function renderPlayerPage() {
         <span class="pct-track"><i style="width:${Math.max(r.pct, 2)}%" class="${r.pct >= 90 ? 'elite' : r.pct >= 60 ? 'good' : ''}"></i></span>
         <span class="pct-num">${r.pct}</span><span class="pct-val">${r.m.fmt(r.v)}</span></div>`).join('')}</div></div>`;
   }
-  parts.push(`<div class="player-grid">${pctHtml ? `<div class="pg-wide">${pctHtml}</div>` : ''}<div class="${pctHtml ? 'pg-side' : 'pg-full'}">${shelfHtml}${legacyHtml}</div></div>`);
 
   // Advanced stats
   if (hasStats) {
     const adv = advStats(p);
-    parts.push(`<div class="chart-card"><div class="chart-title">${icon('line')} Advanced Stats</div>
+    C.adv = (`<div class="chart-card"><div class="chart-title">${icon('line')} Advanced Stats</div>
       <div class="adv-grid">${ADV_DEFS.map(d => `<div class="adv" title="${d.how}"><b>${adv[d.key] === null ? '—' : d.fmt(adv[d.key])}</b><span>${d.label}</span></div>`).join('')}</div></div>`);
   }
 
@@ -4720,7 +4911,7 @@ function renderPlayerPage() {
       return covering === undefined ? i === stops[0] : covering === i;
     }).length;
   };
-  if (teams.length) parts.push(`<div class="chart-card"><div class="chart-title">${icon('jersey')} Team Journey</div>
+  if (teams.length) C.journey = (`<div class="chart-card"><div class="chart-title">${icon('jersey')} Team Journey</div>
     <div class="journey">${teams.map((t, i) => {
       const red = p._titleStints, ret = retired.filter(r => r.team === t);
       // With red cells, mark the exact stint; a team with two red stints gets no count (it isn't known per stint)
@@ -4735,12 +4926,15 @@ function renderPlayerPage() {
 
   // Finals the player played in as a listed star
   const finalsHtml = playerFinalsHtml(p);
-  if (finalsHtml) parts.push(finalsHtml);
+  if (finalsHtml) C.finals = (finalsHtml);
+  // Badges: career milestones with Bronze to Legendary levels
+  const badgesHtml = playerBadgesHtml(p);
+  if (badgesHtml) C.badges = (badgesHtml);
 
   // Career numbers
   if (hasStats) {
     const avg = k => { const v = perGame(p, k); return v === null ? '—' : v.toFixed(1); };
-    parts.push(`<div class="chart-card"><div class="chart-title">${icon('list')} Career Stats</div>
+    C.stats = (`<div class="chart-card"><div class="chart-title">${icon('list')} Career Stats</div>
       <div class="modal-section-title" style="border:0;margin:0 0 6px;padding:0;font-size:13px;color:var(--ink-3)">Per game</div>
       <div class="stat-grid">${[['PPG',avg('PTS')],['RPG',avg('REB')],['APG',avg('AST')],['SPG',avg('STL')],['BPG',avg('BLK')],['MPG',avg('MIN')],['FG%',pctFmt(p['FG%'])],['3P%',pctFmt(p['3P%'])],['FT%',pctFmt(p['FT%'])],['TOV',avg('TO')]].map(([l,v])=>`<div class="stat-box avg-box"><div class="sv">${v}</div><div class="sl">${l}</div></div>`).join('')}</div>
       <div class="modal-section-title" style="border:0;margin:16px 0 6px;padding:0;font-size:13px;color:var(--ink-3)">Totals</div>
@@ -4748,12 +4942,12 @@ function renderPlayerPage() {
         const r = ranks.find(x => x.key === k);
         return `<div class="stat-box${String(v).includes('/') ? ' wide' : ''}"><div class="sv">${v}</div><div class="sl">${l}</div>${r ? `<div class="srank${r.rank <= 3 ? ' podium' : ''}">#${r.rank} all-time</div>` : ''}</div>`; }).join('')}</div></div>`);
   } else {
-    parts.push(`<div class="chart-card"><p class="muted">Career stats appear once the player retires and is added to your All Players sheet. Active players are tracked by awards in the Current Player sheet.</p></div>`);
+    C.stats = (`<div class="chart-card"><p class="muted">Career stats appear once the player retires and is added to your All Players sheet. Active players are tracked by awards in the Current Player sheet.</p></div>`);
   }
 
   // Timeline
   const timeline = careerEvents(p.Player);
-  if (timeline.length) parts.push(`<div class="chart-card"><div class="chart-title">${icon('calendar')} Career Timeline</div>
+  if (timeline.length) C.timeline = (`<div class="chart-card"><div class="chart-title">${icon('calendar')} Career Timeline</div>
     <div class="tl-key">${[['ev-champ', 'Title'], ['ev-fmvp', 'Finals MVP'], ['ev-mvp', 'MVP'], ['ev-dpoy', 'DPOY'], ['ev-ru', 'Conference Title'], ['ev-nba1', 'All-NBA'], ['ev-stat', 'Stat leader'], ['ev-roy', 'Rookie']]
       .filter(([c]) => timeline.some(t => t.items.some(e => c === 'ev-nba1' ? /^ev-nba/.test(e.cls) : c === 'ev-roy' ? /^ev-(roy|rookie)$/.test(e.cls) : e.cls === c)))
       .map(([c, l]) => `<span class="tl-chip ${c}">${l}</span>`).join('')}</div>
@@ -4762,17 +4956,151 @@ function renderPlayerPage() {
 
   // Similar players
   const sim = similarPlayers(p, 5);
-  if (sim.length) parts.push(`<div class="chart-card"><div class="chart-title">${icon('people')} Similar Players</div>
+  if (sim.length) C.similar = (`<div class="chart-card"><div class="chart-title">${icon('people')} Similar Players</div>
     <div class="sim-grid">${sim.map(sp => `<div class="sim" role="button" tabindex="0" onclick="openPlayerModal('${jsArg(sp.p.Player)}')" onkeydown="if(event.key==='Enter')this.click()">
       <div class="sim-match">${sp.match}%</div><div class="sim-name">${sp.p.Player} ${posBadge(sp.p.Position)}</div>
       <div class="sim-line">${one(perGame(sp.p, 'PTS'))} PPG · ${one(perGame(sp.p, 'REB'))} RPG · ${one(perGame(sp.p, 'AST'))} APG</div>
       <button class="card-link" onclick="event.stopPropagation();compareWith('${jsArg(p.Player)}','${jsArg(sp.p.Player)}')">Compare</button></div>`).join('')}</div></div>`);
   // Closest match, drawn as a percentile fingerprint
-  if (sim.length) parts.push(fingerprintHtml([p, sim[0].p], ['var(--p1)', 'var(--p2)'], { title: 'Closest Match', sub: `${p.Player} vs ${sim[0].p.Player}, a ${sim[0].match}% statistical match` }));
+  if (sim.length) C.closest = (fingerprintHtml([p, sim[0].p], ['var(--p1)', 'var(--p2)'], { title: 'Closest Match', sub: `${p.Player} vs ${sim[0].p.Player}, a ${sim[0].match}% statistical match` }));
 
+  C.pct = pctHtml; C.shelf = shelfHtml; C.legacy = legacyHtml;
+  const grid = (m, sd) => `<div class="player-grid"><div>${m.filter(Boolean).join('')}</div><div>${sd.filter(Boolean).join('')}</div></div>`;
+  const tabs = {
+    home: grid([playerHomeLegacy(p), playerHomeBadges(p)], [C.shelf, sim.length ? playerHomeMatch(p, sim[0]) : '']),
+    stats: (C.stats || '') + grid([C.pct, C.closest], [C.adv, C.similar]),
+    career: (C.journey || '') + grid([C.timeline], [C.finals]),
+    honors: (C.ranks || '') + grid([C.badges], [C.shelf, C.legacy]),
+  };
+  parts.push(playerHeroHtml(p));
+  parts.push(Object.entries(tabs).map(([k, html]) => `<div class="tm-tab pl-tab" data-tab="${k}"${k === playerState.tab ? '' : ' hidden'}>${html || '<p class="muted">Nothing here yet.</p>'}</div>`).join(''));
   const pp = document.getElementById('playerPage');
   pp.innerHTML = parts.join('');
-  applyFolds(pp, PLAYER_FOLDS);
+  finishPlayerHero(pp);
+}
+// ---------------------------------------------------------------------
+// PLAYER HEADER AND TABS (same design as the team page, in his main team's colour)
+// ---------------------------------------------------------------------
+function playerRankAmong(p, get, pool) {
+  const v = get(p); if (v === null || v === undefined || isNaN(v)) return null;
+  const vals = pool.map(get).filter(x => x !== null && x !== undefined && !isNaN(x));
+  const rk = vals.filter(x => x > v).length + 1, tie = vals.filter(x => x === v).length > 1;
+  return { v, rk: (tie ? 'T-' : '') + ordinalRank(rk) };
+}
+function playerHeroHtml(p) {
+  const n = k => { const v = getNum(p[k]); return v === -Infinity ? 0 : v; };
+  const span = careerSpan(p.Season), active = isActive(p), hasStats = careerPlayers().includes(p);
+  const nameParts = String(p.Player).split(' '), last = nameParts.length > 1 ? nameParts.pop() : '', first = nameParts.join(' ');
+  const mt = mainTeam(p), team = mt.team, ctx = legacyContext();
+  // Team journey: one box per stop, gold for a title there, silver for a conference title, rainbow ring for the main team
+  const stops = playerTeams(p).map((t, i, arr) => {
+    const ti = titlesWithTeam(p, t), cf = (ctx.ruRoles[p.Player] || []).filter(r => finalsTeams(r.yr).ru === t).length;
+    const seen = arr.indexOf(t) !== i;   // a second spell with the same team: show the box again, counts only once
+    const tip = `${t}${!seen && ti ? ` · ${ti} title${ti > 1 ? 's' : ''}` : ''}${!seen && cf ? ` · ${cf} conf. title${cf > 1 ? 's' : ''}` : ''}${t === team ? ' · main team' : ''}`;
+    return `<button type="button" class="pl-stopbox${!seen && ti ? ' is-title' : !seen && cf ? ' is-conf' : ''}${t === team ? ' is-main' : ''}" title="${tip}" aria-label="${tip}" onclick="openTeamModal('${jsArg(t)}')">${teamLogo(t) || `<span>${teamCode(t)}</span>`}</button>`;
+  }).join('');
+  // Rows: per-game stats, his three biggest awards, his rankings
+  const one = v => v === null || v === undefined || isNaN(v) ? '—' : v.toFixed(1);
+  const statRow = hasStats ? [['PPG', 'PTS'], ['RPG', 'REB'], ['APG', 'AST'], ['SPG', 'STL'], ['BPG', 'BLK']].map(([l, k]) => `<span><b>${one(perGame(p, k))}</b> ${l}</span>`).join('')
+    // Active players have no career stats yet: seasons, teams, then the first three of the rest he has (skipping the awards row), badges last
+    : null;
+  // Up to four awards, in this order: MVP, titles, FMVP, DPOY, All-NBA, All-Defensive, All-Star, then ROTY, MIP, 6th Man
+  const awards = [[n('MVP'), 'MVP'], [n('Champions'), n('Champions') === 1 ? 'Title' : 'Titles'], [n('FMVP'), 'FMVP'], [n('DPOY'), 'DPOY'],
+    [n('All NBA Team'), 'All-NBA'], [n('1st D Team') + n('2nd D Team'), 'All-D'], [n('All Stars'), 'All-Star'],
+    [isRoty(p) ? 1 : 0, 'ROTY'], [otherAward(p, 'MIP'), 'MIP'], [otherAward(p, '6th Man'), '6th Man']].filter(([v]) => v > 0).slice(0, 4);
+  const statRowHtml = statRow !== null ? statRow : (() => {
+    const shown = new Set(awards.map(([, l]) => l.replace(/s$/, '')));
+    const statTitles = DB.statLeaders.filter(r => ['Pts', 'Reb', 'Ast', 'Stl', 'Blk'].some(k => r[k + 'Leader'] && resolvePlayer(r[k + 'Leader'], r.Season) === p)).length;
+    const sp = careerSpan(p.Season), seasons = Number(p.Exp) || (sp ? Math.max(1, (DB.latestSeason || sp[0]) - sp[0] + 1) : 0);
+    return [['Seasons', seasons], ['Teams', new Set(playerTeams(p)).size], ['Finals', n('Finals App')], ['Stat titles', statTitles], ['1st Team', n('1st Team')],
+      ['All-D', n('1st D Team') + n('2nd D Team')], ['Badges', playerBadges(p).length]]
+      .filter(([l, v]) => v > 0 && !shown.has(l)).slice(0, 5).map(([l, v]) => `<span><b>${v}</b> ${v === 1 && /s$/.test(l) && l !== 'Finals' && l !== 'Badges' ? l.slice(0, -1) : v === 1 && l === 'Badges' ? 'Badge' : l}</span>`).join('');
+  })();
+  const top20 = DB.top20.find(x => x.Player === p.Player), posRank = (DB.positions[p.Position] || []).find(x => x.Player === p.Player), lr = legacyRankOf(p);
+  // Career years from his first season's start to his last season's end, e.g. 1992–2011
+  const years = span ? `${span[0] - 1}–${span[1] === Infinity || active ? 'now' : span[1]}` : (p.Season || '');
+  // One line above the name: position | years | draft | seasons
+  const d = draftInfo(p);
+  const draft = !d ? '' : d.kind === 'undrafted' ? 'Undrafted' : d.kind === 'territorial' ? `${d.year} Territorial` : `${d.year}${d.league === 'ABA' ? ' ABA' : ''} ${d.round > 1 ? `R${d.round} ` : ''}#${d.pick ?? '?'} pick`;
+  const kicker = [POS_NAMES[p.Position] || p.Position || 'Player', years, draft]
+    .filter(Boolean).map(x => `<span>${x}</span>`).join('<i>|</i>');
+  const color = team && TEAM_COLORS[team];
+  return `<section class="tm-hero pl-hero" ${color ? `style="--tc:${color}"` : ''} data-team="${team || ''}">
+    <div class="pl-actions">${backButton('Back', 'playerBack()', true)}<button type="button" class="back-btn on-hero pl-cmp" onclick="compareWith('${jsArg(p.Player)}')" aria-label="Compare ${p.Player.replace(/"/g, '&quot;')}" title="Compare"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16M17 4v16M3 8h8M13 16h8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>Compare</button></div>
+    <div class="pl-top">
+      <div class="tm-kicker pl-kicker">${kicker}</div>
+      <h1 class="tm-name pl-name">${p.Player}</h1>
+      ${(() => { const eras = playerDecades(p).filter(x => x.era); return eras.length ? `<div class="pl-era">${icon('crown')} Face of an Era <span>· ${eras.map(x => x.decade).join(' & ')}</span></div>` : ''; })()}
+      ${stops ? `<div class="pl-stops" aria-label="Team journey">${stops}</div>` : ''}
+    </div>
+    <div class="pl-rows">
+      <div class="pl-row pl-statrow">${statRowHtml}</div>
+      ${awards.length ? `<div class="pl-row">${awards.map(([v, l]) => `<span><b>${v}</b> ${l}</span>`).join('<i>|</i>')}</div>` : ''}
+      ${(() => { const cur = active ? (() => { const pool = DB.currentPlayers.map(x => resolvePlayer(x.Player) || x).filter(x => isActive(x)); const me = legacy(p).total; return pool.filter(x => legacy(x).total > me).length + 1; })() : null;
+        const r = [lr ? `<b>#${lr}</b> Legacy` : '', cur ? `<b>#${cur}</b> Active` : '', posRank ? `<b>#${posRank.Rank}</b> ${p.Position}` : '', top20 ? `<b>#${top20.Rank}</b> All-Time` : ''].filter(Boolean);
+        return r.length ? `<div class="pl-row pl-rankrow">${r.map(x => `<span>${x}</span>`).join('<i>|</i>')}</div>` : ''; })()}
+    </div>
+    <div class="tm-btns">${[['home', 'Home'], ['stats', 'Stats'], ['career', 'Career'], ['honors', 'Honors']].map(([k, l]) => `<button data-tab="${k}" class="${playerState.tab === k ? 'active' : ''}" onclick="setPlayerTab('${k}')">${l}</button>`).join('')}</div>
+  </section>`;
+}
+// The name and the five stats each stay on one line: shrink the text until it fits
+function fitStatRow(root) {
+  // Team journey on one row: boxes shrink (30 px at most) so every team fits
+  const stops = root.querySelector('.pl-stops');
+  if (stops) { const n = stops.children.length, gap = 7, w = stops.clientWidth; stops.style.setProperty('--box', Math.min(30, Math.floor((w - gap * (n - 1)) / n)) + 'px'); }
+  // Stat labels stay on one line: shrink all five labels together until the widest fits its column
+  const sr = root.querySelector('.pl-statrow');
+  if (sr) { sr.style.removeProperty('--lbl'); const spans = [...sr.querySelectorAll('span')]; let size = 13;
+    // A label must leave at least 8 px before the next column's line
+    const tooWide = x => { const t = [...x.childNodes].find(c => c.nodeType === 3 && c.textContent.trim()); if (!t) return false;
+      const r = document.createRange(); r.selectNodeContents(t); const pl = parseFloat(getComputedStyle(x).paddingLeft) || 0;
+      return r.getBoundingClientRect().width > x.clientWidth - pl - 8; };
+    for (let i = 0; i < 14 && spans.some(tooWide); i++) { size -= 0.5; sr.style.setProperty('--lbl', size + 'px'); } }
+  root.querySelectorAll('.pl-name, .pl-kicker').forEach(row => {
+    row.style.fontSize = '';
+    let size = parseFloat(getComputedStyle(row).fontSize);
+    for (let i = 0; i < 60 && row.scrollWidth > row.clientWidth + 1 && size > 9; i++) { size -= 0.5; row.style.fontSize = size + 'px'; }
+  });
+}
+addEventListener('resize', () => { const pp = document.getElementById('playerPage'); if (pp && pp.querySelector('.pl-statrow')) fitStatRow(pp); });
+function finishPlayerHero(root) {
+  const hero = root.querySelector('.pl-hero'); if (!hero) return;
+  fitStatRow(root); if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => fitStatRow(root));
+  root.classList.remove('tm-themed'); ['--tc', '--ta-l', '--ta-d'].forEach(v => root.style.removeProperty(v));
+  const team = hero.dataset.team; if (!team) return;
+  if (TEAM_COLORS[team]) teamTheme(root, TEAM_COLORS[team]);
+  else { const src = DB.logos && DB.logos[team], who = playerState.p; if (src) logoColor(src).then(c => { if (c && playerState.p === who) { hero.style.setProperty('--tc', c); teamTheme(root, c); } }); }
+}
+function setPlayerTab(tab) {
+  playerState.tab = tab;
+  const pp = document.getElementById('playerPage');
+  pp.querySelectorAll('.pl-tab').forEach(el => el.hidden = el.dataset.tab !== tab);
+  pp.querySelectorAll('.pl-hero .tm-btns button[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  hideBadgeTip && hideBadgeTip();
+  const hero = pp.querySelector('.pl-hero');
+  if (hero && scrollY > hero.offsetTop + hero.offsetHeight - 200) scrollTo({ top: hero.offsetTop + hero.offsetHeight - 160 });
+}
+const plMore = (tab, label) => `<button class="card-link th-more" onclick="setPlayerTab('${tab}')">${label} →</button>`;
+// Home: short versions of each tab
+function playerHomeLegacy(p) {
+  const L = legacy(p), rk = legacyRankOf(p);
+  const rows = LEGACY_PARTS.map(([k, label]) => ({ label, v: L.parts[k] })).filter(r => r.v > 0).sort((a, b) => b.v - a.v).slice(0, 3);
+  return `<div class="chart-card"><div class="card-head"><div class="chart-title">${icon('chart')} Legacy</div>${plMore('honors', 'Full breakdown')}</div>
+    <div class="legacy-total"><b>${Math.round(L.total).toLocaleString()}</b><span>points${rk ? ` · #${rk} of ${everyPlayer().length}` : ''}</span></div>
+    ${rows.length ? `<div class="lg-parts">${rows.map(r => `<div class="lg-part"><span>${r.label}</span><span class="lg-track"><i style="width:${Math.max(2, r.v / rows[0].v * 100)}%"></i></span><b>${Math.round(r.v).toLocaleString()}</b></div>`).join('')}</div>` : ''}</div>`;
+}
+function playerHomeBadges(p) {
+  const list = playerBadges(p); if (!list.length) return '';
+  const top = [...list.filter(x => x.lv === 4), ...list.filter(x => x.lv === 5)];
+  const counts = [4, 3, 2, 1, 5].map(lv => [lv, list.filter(x => x.lv === lv).length]).filter(([, c]) => c);
+  return `<div class="chart-card bd-card"><div class="card-head"><div class="chart-title">${icon('star')} Badges <span class="muted">${list.length}</span></div>${plMore('honors', 'All badges')}</div>
+    <div class="bd-counts">${counts.map(([lv, c]) => `<span class="bd-count ${tierClass(lv)}" title="${BADGE_TIERS[lv - 1]}"><i></i>${c}</span>`).join('')}</div>
+    <div class="bd-chips">${top.length ? top.map(x => badgeChip(x.b, x.lv)).join('') : '<span class="muted">No Legendary or Grand badges yet.</span>'}</div></div>`;
+}
+function playerHomeMatch(p, m) {
+  return `<div class="chart-card"><div class="card-head"><div class="chart-title">${icon('people')} Closest Match</div>${plMore('stats', 'Stats')}</div>
+    <div class="pl-match">${nameLink(m.p.Player)} ${posBadge(m.p.Position)} <b>${m.match}%</b></div>
+    <p class="muted fx-note">The most similar career by the numbers.</p></div>`;
 }
 // Open Compare with one or two players already picked
 function compareWith(a, b) {
@@ -4868,6 +5196,9 @@ function compareMetrics() {
     { label: 'DPOY', get: award('DPOY'), fmt: v => v, awards: true },
     { label: 'All-Defensive selections', get: p => award('1st D Team')(p) + award('2nd D Team')(p), fmt: v => v, awards: true },
     { label: 'Legacy score', get: p => legacy(p).total, fmt: v => Math.round(v).toLocaleString(), awards: true },
+    { label: 'Badges', get: p => playerBadges(p).length, fmt: v => v, awards: true },
+    { label: 'Gold + Legendary badges', get: p => playerBadges(p).filter(x => x.lv === 3 || x.lv === 4).length, fmt: v => v, awards: true },
+    { label: 'Grand badges', get: p => playerBadges(p).filter(x => x.lv === 5).length, fmt: v => v, awards: true },
   ];
 }
 // =====================================================================
@@ -5328,6 +5659,33 @@ function syncRatioBar() {
 }
 function legacyRanking() {
   return cached('legacyRanking', () => withRanks(everyPlayer().map(p => ({ p, score: legacy(p).total })).sort((a, b) => b.score - a.score), r => Math.round(r.score)));
+}
+// ---------------------------------------------------------------------
+// DECADE TEAMS AND ERAS (Decade NBA Team sheet): the best five of each decade start,
+// eight more on the bench; the era is named after the decade's best player.
+// ---------------------------------------------------------------------
+const decadeStart = d => { const m = String(d.decade || '').match(/(\d{4})/); return m ? Number(m[1]) : null; };
+// The era's name as written between the quote marks ("The ”LeBron” Era" → LeBron); any quote style
+const eraName = d => { const s = String(d.era || ''); const m = s.match(/[\"'“”‘’]\s*([^\"'“”‘’]+?)\s*[\"'“”‘’]/); return m ? m[1].trim() : s.replace(/^the\s+|\s+era$/gi, '').trim(); };
+// The decade's era player: the starter whose first or last name is the era name
+function eraPlayer(d) {
+  const nm = eraName(d).toLowerCase(); if (!nm) return null;
+  const starters = (d.starter || []).map(n => resolvePlayer(n)).filter(Boolean);
+  return starters.find(p => p.Player.toLowerCase().split(/\s+/).includes(nm)) || starters.find(p => p.Player.toLowerCase().includes(nm)) || null;
+}
+// Every Decade Team spot a player holds: [{ decade, start, role: 'starter' | 'bench', era }]
+function playerDecades(p) {
+  return cached('decades|' + p.Player, () => (DB.decades || []).flatMap(d => {
+    const has = list => (list || []).some(n => resolvePlayer(n) === p);
+    const role = has(d.starter) ? 'starter' : has(d.subs) ? 'bench' : null;
+    return role ? [{ decade: d.decade.replace(/\s*era$/i, ''), start: decadeStart(d), role, era: eraPlayer(d) === p }] : [];
+  }).sort((a, b) => a.start - b.start));
+}
+// The era a season belongs to (2077–78 is in the 2070s)
+function seasonEra(yr) {
+  const start = Math.floor((Number(yr) - 1) / 10) * 10;
+  const d = (DB.decades || []).find(x => decadeStart(x) === start);
+  return d && eraName(d) ? { name: eraName(d), label: String(d.era).replace(/[\"'“”‘’]/g, '').replace(/\s+/g, ' ').trim(), player: eraPlayer(d), decade: start + 's' } : null;
 }
 const legacyRankOf = p => legacyRanking().find(r => r.p === p)?.rank;
 // Legacy score and rank for any list row (Top 20 and position sheets hold copies of the player)
@@ -5887,6 +6245,453 @@ function franchiseLineupHtml(team) {
 }
 </script>
 <script>
+// 2K17 NBA Stats Database · Player badges, 2K style: each badge has up to four levels
+// (Bronze, Silver, Gold, Legendary). Levels are set for this league, where almost every
+// player is an all-time great, so a level means something compared with the others.
+// Career numbers come from All Players; season feats from NBA History and Season Stat Leader.
+
+// Levels 1-4; a Grand badge (level 5) has no level: a career moment a player either has or doesn't
+const BADGE_TIERS = ['Bronze', 'Silver', 'Gold', 'Legendary', 'Grand'];
+const BADGE_GROUPS = ['Scoring', 'Shooting', 'Rebounding', 'Playmaking', 'Defense', 'All-Around', 'Durability', 'Honors', 'Titles', 'Season Feats', 'Legacy'];
+
+// Small helpers: a career number, a per-game average, a share
+const bN = (p, k) => { const v = getNum(p[k]); return v === -Infinity || isNaN(v) ? null : v; };
+const bPG = (p, k) => { const v = perGame(p, k); return v === null || isNaN(v) ? null : v; };
+const bFmt = v => v >= 1000 ? Math.round(v).toLocaleString() : String(Math.round(v * 10) / 10);
+const bPct = v => (Math.round(v * 10) / 10) + '%';
+
+// The badge level for a value: the highest level whose threshold it reaches (null = level not used).
+// Club badges compare every part; one-off achievements are 1 when earned.
+function badgeLevelFor(b, v, tiers = b.tiers) {
+  if (v === null || v === undefined) return 0;
+  return tiers.reduce((n, t, i) => t === null || t === undefined ? n : (Array.isArray(t) ? t.every((x, j) => v[j] >= x) : v >= t) ? i + 1 : n, 0);
+}
+function badgeTierText(b, t) { return t === null || t === undefined ? null : b.kind === 'flag' ? 'Achieved' : b.kind === 'club' ? b.labels(t) : b.fmt(t); }
+function makeBadge(b) {
+  b.defName = b.name; b.defTiers = JSON.parse(JSON.stringify(b.tiers)); b.on = b.defOn = !b.off;
+  b.type = b.defType = b.kind === 'flag' ? 'grand' : 'levels';
+  b.level = p => badgeLevelFor(b, b.get(p));
+  b.tierText = b.tiers.map(t => badgeTierText(b, t));
+  return b;
+}
+// A badge earned by reaching a number: tiers are the four thresholds
+function statBadge(id, name, group, desc, get, tiers, fmt = bFmt) { return makeBadge({ id, name, group, desc, tiers, fmt, get, kind: 'stat' }); }
+// A club: every part must reach that level's number (e.g. points/rebounds/assists)
+function clubBadge(id, name, group, desc, gets, tiers, labels) {
+  return makeBadge({ id, name, group, desc, tiers, labels, kind: 'club', get: p => { const v = gets.map(g => g(p)); return v.some(x => x === null || x === undefined) ? null : v; } });
+}
+// A levelled badge that starts as Grand (earned at one number; can be switched to Levels in Settings)
+function asGrand(b, at) { b.type = b.defType = 'grand'; b.defGrandAt = at; return b; }
+// A badge that starts switched off
+function switchedOff(b) { b.off = true; b.on = b.defOn = false; return b; }
+// A Grand badge: no level, the player either has it or not
+function flagBadge(id, name, group, desc, test) {
+  return makeBadge({ id, name, group, desc, tiers: [null, null, null, null, 1], kind: 'flag', single: true, get: p => test(p) ? 1 : null });
+}
+
+// Season-by-season facts the career rows don't hold, built once per workbook
+function badgeContext() {
+  return cached('badgeContext', () => {
+    const ctx = legacyContext(), c = { mvpYrs: {}, fmvpYrs: {}, dpoyYrs: {}, titleYrs: {}, titleTeams: {}, fmvpTeams: {}, statYrs: {}, upsetWins: {}, ruYrs: {}, face: {}, lineups: {}, rank: {}, ratings: {}, bigThree: {}, unsung: {} };
+    const add = (m, k, v) => (m[k] = m[k] || []).push(v);
+    Object.entries(ctx.mvp).forEach(([k, yrs]) => c.mvpYrs[k] = [...yrs]);
+    Object.entries(ctx.fmvp).forEach(([k, yrs]) => c.fmvpYrs[k] = [...yrs]);
+    Object.entries(ctx.roles).forEach(([k, rs]) => rs.forEach(r => { add(c.titleYrs, k, r.yr); const champ = finalsTeams(r.yr).champ; if (champ) add(c.titleTeams, k, champ); }));
+    Object.entries(ctx.ruRoles).forEach(([k, rs]) => rs.forEach(r => add(c.ruYrs, k, r.yr)));
+    DB.history.forEach(h => {
+      const yr = Number(h.Season); if (isNaN(yr)) return;
+      if (h.DPOY && h.DPOY !== '-') coNames(h.DPOY).forEach(nm => { const p = resolvePlayer(nm, yr); if (p) add(c.dpoyYrs, p.Player, yr); });
+      if (h.FMVP && h.FMVP !== '-' && h.FMVPTeam) { const p = resolvePlayer(h.FMVP, yr); if (p) add(c.fmvpTeams, p.Player, fullTeamName(h.FMVPTeam)); }
+    });
+    [['Pts', 'pts'], ['Reb', 'reb'], ['Ast', 'ast'], ['Stl', 'stl'], ['Blk', 'blk']].forEach(([k, key]) => DB.statLeaders.forEach(r => {
+      const p = r[k + 'Leader'] ? resolvePlayer(r[k + 'Leader'], r.Season) : null; if (p) add(c.statYrs, p.Player, { key, yr: Number(r.Season) });
+    }));
+    finalsData().filter(f => f.upset).forEach(f => f.cs.forEach(s => s.p && add(c.upsetWins, s.p.Player, f.yr)));
+    // Finals star ratings, Big Three titles (three listed champion stars all 90+) and Finals MVPs who were not the top-rated star
+    finalsData().forEach(f => {
+      [...f.cs, ...f.rs].forEach(s => s.p && s.r !== null && add(c.ratings, s.p.Player, s.r));
+      if (f.cs.length === 3 && f.cs.every(s => (s.r ?? 0) >= 90)) f.cs.forEach(s => s.p && add(c.bigThree, s.p.Player, f.yr));
+      const fm = f.fmvp && resolvePlayer(f.fmvp, f.yr), me = fm && f.cs.find(s => s.p && s.p.Player === fm.Player);
+      if (me && me.r !== null && f.cs.some(s => (s.r ?? 0) > me.r)) add(c.unsung, fm.Player, f.yr);
+    });
+    DB.teams.filter(t => !t.defunct).forEach(t => {
+      const f = franchiseLegends(t.Team)[0]; if (f) add(c.face, f.p.Player, t.Team);
+      const L = franchiseLineup(t.Team); if (L.list.length >= 5) L.starters.forEach(x => x.p && add(c.lineups, x.p.Player, t.Team));
+    });
+    [...everyPlayer()].sort((a, b) => legacy(b).total - legacy(a).total).forEach((p, i) => c.rank[p.Player] = i + 1);
+    return c;
+  });
+}
+const bc = () => badgeContext();
+const yrsOf = (m, p) => m[p.Player] || [];
+// Longest run of consecutive seasons in a list of years
+const longestRun = yrs => { const s = [...new Set(yrs)].sort((a, b) => a - b); let best = 0, run = 0; s.forEach((y, i) => { run = i && y === s[i - 1] + 1 ? run + 1 : 1; best = Math.max(best, run); }); return best; };
+const sameYear = (a, b) => a.filter(y => b.includes(y)).length;
+const statTitleYrs = (p, key) => yrsOf(bc().statYrs, p).filter(x => !key || x.key === key).map(x => x.yr);
+const isBig = p => /C|PF/.test(String(p.Position || ''));
+const isGuard = p => /G/.test(String(p.Position || '')) && !/F|C/.test(String(p.Position || ''));
+const withMin = (p, k, min, get) => (bN(p, k) ?? 0) >= min ? get(p) : null;
+
+// Draft pick from "56Rnd1Pick2" (round, pick); undrafted / territorial give null
+const draftPick = p => { const m = String(p.Draft || '').match(/Rnd(\d+)Pick(\d+)/i); return m ? { rnd: Number(m[1]), pick: Number(m[2]) } : null; };
+const otherAward = (p, re) => { const m = String(p['Other Award'] || '').match(new RegExp(re + '\\s*\\((\\d+)\\)', 'i')); return m ? Number(m[1]) : 0; };
+const span = p => careerSpan(p.Season);
+const titleY = p => yrsOf(bc().titleYrs, p), lostY = p => yrsOf(bc().ruYrs, p);
+// Titles where the beaten team had beaten him in an earlier Finals
+const revengeCount = p => titleY(p).filter(y => { const opp = finalsTeams(y).ru; return opp && lostY(p).some(y0 => y0 < y && finalsTeams(y0).champ === opp); }).length;
+// Titles won against the champions of the two seasons before
+const dynastyKills = p => titleY(p).filter(y => { const opp = finalsTeams(y).ru; return opp && finalsTeams(y - 1).champ === opp && finalsTeams(y - 2).champ === opp; }).length;
+const allD = p => (bN(p, '1st D Team') ?? 0) + (bN(p, '2nd D Team') ?? 0);
+// Each badge: id, name, group, what it measures, then Bronze / Silver / Gold / Legendary.
+const BADGES = [
+  // Scoring
+  statBadge('pts', 'Walking Bucket', 'Scoring', 'Career points', p => bN(p, 'PTS'), [30000, 35000, 37000, 40000]),
+  statBadge('ppg', 'Microwave', 'Scoring', 'Career points per game', p => bPG(p, 'PTS'), [22, 25, 26, 28], v => v.toFixed(1)),
+  statBadge('ftm', 'Free Throw Bank', 'Scoring', 'Career free throws made', p => bN(p, 'FTM'), [6000, 7000, 8000, 9000]),
+  statBadge('pps', 'Mr. Efficient', 'Scoring', 'Points per shot (points ÷ field goal attempts), 10,000+ attempts', p => withMin(p, 'FGA', 10000, x => bN(x, 'PTS') / bN(x, 'FGA')), [1.35, 1.4, 1.45, 1.5], v => v.toFixed(2)),
+  clubBadge('ptsreb', 'Paint Beast', 'Scoring', 'Career points and rebounds', [p => bN(p, 'PTS'), p => bN(p, 'REB')], [[25000, 10000], [28000, 12500], [32000, 15000], [35000, 17500]], t => `${bFmt(t[0])} pts + ${bFmt(t[1])} reb`),
+  clubBadge('ptsast', 'Dual Threat', 'Scoring', 'Career points and assists', [p => bN(p, 'PTS'), p => bN(p, 'AST')], [[25000, 8000], [28000, 9000], [32000, 10000], [35000, 12000]], t => `${bFmt(t[0])} pts + ${bFmt(t[1])} ast`),
+  statBadge('scoretitle', 'Scoring Crown', 'Scoring', 'Scoring titles', p => statTitleYrs(p, 'pts').length, [1, 2, 3, 5]),
+  statBadge('scorestreak', 'Scoring Dynasty', 'Scoring', 'Scoring titles in a row', p => longestRun(statTitleYrs(p, 'pts')), [null, 2, 3, 5]),
+  // Shooting
+  statBadge('3pm', 'Splash Machine', 'Shooting', 'Career three-pointers made', p => bN(p, '3PM'), [3500, 4200, 4600, 5000]),
+  statBadge('fgpct', 'Automatic', 'Shooting', 'Career field goal %, 5,000+ attempts', p => withMin(p, 'FGA', 5000, x => bN(x, 'FG%')), [50, 53, 56, 58], bPct),
+  statBadge('3pct', 'Sniper Scope', 'Shooting', 'Career three-point %, 2,000+ attempts', p => withMin(p, '3PA', 2000, x => bN(x, '3P%')), [38, 40, 42, 44], bPct),
+  statBadge('ftpct', 'Ice Water', 'Shooting', 'Career free throw %, 2,000+ attempts', p => withMin(p, 'FTA', 2000, x => bN(x, 'FT%')), [88, 90, 93, 95], bPct),
+  clubBadge('504090', '50/40/90 Club', 'Shooting', 'Career FG% / 3P% / FT% together (the career version of a 50/40/90 season)', [p => withMin(p, 'FGA', 5000, x => bN(x, 'FG%')), p => withMin(p, '3PA', 1000, x => bN(x, '3P%')), p => withMin(p, 'FTA', 1000, x => bN(x, 'FT%'))],
+    [null, null, [50, 40, 90], [52, 42, 92]], t => `${t[0]} / ${t[1]} / ${t[2]}`),
+  clubBadge('stretchbig', 'Pick & Pop Big', 'Shooting', 'Centers and power forwards: career threes made', [p => isBig(p) ? 1 : null, p => bN(p, '3PM')], [[1, 1000], [1, 1500], [1, 1800], [1, 2200]], t => `${bFmt(t[1])} threes`),
+  clubBadge('unicorn', 'Unicorn', 'Shooting', 'Blocks per game and career threes together', [p => bPG(p, 'BLK'), p => bN(p, '3PM')], [[1.5, 1200], [2, 1500], [2.3, 2000], [2.5, 2200]], t => `${t[0]} bpg + ${bFmt(t[1])} threes`),
+  // Rebounding
+  statBadge('reb', 'Glass Eater', 'Rebounding', 'Career rebounds', p => bN(p, 'REB'), [15000, 17000, 18500, 20000]),
+  statBadge('rpg', 'Board Bully', 'Rebounding', 'Career rebounds per game', p => bPG(p, 'REB'), [10.5, 12, 13, 14], v => v.toFixed(1)),
+  statBadge('rebtitle', 'Rebound Crown', 'Rebounding', 'Rebounding titles', p => statTitleYrs(p, 'reb').length, [1, 2, 3, 5]),
+  statBadge('rebstreak', 'Glass Dynasty', 'Rebounding', 'Rebounding titles in a row', p => longestRun(statTitleYrs(p, 'reb')), [null, 2, 3, 5]),
+  clubBadge('guardreb', 'Guard on the Glass', 'Rebounding', 'Guards: rebounds per game', [p => isGuard(p) ? 1 : null, p => bPG(p, 'REB')], [[1, 5], [1, 6], [1, 7], [1, 8]], t => `${t[1]} rpg`),
+  // Playmaking
+  statBadge('ast', 'Dime Dropper', 'Playmaking', 'Career assists', p => bN(p, 'AST'), [10000, 11000, 12000, 12800]),
+  statBadge('apg', 'Floor General', 'Playmaking', 'Career assists per game', p => bPG(p, 'AST'), [7.5, 8, 9, 10], v => v.toFixed(1)),
+  statBadge('astto', 'Ball on a String', 'Playmaking', 'Assists per turnover, 3,000+ assists', p => withMin(p, 'AST', 3000, x => bN(x, 'TO') ? bN(x, 'AST') / bN(x, 'TO') : null), [2.5, 2.8, 3, 3.5], v => v.toFixed(2)),
+  statBadge('asttitle', 'Assist Crown', 'Playmaking', 'Assist titles', p => statTitleYrs(p, 'ast').length, [1, 2, 3, 5]),
+  statBadge('aststreak', 'Dime Dynasty', 'Playmaking', 'Assist titles in a row', p => longestRun(statTitleYrs(p, 'ast')), [null, 2, 3, 5]),
+  clubBadge('bigpass', 'Hub Big', 'Playmaking', 'Centers and power forwards: assists per game', [p => isBig(p) ? 1 : null, p => bPG(p, 'AST')], [[1, 4], [1, 5], [1, 6], [1, 7]], t => `${t[1]} apg`),
+  clubBadge('pointfwd', 'Point Forward', 'Playmaking', 'Rebounds and assists per game together', [p => bPG(p, 'REB'), p => bPG(p, 'AST')], [[7, 5], [8, 6], [9, 7], [10, 8]], t => `${t[0]} rpg + ${t[1]} apg`),
+  // Defense
+  statBadge('stl', 'Thief', 'Defense', 'Career steals', p => bN(p, 'STL'), [2500, 2800, 3250, 3500]),
+  statBadge('spg', 'Passing Lane Patrol', 'Defense', 'Career steals per game', p => bPG(p, 'STL'), [2, 2.4, 2.6, 2.8], v => v.toFixed(1)),
+  statBadge('blk', 'Shot Eraser', 'Defense', 'Career blocks', p => bN(p, 'BLK'), [2250, 2500, 3000, 3800]),
+  statBadge('bpg', 'Block Party', 'Defense', 'Career blocks per game', p => bPG(p, 'BLK'), [2, 2.3, 2.6, 3], v => v.toFixed(1)),
+  statBadge('stocks', 'Havoc', 'Defense', 'Career steals + blocks', p => (bN(p, 'STL') ?? 0) + (bN(p, 'BLK') ?? 0) || null, [4500, 5000, 5500, 6000]),
+  statBadge('alld', 'Clamps', 'Defense', 'All-Defensive team selections', p => allD(p), [8, 10, 12, 14]),
+  statBadge('dpoy', 'The Anchor', 'Defense', 'Defensive Player of the Year awards', p => bN(p, 'DPOY'), [1, 2, 4, 5]),
+  statBadge('dpoystreak', 'Brick Wall', 'Defense', 'DPOYs in a row', p => longestRun(yrsOf(bc().dpoyYrs, p)), [null, 2, 3, null]),
+  statBadge('stltitle', 'Steals Crown', 'Defense', 'Steals titles', p => statTitleYrs(p, 'stl').length, [1, 2, 3, 5]),
+  statBadge('blktitle', 'Blocks Crown', 'Defense', 'Blocks titles', p => statTitleYrs(p, 'blk').length, [1, 2, 3, 5]),
+  clubBadge('paint', 'No Fly Zone', 'Defense', 'Rebounds and blocks per game together', [p => bPG(p, 'REB'), p => bPG(p, 'BLK')], [[10, 2], [11, 2.2], [12, 2.5], [12.8, 2.8]], t => `${t[0]} rpg + ${t[1]} bpg`),
+  clubBadge('twoway', 'Two-Way Menace', 'Defense', 'All-NBA and All-Defensive selections together', [p => bN(p, 'All NBA Team'), p => allD(p)], [[8, 8], [10, 10], [12, 12], [14, 14]], t => `${t[0]} All-NBA + ${t[1]} All-D`),
+  flagBadge('dpoymvp', 'Both Ends', 'Defense', 'Won MVP and DPOY in his career', p => (bN(p, 'MVP') ?? 0) > 0 && (bN(p, 'DPOY') ?? 0) > 0),
+  // All-around
+  statBadge('dd', 'Double Trouble', 'All-Around', 'Career double-doubles', p => bN(p, 'DD2'), [800, 900, 1000, 1100]),
+  statBadge('td', 'Triple-Double Factory', 'All-Around', 'Career triple-doubles', p => bN(p, 'TD3'), [50, 100, 150, 200]),
+  statBadge('pra', 'Stat Sheet Stuffer', 'All-Around', 'Career points + rebounds + assists', p => (bN(p, 'PTS') ?? 0) + (bN(p, 'REB') ?? 0) + (bN(p, 'AST') ?? 0) || null, [55000, 58000, 60000, 65000]),
+  clubBadge('triangle', 'Triangle Club', 'All-Around', 'Career points, rebounds and assists all at the number', [p => bN(p, 'PTS'), p => bN(p, 'REB'), p => bN(p, 'AST')], [[8000, 8000, 8000], [9000, 9000, 9000], [10000, 10000, 10000], [12000, 12000, 12000]], t => `${bFmt(t[0])} / ${bFmt(t[1])} / ${bFmt(t[2])}`),
+  clubBadge('25-5-5', 'Swiss Army Knife', 'All-Around', 'Career points, rebounds and assists per game', [p => bPG(p, 'PTS'), p => bPG(p, 'REB'), p => bPG(p, 'AST')], [[20, 5, 5], [22, 6, 6], [24, 7, 7], [25, 8, 8]], t => `${t[0]} / ${t[1]} / ${t[2]}`),
+  clubBadge('5x5', 'Five-Tool Freak', 'All-Around', 'Per game: points, rebounds, assists, steals, blocks', [p => bPG(p, 'PTS'), p => bPG(p, 'REB'), p => bPG(p, 'AST'), p => bPG(p, 'STL'), p => bPG(p, 'BLK')],
+    [[20, 5, 5, 0.8, 0.8], [22, 6, 6, 1, 1], [24, 7, 7, 1.2, 1.2], [25, 8, 8, 1.5, 1.5]], t => `${t.join(' / ')}`),
+  statBadge('stattitles', 'Category King', 'All-Around', 'Stat titles of any kind', p => statTitleYrs(p).length, [5, 7, 10, 14]),
+  statBadge('stattypes', 'Jack of All Trades', 'All-Around', 'Different stat titles won (points, rebounds, assists, steals, blocks)', p => new Set(yrsOf(bc().statYrs, p).map(x => x.key)).size, [null, 2, 3, 4]),
+  statBadge('doubletitle', 'Two-Category Terror', 'All-Around', 'Seasons leading the league in two or more stats', p => { const by = {}; yrsOf(bc().statYrs, p).forEach(x => by[x.yr] = (by[x.yr] || 0) + 1); return Object.values(by).filter(n => n >= 2).length; }, [1, 2, 3, 5]),
+  // Durability
+  statBadge('gp', 'Iron Man', 'Durability', 'Career games played', p => bN(p, 'GP'), [1500, 1550, 1575, 1600]),
+  statBadge('min', 'Workhorse', 'Durability', 'Career minutes', p => bN(p, 'MIN'), [50000, 52500, 55000, 57500]),
+  statBadge('mpg', 'Never Sits', 'Durability', 'Career minutes per game', p => bPG(p, 'MIN'), [36, 37.5, 40, 42], v => v.toFixed(1)),
+  statBadge('exp', 'Ageless', 'Durability', 'Seasons played', p => bN(p, 'Exp'), [20, 21, 22, 23]),
+  statBadge('allstar', 'Perennial All-Star', 'Honors', 'All-Star selections', p => bN(p, 'All Stars'), [14, 15, 16, 19]),
+  statBadge('allnba', 'All-League', 'Honors', 'All-NBA selections', p => bN(p, 'All NBA Team'), [12, 14, 15, 16]),
+  statBadge('allnba1', 'First Team Lock', 'Honors', 'All-NBA 1st team selections', p => bN(p, '1st Team'), [7, 9, 11, 13]),
+  statBadge('allnbaall', 'Mainstay', 'Honors', 'Share of seasons played with an All-NBA selection', p => bN(p, 'Exp') ? (bN(p, 'All NBA Team') ?? 0) / bN(p, 'Exp') * 100 : null, [70, 75, 80, 90], v => Math.round(v) + '%'),
+  statBadge('mvp', 'MVP', 'Honors', 'MVP awards', p => bN(p, 'MVP'), [1, 2, 4, 5]),
+  statBadge('mvpstreak', 'Repeat Offender', 'Honors', 'MVPs in a row', p => longestRun(yrsOf(bc().mvpYrs, p)), [null, 2, 3, 4]),
+  statBadge('fmvp', 'Finals Closer', 'Honors', 'Finals MVP awards', p => bN(p, 'FMVP'), [1, 2, 3, 5]),
+  flagBadge('rotymvp', 'Star From Day One', 'Honors', 'Won Rookie of the Year and later MVP', p => isRoty(p) && (bN(p, 'MVP') ?? 0) > 0),
+  flagBadge('triplecrown', 'Triple Crown', 'Honors', 'Won MVP, Finals MVP and DPOY', p => (bN(p, 'MVP') ?? 0) > 0 && (bN(p, 'FMVP') ?? 0) > 0 && (bN(p, 'DPOY') ?? 0) > 0),
+  flagBadge('grandslam', 'Grand Slam', 'Honors', 'Won Rookie of the Year, MVP, Finals MVP and a title', p => isRoty(p) && (bN(p, 'MVP') ?? 0) > 0 && (bN(p, 'FMVP') ?? 0) > 0 && (bN(p, 'Champions') ?? 0) > 0),
+  clubBadge('mvpfmvp', 'Double Crown', 'Honors', 'MVP and Finals MVP awards together', [p => bN(p, 'MVP'), p => bN(p, 'FMVP')], [[1, 1], [2, 2], [3, 3], [4, 4]], t => `${t[0]} MVP + ${t[1]} FMVP`),
+  statBadge('awards', 'Trophy Room', 'Honors', 'MVP + Finals MVP + DPOY + ROTY awards', p => (bN(p, 'MVP') ?? 0) + (bN(p, 'FMVP') ?? 0) + (bN(p, 'DPOY') ?? 0) + (isRoty(p) ? 1 : 0), [4, 6, 9, 12]),
+  // Titles
+  statBadge('rings', 'Jewelry Box', 'Titles', 'Championships', p => bN(p, 'Champions'), [3, 4, 5, 6]),
+  statBadge('finalsapp', 'June Regular', 'Titles', 'Finals appearances', p => bN(p, 'Finals App'), [5, 6, 8, 10]),
+  statBadge('threepeat', 'Three-Peat', 'Titles', 'Titles in a row as a listed champion star', p => longestRun(yrsOf(bc().titleYrs, p)), [null, 3, 4, 6]),
+  statBadge('ringteams', 'Ring Chaser', 'Titles', 'Different teams won a title with (as a listed champion star)', p => new Set(yrsOf(bc().titleTeams, p)).size, [null, 2, 3, 4]),
+  statBadge('fmvpteams', 'Hero Anywhere', 'Titles', 'Different teams won Finals MVP with', p => new Set(yrsOf(bc().fmvpTeams, p)).size, [null, null, 2, 3]),
+  statBadge('franchise', 'Alpha', 'Titles', 'Titles won as the franchise player or single core', p => (legacyContext().roles[p.Player] || []).filter(r => /franchise|single/.test(r.label)).length, [1, 2, 3, 5]),
+  statBadge('championstar', 'Star of the Show', 'Titles', 'Titles won as a listed champion star', p => yrsOf(bc().titleYrs, p).length, [3, 5, 6, 7]),
+  statBadge('perfect', 'Undefeated in June', 'Titles', 'Finals played without ever losing one', p => { const a = bN(p, 'Finals App') ?? 0, w = bN(p, 'Champions') ?? 0; return a && a === w ? a : null; }, [null, 3, 4, 6]),
+  asGrand(statBadge('upset', 'Giant Killer', 'Titles', 'Titles won in an upset Finals, as a listed champion star', p => yrsOf(bc().upsetWins, p).length, [null, 1, 2, null]), 1),
+  statBadge('conf', 'Big Stage', 'Titles', 'Finals played as a listed star, won or lost', p => yrsOf(bc().titleYrs, p).length + yrsOf(bc().ruYrs, p).length, [5, 6, 8, 10]),
+  statBadge('mvpfmvpyr', 'Clean Sweep', 'Titles', 'MVP and Finals MVP in the same season (counted over the career)', p => sameYear(yrsOf(bc().mvpYrs, p), yrsOf(bc().fmvpYrs, p)), [1, 2, 3, 4]),
+  asGrand(statBadge('scorering', 'Bucket and a Ring', 'Titles', 'Scoring title and championship in the same season', p => sameYear(statTitleYrs(p, 'pts'), yrsOf(bc().titleYrs, p)), [null, 1, 2, null]), 1),
+  asGrand(statBadge('dpoyring', 'Defense Wins Titles', 'Titles', 'DPOY and championship in the same season', p => sameYear(yrsOf(bc().dpoyYrs, p), yrsOf(bc().titleYrs, p)), [null, 1, 2, null]), 1),
+  asGrand(statBadge('mvpdpoyyr', 'Two-Way MVP', 'Honors', 'MVP and DPOY in the same season', p => sameYear(yrsOf(bc().mvpYrs, p), yrsOf(bc().dpoyYrs, p)), [null, null, 1, 2]), 1),
+  // Legacy
+  statBadge('legacypts', 'Hall of Famer', 'Legacy', 'Legacy score', p => legacy(p).total || null, [1800, 2000, 2500, 3000]),
+  statBadge('retired', 'In the Rafters', 'Legacy', 'Teams that retired his number', p => [p['# Retired'], p['# Retired2'], p['# Retired3']].filter(x => x !== undefined && x !== null && String(x).trim() !== '' && String(x).trim() !== '/').length, [null, 2, null, 3]),
+  flagBadge('lifer', 'Lifer', 'Legacy', 'Whole career (10+ seasons) with one team', p => new Set(playerTeams(p)).size === 1 && (bN(p, 'Exp') ?? 0) >= 10),
+  flagBadge('liferring', 'Franchise Icon', 'Legacy', 'Whole career with one team, 3+ titles there', p => new Set(playerTeams(p)).size === 1 && (bN(p, 'Champions') ?? 0) >= 3),
+  statBadge('face', 'Face of the Franchise', 'Legacy', "Teams where he is the #1 Franchise Legend", p => yrsOf(bc().face, p).length, [null, 1, 2, null]),
+  statBadge('lineup', 'All-Time Starter', 'Legacy', "Teams' All-Time starting fives he is in", p => yrsOf(bc().lineups, p).length, [null, 1, 2, 3]),
+  // Draft, era and shooting combos
+  flagBadge('latepick', 'Late Bloomer', 'Legacy', 'Drafted 15th or later, then won MVP', p => { const d = draftPick(p); return !!d && (d.rnd - 1) * 30 + d.pick >= 15 && (bN(p, 'MVP') ?? 0) > 0; }),
+  statBadge('decade', 'Era Definer', 'Legacy', 'Decade Team starting five selections', p => playerDecades(p).filter(x => x.role === 'starter').length || null, [null, null, 1, 2]),
+  switchedOff(flagBadge('eraface', 'Face of an Era', 'Legacy', 'The player an era is named after', p => playerDecades(p).some(x => x.era))),
+  switchedOff(statBadge('decademain', 'Decade Mainstay', 'Legacy', 'Decade Team selections, starting five or bench', p => playerDecades(p).length || null, [1, 2, 3, null])),
+  asGrand(clubBadge('steal', 'Second-Round Steal', 'Legacy', 'Drafted in round 2 or later, then All-Star selections', [p => (draftPick(p)?.rnd ?? 0) >= 2 ? 1 : null, p => bN(p, 'All Stars')], [[1, 3], [1, 6], [1, 10], [1, 14]], t => `${t[1]} All-Stars`), [1, 10]),
+  flagBadge('oldschool', 'Old School', 'Legacy', 'Career began before 1980, with 10+ All-Star selections', p => { const s = careerSpan(p.Season); return s && s[0] < 1980 && (bN(p, 'All Stars') ?? 0) >= 10; }),
+  clubBadge('volsniper', 'Volume Sniper', 'Shooting', 'Threes made per game and career 3P% together', [p => bN(p, 'GP') ? (bN(p, '3PM') ?? 0) / bN(p, 'GP') : null, p => bN(p, '3P%')], [[2.5, 37.5], [3, 40], [3.2, 41], [3.5, 42]], t => `${t[0]} 3PM/g + ${t[1]}%`),
+  clubBadge('ftmoney', 'Money at the Line', 'Shooting', 'Free throws made per game and career FT% together', [p => bN(p, 'GP') ? (bN(p, 'FTM') ?? 0) / bN(p, 'GP') : null, p => bN(p, 'FT%')], [[4.5, 85], [5, 86], [5.5, 87], [6, 88]], t => `${t[0]} FTM/g + ${t[1]}%`),
+  statBadge('ts', 'Smooth Operator', 'Shooting', 'Career true shooting % (points ÷ 2 × (FGA + 0.44 × FTA))', p => bN(p, 'PTS') && bN(p, 'FGA') ? bN(p, 'PTS') / (2 * (bN(p, 'FGA') + 0.44 * (bN(p, 'FTA') ?? 0))) * 100 : null, [60.5, 61.5, 63.5, 65], bPct),
+  clubBadge('effstar', 'Efficient Superstar', 'Scoring', 'Points per game and true shooting % together', [p => bPG(p, 'PTS'), p => bN(p, 'PTS') && bN(p, 'FGA') ? bN(p, 'PTS') / (2 * (bN(p, 'FGA') + 0.44 * (bN(p, 'FTA') ?? 0))) * 100 : null], [[24, 60], [25, 61], [26, 62], [27, 63]], t => `${t[0]} ppg + ${t[1]}% TS`),
+
+  // Career moments and Finals stories (new: start switched off, turn on in Settings → Badges)
+  switchedOff(flagBadge('day1ring', 'Day-One Ring', 'Titles', 'Won a title in his rookie season', p => { const s = span(p); return !!s && titleY(p).includes(s[0]); })),
+  switchedOff(flagBadge('lastdance', 'Last Dance', 'Titles', 'Won a title in his final season', p => { const s = span(p); return !!s && isFinite(s[1]) && !isActive(p) && titleY(p).includes(s[1]); })),
+  switchedOff(flagBadge('prodigy', 'Prodigy', 'Honors', 'Won MVP within his first 3 seasons', p => { const s = span(p); return !!s && yrsOf(bc().mvpYrs, p).some(y => y - s[0] < 3); })),
+  switchedOff(flagBadge('vintagemvp', 'Vintage MVP', 'Honors', 'Won MVP after his 12th season', p => { const s = span(p); return !!s && yrsOf(bc().mvpYrs, p).some(y => y - s[0] >= 12); })),
+  switchedOff(statBadge('dominance', 'Decade of Dominance', 'Honors', 'Seasons between his first and last MVP or stat title', p => { const ys = [...yrsOf(bc().mvpYrs, p), ...statTitleYrs(p)]; return ys.length > 1 ? Math.max(...ys) - Math.min(...ys) : null; }, [8, 10, 12, 15])),
+  switchedOff(flagBadge('redemption', 'Redemption', 'Titles', 'Lost a Finals, then won the title the next season', p => titleY(p).some(y => lostY(p).includes(y - 1)))),
+  switchedOff(flagBadge('revenge', 'Revenge Tour', 'Titles', 'Won a Finals against a team that had beaten him in an earlier Finals', p => revengeCount(p) > 0)),
+  switchedOff(flagBadge('dynastykiller', 'Dynasty Killer', 'Titles', 'Won a Finals against a team going for a three-peat', p => dynastyKills(p) > 0)),
+  switchedOff(statBadge('junestreak', 'June Streak', 'Titles', 'Finals in a row as a listed star, won or lost', p => longestRun([...titleY(p), ...lostY(p)]) || null, [3, 4, 5, 7])),
+  switchedOff(flagBadge('unsung', 'Unsung Hero', 'Titles', 'Won Finals MVP while not the highest-rated listed star', p => yrsOf(bc().unsung, p).length > 0)),
+  switchedOff(flagBadge('club99', '99 Club', 'Legacy', 'Listed as a 99-rated star in a Finals', p => yrsOf(bc().ratings, p).some(r => r >= 99))),
+  switchedOff(statBadge('peakrating', 'Peak Rating', 'Legacy', 'Highest rating as a listed Finals star', p => { const r = yrsOf(bc().ratings, p); return r.length ? Math.max(...r) : null; }, [94, 96, 98, 99])),
+  switchedOff(statBadge('robin', 'Robin', 'Titles', 'Titles won as the second star or a co-star', p => (legacyContext().roles[p.Player] || []).filter(r => /second|co-star/.test(r.label)).length || null, [1, 2, 3, 4])),
+  switchedOff(flagBadge('bigthree', 'Big Three', 'Titles', 'Won a title where all three listed champion stars were rated 90+', p => yrsOf(bc().bigThree, p).length > 0)),
+  switchedOff(flagBadge('hometownring', 'Hometown Ring', 'Legacy', 'Won a title with the team he started with', p => { const t = playerTeams(p)[0]; return !!t && yrsOf(bc().titleTeams, p).includes(t); })),
+  switchedOff(flagBadge('twocities', 'Legend in Two Cities', 'Legacy', 'Number retired by two teams, and a title with both', p => { const ret = new Set(retiredFor(p).map(r => r.team)), won = new Set(yrsOf(bc().titleTeams, p)); return [...ret].filter(t => won.has(t)).length >= 2; })),
+  switchedOff(flagBadge('undrafted', 'Undrafted Star', 'Legacy', 'Went undrafted, then made 5+ All-Star teams', p => /undrafted/i.test(String(p.Draft || '')) && (bN(p, 'All Stars') ?? 0) >= 5)),
+  // Switched off (they can be turned on in Settings → Badges)
+  switchedOff(statBadge('fgm', 'Shot Maker', 'Scoring', 'Career field goals made', p => bN(p, 'FGM'), [12000, 13500, 14800, 15800])),
+  switchedOff(statBadge('fta', 'Contact Seeker', 'Scoring', 'Career free throw attempts', p => bN(p, 'FTA'), [8200, 8800, 9600, 11500])),
+  switchedOff(statBadge('3pa', 'Limitless Trigger', 'Shooting', 'Career three-point attempts', p => bN(p, '3PA'), [8700, 10000, 11000, 12300])),
+  switchedOff(statBadge('oreb', 'Putback Artist', 'Rebounding', 'Offensive rebounds per game', p => bN(p, 'Avg OREB'), [3.3, 4.2, 4.5, 4.9], v => v.toFixed(1))),
+  switchedOff(statBadge('alld1', 'Lockdown', 'Defense', 'All-Defensive 1st team selections', p => bN(p, '1st D Team'), [5, 8, 10, 11])),
+  switchedOff(statBadge('ddrate', 'Nightly Double', 'All-Around', 'Double-doubles per game played', p => bN(p, 'GP') ? (bN(p, 'DD2') ?? 0) / bN(p, 'GP') * 100 : null, [58, 66, 75, 82], v => Math.round(v) + '%')),
+  switchedOff(clubBadge('25-10', 'Walking 25-10', 'All-Around', 'Career points and rebounds per game', [p => bPG(p, 'PTS'), p => bPG(p, 'REB')], [[22, 10], [24, 11], [26, 12], [28, 13]], t => `${t[0]} ppg + ${t[1]} rpg`)),
+  switchedOff(clubBadge('agestar', 'Fine Wine', 'Durability', 'Long career with All-Star selections', [p => bN(p, 'Exp'), p => bN(p, 'All Stars')], [[19, 13], [20, 15], [21, 17], [22, 19]], t => `${t[0]} seasons + ${t[1]} All-Stars`)),
+  switchedOff(flagBadge('roty', 'Rookie Sensation', 'Honors', 'Won Rookie of the Year', p => isRoty(p))),
+  switchedOff(statBadge('mvpring', 'King of the Hill', 'Titles', 'MVP and title in the same season (counted over the career)', p => sameYear(yrsOf(bc().mvpYrs, p), yrsOf(bc().titleYrs, p)), [1, 2, 3, 4])),
+  switchedOff(statBadge('journey', 'Suitcase', 'Legacy', 'Teams played for', p => new Set(playerTeams(p)).size, [5, 6, 7, 9])),
+  switchedOff(flagBadge('pick1', 'Number One', 'Legacy', 'Drafted 1st overall', p => draftPick(p)?.rnd === 1 && draftPick(p)?.pick === 1)),
+  switchedOff(statBadge('sixth', 'Sixth Man Spark', 'Honors', 'Sixth Man of the Year awards', p => otherAward(p, '6th Man') || null, [1, 2, 3, 5])),
+  switchedOff(flagBadge('mip', 'Glow Up', 'Honors', 'Most Improved Player award', p => otherAward(p, 'MIP') > 0)),
+  switchedOff(flagBadge('rookie1', 'Instant Impact', 'Honors', 'All-Rookie 1st team', p => String(p.RookieTeam || '').trim() === '1st')),
+  switchedOff(statBadge('duo', 'Dynamic Duo', 'Titles', 'Most titles won with the same listed co-star', p => { const yrs = yrsOf(bc().titleYrs, p), c = {}; yrs.forEach(y => { const h = DB.history.find(x => Number(x.Season) === y); [h?.Star1, h?.Star2, h?.Star3].filter(Boolean).forEach(s => { const q = resolvePlayer(String(s).replace(/\s*\(\d+\)\s*$/, ''), y); if (q && q.Player !== p.Player) c[q.Player] = (c[q.Player] || 0) + 1; }); }); return Math.max(0, ...Object.values(c)) || null; }, [2, 3, 4, 5])),
+  switchedOff(statBadge('rival', 'Rival Slayer', 'Titles', 'Most Finals won against the same team, as a listed star', p => { const c = {}; yrsOf(bc().titleYrs, p).forEach(y => { const ru = finalsTeams(y).ru; if (ru) c[ru] = (c[ru] || 0) + 1; }); return Math.max(0, ...Object.values(c)) || null; }, [null, 2, 3, 4])),
+  switchedOff(flagBadge('hometown', 'Hometown Hero', 'Legacy', 'Number retired by the team that drafted him (his first team), after playing elsewhere too', p => { const ts = playerTeams(p); return new Set(ts).size > 1 && retiredFor(p).some(r => r.team === ts[0]); })),
+  switchedOff(statBadge('ironclad', 'Ironclad', 'Durability', 'Games played per season', p => bN(p, 'Exp') && bN(p, 'GP') ? bN(p, 'GP') / bN(p, 'Exp') : null, [74, 76, 78, 80], v => v.toFixed(1))),
+  switchedOff(statBadge('bridesmaid', 'Always the Bridesmaid', 'Titles', 'Finals lost without ever winning a title', p => (bN(p, 'Champions') ?? 0) === 0 ? (bN(p, 'Finals App') ?? 0) || null : null, [2, 3, 4, 5])),
+  switchedOff(clubBadge('fgvol', 'Bully Ball', 'Shooting', 'Field goals made per game and career FG% together', [p => bN(p, 'GP') ? (bN(p, 'FGM') ?? 0) / bN(p, 'GP') : null, p => bN(p, 'FG%')], [[8.5, 50], [9, 52], [10, 52], [10, 55]], t => `${t[0]} FGM/g + ${t[1]}%`)),
+  switchedOff(statBadge('ftpg', 'And-One Artist', 'Scoring', 'Free throw attempts per game', p => bN(p, 'GP') ? (bN(p, 'FTA') ?? 0) / bN(p, 'GP') : null, [6.5, 7.5, 8.5, 10], v => v.toFixed(1))),
+];
+
+
+// ---------------------------------------------------------------------
+// Settings → Badges: switch badges on or off, rename them and change their levels.
+// Saved on this device; anything left as it was follows the defaults above.
+// ---------------------------------------------------------------------
+const BADGE_SET_KEY = 'nba2k17-badges';
+let badgeDraft = null;   // Settings → Badges changes not saved yet
+// What each part of a club badge measures (null = a fixed gate such as "is a center")
+const BADGE_PARTS = { ptsreb: ['pts', 'reb'], ptsast: ['pts', 'ast'], '504090': ['FG%', '3P%', 'FT%'], stretchbig: [null, 'threes'], unicorn: ['bpg', 'threes'], guardreb: [null, 'rpg'],
+  bigpass: [null, 'apg'], pointfwd: ['rpg', 'apg'], paint: ['rpg', 'bpg'], twoway: ['All-NBA', 'All-D'], triangle: ['pts', 'reb', 'ast'], '25-10': ['ppg', 'rpg'], '25-5-5': ['ppg', 'rpg', 'apg'],
+  '5x5': ['ppg', 'rpg', 'apg', 'spg', 'bpg'], agestar: ['seasons', 'All-Stars'], mvpfmvp: ['MVP', 'FMVP'], steal: [null, 'All-Stars'], latepick: [null, 'MVP'],
+  volsniper: ['3PM/g', '3P%'], ftmoney: ['FTM/g', 'FT%'], fgvol: ['FGM/g', 'FG%'], effstar: ['ppg', 'TS%'] };
+const badgeSettings = () => readJSON(BADGE_SET_KEY) || {};
+function badgeEffTiers(b, o = {}) {
+  const type = o.type || b.defType, copy = v => JSON.parse(JSON.stringify(v));
+  if (b.kind === 'flag') return type === 'grand' ? [null, null, null, null, 1] : [0, 1, 2, 3].map(i => i === (o.flagLevel ?? 2) ? 1 : null);
+  if (type === 'grand') return [null, null, null, null, copy(o.grandAt ?? b.defGrandAt ?? b.defTiers.find(t => t !== null && t !== undefined))];
+  return copy(o.tiers || b.defTiers);
+}
+function applyBadgeSettings(set = badgeDraft || badgeSettings()) {
+  BADGES.forEach(b => {
+    const o = set[b.id] || {};
+    b.on = o.on ?? b.defOn; b.name = o.name || b.defName;
+    // Type: Levels (Bronze to Legendary) or Grand (no level). A levelled badge made Grand needs one number;
+    // a Grand badge made levelled gives one chosen level
+    b.type = o.type || b.defType;
+    b.tiers = badgeEffTiers(b, o);
+    b.tierText = b.tiers.map(t => badgeTierText(b, t));
+  });
+  Object.keys(engineCache).forEach(k => { if (k.startsWith('badges|') || k === 'badgeHolders') delete engineCache[k]; });
+}
+applyBadgeSettings();
+const activeBadges = () => BADGES.filter(b => b.on);
+const badgeChanged = b => b.on !== b.defOn || b.name !== b.defName || b.type !== b.defType || JSON.stringify(b.tiers) !== JSON.stringify(badgeEffTiers(b));
+// Settings → Badges edits a draft: changes show in the counts at once, and are written only on Save
+function badgeDraftStart() { badgeDraft = JSON.parse(JSON.stringify(badgeSettings())); }
+function badgeDraftSave() { if (badgeDraft) writeJSON(BADGE_SET_KEY, badgeDraft); applyBadgeSettings(); }
+function badgeDraftDiscard() { badgeDraft = null; applyBadgeSettings(); }
+function saveBadgeSetting(id, patch) {
+  if (!badgeDraft) badgeDraftStart();
+  const set = badgeDraft, b = BADGES.find(x => x.id === id);
+  const o = { ...(set[id] || {}), ...patch };
+  if (o.on === b.defOn) delete o.on;
+  if (!o.name || o.name === b.defName) delete o.name;
+  if (o.tiers && JSON.stringify(o.tiers) === JSON.stringify(b.defTiers)) delete o.tiers;
+  if (o.type === b.defType) delete o.type;
+  if ((o.type || b.defType) !== 'grand') delete o.grandAt;
+  if ((o.type || b.defType) !== 'levels') delete o.flagLevel;
+  if (Object.keys(o).length) set[id] = o; else delete set[id];
+  applyBadgeSettings(set);
+  if (typeof markSettingsDirty === 'function') markSettingsDirty();
+}
+// Each player's number for a badge, kept for live counts while levels are typed
+const badgeValues = b => cached('bvals|' + b.id, () => everyPlayer().map(p => b.get(p)));
+function badgeCounts(b) {
+  const out = [0, 0, 0, 0, 0]; badgeValues(b).forEach(v => { const lv = badgeLevelFor(b, v); if (lv) out[lv - 1]++; }); return out;
+}
+const badgeSetState = { group: 'Scoring' };
+function badgeSettingsAvg() {
+  const act = activeBadges(), n = everyPlayer().length;
+  return (act.reduce((a, b) => a + badgeCounts(b).reduce((x, y) => x + y, 0), 0) / n).toFixed(1);
+}
+function badgeSettingRow(b) {
+  const c = badgeCounts(b), parts = BADGE_PARTS[b.id] || [];
+  const box = (k, j, val, lab) => `<span class="part"><input type="number" step="any" inputmode="decimal" id="bs-${b.id}-${k}${j === undefined ? '' : '-' + j}" value="${val ?? ''}" placeholder="off"
+      aria-label="${BADGE_TIERS[k]}${lab ? ' ' + lab : ''}" onchange="setBadgeLevel('${b.id}',${k},${j === undefined ? 'null' : j},this.value)">${lab ? `<small>${lab}</small>` : ''}</span>`;
+  const grandChip = inner => `<span class="bd-level bd-grand"><i></i>${inner}</span>`;
+  const levels = b.kind === 'flag'
+    ? (b.type === 'grand' ? grandChip('Grand · no levels')
+      : `<span class="bd-level ${tierClass((b.tiers.findIndex(t => t) + 1) || 3)}"><i></i><select id="bs-${b.id}-flag" aria-label="Level" onchange="saveBadgeSetting('${b.id}',{flagLevel:Number(this.value)});refreshBadgeSettings()">${BADGE_TIERS.slice(0, 4).map((n, i) => `<option value="${i}"${b.tiers[i] ? ' selected' : ''}>${n}</option>`).join('')}</select></span>`)
+    : b.type === 'grand'
+      ? grandChip(`Grand at ${b.kind === 'club' ? parts.map((lab, j) => lab === null ? '' : box(4, j, b.tiers[4] ? b.tiers[4][j] : null, lab)).join('') : box(4, undefined, b.tiers[4])} <em>${c[4]}</em>`)
+      : b.tiers.map((t, k) => `<span class="bd-level ${tierClass(k + 1)}${t === null ? ' unused' : ''}"><i></i>${b.kind === 'club' ? parts.map((lab, j) => lab === null ? '' : box(k, j, t ? t[j] : null, lab)).join('') : box(k, undefined, t)} <em>${t === null ? '' : c[k]}</em></span>`).join('');
+  const typeSwitch = `<span class="bs-type" role="group" aria-label="Badge type">${[['levels', 'Levels'], ['grand', 'Grand']].map(([v, l]) => `<button type="button" class="${b.type === v ? 'on' : ''}" aria-pressed="${b.type === v}" onclick="saveBadgeSetting('${b.id}',{type:'${v}'});refreshBadgeSettings()">${l}</button>`).join('')}</span>`;
+  return `<div class="bs-row${b.on ? '' : ' off'}" id="bs-row-${b.id}">
+    <div class="bs-main"><div class="bs-head"><label class="bs-on"><input type="checkbox" id="bs-on-${b.id}" ${b.on ? 'checked' : ''} onchange="saveBadgeSetting('${b.id}',{on:this.checked});refreshBadgeSettings()"><span class="sr-only">Use ${b.defName}</span></label><input class="bs-name" id="bs-name-${b.id}" value="${b.name.replace(/"/g, '&quot;')}" placeholder="${b.defName}" aria-label="Badge name" onchange="saveBadgeSetting('${b.id}',{name:this.value.trim()});refreshBadgeSettings()">
+      <span class="bs-total">${c.reduce((a, x) => a + x, 0)} players</span>${badgeChanged(b) ? `<button type="button" class="card-link" onclick="resetBadgeSetting('${b.id}')">Reset</button>` : ''}</div>
+      <div class="muted bs-desc">${b.desc}</div><div class="bd-levels">${typeSwitch}${levels}</div></div></div>`;
+}
+function badgeSettingsHtml() {
+  const groups = BADGE_GROUPS.filter(g => BADGES.some(b => b.group === g));
+  const list = BADGES.filter(b => b.group === badgeSetState.group);
+  return `<div class="chart-card" id="badgeSettings"><div class="card-head"><div class="chart-title">${icon('star')} Badges</div><button class="card-link" onclick="resetAllBadgeSettings()">Reset all</button></div>
+    <p class="muted" style="margin-bottom:10px">Switch badges on or off, rename them and change the number each level needs. The player counts update as you change a level; leave a box empty to skip that level. Tap Save to keep your changes (saved on this device).</p>
+    <div class="bs-summary"><b>${activeBadges().length}</b> of ${BADGES.length} badges on · <b>${badgeSettingsAvg()}</b> per player</div>
+    <div class="bs-groups">${groups.map(g => `<button type="button" class="${badgeSetState.group === g ? 'active' : ''}" onclick="badgeSetState.group='${g}';refreshBadgeSettings()">${g} <span class="muted">${BADGES.filter(b => b.group === g && b.on).length}/${BADGES.filter(b => b.group === g).length}</span></button>`).join('')}</div>
+    <div class="bs-list">${list.map(badgeSettingRow).join('')}</div></div>`;
+}
+// Redraw on the next frame (an input's own change/blur events must finish first); keep the scroll position
+let badgeSetFrame = 0;
+function refreshBadgeSettings() {
+  cancelAnimationFrame(badgeSetFrame);
+  badgeSetFrame = requestAnimationFrame(() => { const el = document.getElementById('badgeSettings'); if (!el) return; const y = scrollY; el.outerHTML = badgeSettingsHtml(); scrollTo(0, y); });
+}
+function setBadgeLevel(id, k, j, raw) {
+  const b = BADGES.find(x => x.id === id), t = JSON.parse(JSON.stringify(b.tiers)), v = raw === '' ? null : Number(raw);
+  if (b.kind === 'club') {
+    const parts = BADGE_PARTS[id] || [], cur = (t[k] || b.defTiers[k] || b.defTiers.find(Boolean)).slice();
+    cur[j] = v;
+    const boxes = [...document.querySelectorAll(`[id^="bs-${id}-${k}-"]`)];
+    t[k] = boxes.every(x => x.value === '') ? null : cur.map((x, i) => parts[i] === null ? 1 : (x ?? 0));
+  } else t[k] = v;
+  saveBadgeSetting(id, k === 4 ? { grandAt: t[4] } : { tiers: t.slice(0, 4) }); refreshBadgeSettings();
+}
+function resetBadgeSetting(id) { if (!badgeDraft) badgeDraftStart(); delete badgeDraft[id]; applyBadgeSettings(badgeDraft); markSettingsDirty(); refreshBadgeSettings(); }
+function resetAllBadgeSettings() { badgeDraft = {}; applyBadgeSettings(badgeDraft); markSettingsDirty(); refreshBadgeSettings(); }
+
+// Every badge a player holds, best first
+function playerBadges(p) {
+  return cached('badges|' + p.Player, () => activeBadges().map(b => ({ b, lv: b.level(p) })).filter(x => x.lv > 0)
+    .sort((a, c) => c.lv - a.lv || BADGE_GROUPS.indexOf(a.b.group) - BADGE_GROUPS.indexOf(c.b.group)));
+}
+// Holders of each badge at each level
+function badgeHolders() {
+  return cached('badgeHolders', () => {
+    const out = {}; activeBadges().forEach(b => out[b.id] = [[], [], [], [], []]);
+    everyPlayer().forEach(p => playerBadges(p).forEach(({ b, lv }) => out[b.id][lv - 1].push(p)));
+    return out;
+  });
+}
+const tierClass = lv => ['', 'bd-bronze', 'bd-silver', 'bd-gold', 'bd-legend', 'bd-grand'][lv];
+// A badge chip: tap it (phones) or point at it (desktop) for a small box explaining it
+function badgeChip(b, lv) {
+  return `<button type="button" class="bd-chip ${tierClass(lv)}" data-badge="${b.id}" data-lv="${lv}" aria-expanded="false"><i></i>${b.name}</button>`;
+}
+// The box: the badge's level, what it measures and what this level needs
+function badgeTipHtml(b, lv) {
+  return `<div class="bd-tip-head"><span class="bd-count ${tierClass(lv)}"><i></i>${BADGE_TIERS[lv - 1]}</span><b>${b.name}</b></div>
+    <div class="bd-tip-desc">${b.desc}${b.single ? '' : `: <b>${b.tierText[lv - 1]}</b>`}</div>`;
+}
+let badgeTipEl = null, badgeTipFor = null;
+function showBadgeTip(chip) {
+  const b = BADGES.find(x => x.id === chip.dataset.badge); if (!b) return;
+  if (!badgeTipEl) { badgeTipEl = document.createElement('div'); badgeTipEl.className = 'bd-tip'; badgeTipEl.setAttribute('role', 'tooltip'); document.body.appendChild(badgeTipEl); }
+  badgeTipEl.innerHTML = badgeTipHtml(b, Number(chip.dataset.lv));
+  badgeTipEl.hidden = false;
+  if (badgeTipFor) badgeTipFor.setAttribute('aria-expanded', 'false');
+  badgeTipFor = chip; chip.setAttribute('aria-expanded', 'true');
+  // Below the chip, kept inside the screen; above it when there is no room below
+  const r = chip.getBoundingClientRect(), w = Math.min(300, innerWidth - 24);
+  badgeTipEl.style.width = w + 'px';
+  const left = Math.max(12, Math.min(innerWidth - w - 12, r.left + r.width / 2 - w / 2));
+  const h = badgeTipEl.offsetHeight, below = r.bottom + 8 + h < innerHeight - 70;
+  badgeTipEl.style.left = left + scrollX + 'px';
+  badgeTipEl.style.top = (below ? r.bottom + 8 : r.top - 8 - h) + scrollY + 'px';
+}
+function hideBadgeTip() { if (badgeTipEl) badgeTipEl.hidden = true; if (badgeTipFor) badgeTipFor.setAttribute('aria-expanded', 'false'); badgeTipFor = null; }
+document.addEventListener('click', e => {
+  const chip = e.target.closest('.bd-chip[data-badge]');
+  if (chip) { if (badgeTipFor === chip && !matchMedia('(hover: hover)').matches) hideBadgeTip(); else showBadgeTip(chip); return; }
+  if (!e.target.closest('.bd-tip')) hideBadgeTip();
+});
+document.addEventListener('mouseover', e => { if (!matchMedia('(hover: hover)').matches) return; const chip = e.target.closest('.bd-chip[data-badge]'); if (chip && chip !== badgeTipFor) showBadgeTip(chip); });
+document.addEventListener('mouseout', e => { if (!matchMedia('(hover: hover)').matches) return; const chip = e.target.closest('.bd-chip[data-badge]'); if (chip && !chip.contains(e.relatedTarget)) hideBadgeTip(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') hideBadgeTip(); });
+addEventListener('scroll', () => { if (badgeTipFor && !matchMedia('(hover: hover)').matches) return; hideBadgeTip(); }, { passive: true });
+// Player page card: one button per level (icon and count); the card opens on the player's best level
+function playerBadgesHtml(p) {
+  const list = playerBadges(p); if (!list.length) return '';
+  // Buttons: Legendary down to Bronze, then Grand; the card opens on the best level (Grand only when that is all he has)
+  const lvs = [4, 3, 2, 1, 5].filter(lv => list.some(x => x.lv === lv)), start = [4, 3, 2, 1, 5].find(lv => lvs.includes(lv));
+  return `<div class="chart-card bd-card"><div class="card-head"><div class="chart-title">${icon('star')} Badges <span class="muted">${list.length}</span></div>
+      <button class="card-link" onclick="showSection('badges')">All badges →</button></div>
+    <div class="bd-counts" role="group" aria-label="Show badges by level">
+      <button type="button" class="bd-count bd-all" data-lv="0" aria-pressed="false" onclick="badgeLevelFilter(this)">All ${list.length}</button>
+      ${lvs.map(lv => `<button type="button" class="bd-count ${tierClass(lv)}${lv === start ? ' on' : ''}" data-lv="${lv}" aria-pressed="${lv === start}" aria-label="${BADGE_TIERS[lv - 1]}: ${list.filter(x => x.lv === lv).length}" title="${BADGE_TIERS[lv - 1]}" onclick="badgeLevelFilter(this)"><i></i>${list.filter(x => x.lv === lv).length}</button>`).join('')}</div>
+    <div class="bd-chips">${list.map(x => `<span data-lv="${x.lv}"${x.lv === start ? '' : ' hidden'}>${badgeChip(x.b, x.lv)}</span>`).join('')}</div></div>`;
+}
+function badgeLevelFilter(btn) {
+  const card = btn.closest('.bd-card'), lv = Number(btn.dataset.lv);
+  card.querySelectorAll('.bd-counts button').forEach(b => { const on = b === btn; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
+  hideBadgeTip();
+  card.querySelectorAll('.bd-chips > [data-lv]').forEach(c => c.hidden = lv && Number(c.dataset.lv) !== lv);
+}
+// Badges page: every badge, its levels and how many players reach each
+const badgeState = { group: '', open: null };
+function renderBadges() {
+  const H = badgeHolders(), el = document.getElementById('badgesContent'); if (!el) return;
+  const groups = BADGE_GROUPS.filter(g => activeBadges().some(b => b.group === g));
+  const shown = activeBadges().filter(b => !badgeState.group || b.group === badgeState.group);
+  // Players with the most badges, weighted by level
+  const top = everyPlayer().map(p => { const l = playerBadges(p); return { p, n: l.length, score: l.reduce((a, x) => a + (x.lv === 5 ? 0 : x.lv), 0), leg: l.filter(x => x.lv === 4).length, grand: l.filter(x => x.lv === 5).length }; })
+    .sort((a, b) => b.score - a.score || b.leg - a.leg).slice(0, 10);
+  el.innerHTML = `<div class="player-grid"><div>
+      <div class="seg bd-groups"><button class="${badgeState.group ? '' : 'active'}" onclick="badgeState.group='';renderBadges()">All ${activeBadges().length}</button>${groups.map(g => `<button class="${badgeState.group === g ? 'active' : ''}" onclick="badgeState.group='${g}';renderBadges()">${g}</button>`).join('')}</div>
+      <div class="bd-list">${shown.map(b => { const h = H[b.id], total = h.reduce((a, x) => a + x.length, 0), open = badgeState.open === b.id;
+        return `<div class="bd-row${open ? ' open' : ''}"><div class="bd-row-head" role="button" tabindex="0" onclick="badgeState.open=${open ? 'null' : `'${b.id}'`};renderBadges()">
+          <div><b>${b.name}</b> <span class="muted bd-group">${b.group}</span><div class="muted bd-desc">${b.desc}</div></div><span class="bd-total">${total}</span></div>
+          <div class="bd-levels">${[0, 1, 2, 3, 4].filter(i => b.tierText[i]).map(i => `<span class="bd-level ${tierClass(i + 1)}"><i></i>${b.kind === 'flag' ? BADGE_TIERS[i] : b.tierText[i]} <em>${h[i].length}</em></span>`).join('')}</div>
+          ${open ? `<div class="bd-holders">${[4, 3, 2, 1, 0].filter(i => h[i].length).map(i => `<div><span class="bd-count ${tierClass(i + 1)}"><i></i>${BADGE_TIERS[i]}</span> ${h[i].map(p => nameLink(p.Player)).join(', ')}</div>`).join('') || '<span class="muted">Nobody yet.</span>'}</div>` : ''}
+        </div>`; }).join('')}</div></div>
+    <div><div class="chart-card rb-card"><div class="chart-title">${icon('star')} Most Decorated</div>
+      ${top.map((x, i) => `<div class="rb-row"><span class="rb-rank">${i + 1}</span><span class="rb-main">${nameLink(x.p.Player)}</span><span class="rb-val">${x.n}</span><span class="rb-sub">${x.leg} Legendary · ${x.grand} Grand · level points ${x.score}</span></div>`).join('')}
+      <p class="muted fx-note">Level points: Bronze 1, Silver 2, Gold 3, Legendary 4.</p></div></div></div>`;
+}
+</script>
+<script>
 // 2K17 NBA Stats Database · Settings, Data Check, phone card lists and the installable app.
 // Loaded in order by index.html; all files share one global scope.
 
@@ -6090,40 +6895,114 @@ function setTheme(v) {
   renderSettings();
   if (document.getElementById('winChart')) renderWinChart();
 }
+// Settings: the main page, plus two sub pages (Legacy Formula, Badges). Changes on a sub page
+// are a draft until Save; Discard (or leaving Settings) puts back what was saved.
+const settingsState = { view: 'main', legacyDraft: null, dirty: false };
+function openSettingsView(v) {
+  settingsState.view = v; settingsState.dirty = false;
+  if (v === 'legacy') settingsState.legacyDraft = legacyWeights();
+  if (v === 'badges') badgeDraftStart();
+  if (v === 'mainteams') { settingsState.mainDraft = { ...mainTeamOverrides() }; settingsState.mainQ = ''; settingsState.mainShow = 'tied'; }
+  renderSettings(); scrollTo(0, 0);
+}
+function settingsBack() { settingsDiscard(true); settingsState.view = 'main'; renderSettings(); scrollTo(0, 0); }
+// Leaving Settings drops unsaved changes
+function settingsLeave() { if (settingsState.view !== 'main' || settingsState.dirty) { settingsDiscard(true); settingsState.view = 'main'; } }
+// Update the save bar in place (rebuilding it would swallow a tap on Save that also ends an edit)
+function markSettingsDirty() {
+  settingsState.dirty = true;
+  const bar = document.getElementById('settingsSaveBar'); if (!bar) return;
+  bar.classList.add('dirty'); bar.querySelector('span').textContent = 'Unsaved changes';
+  bar.querySelectorAll('button').forEach(b => b.disabled = false);
+}
+function saveBarHtml() {
+  return `<div class="save-bar${settingsState.dirty ? ' dirty' : ''}" id="settingsSaveBar" role="status">
+    <span>${settingsState.dirty ? 'Unsaved changes' : 'All changes saved'}</span>
+    <button type="button" class="icon-btn" onclick="settingsDiscard()" ${settingsState.dirty ? '' : 'disabled'}>Discard</button>
+    <button type="button" class="btn-primary" onclick="settingsSave()" ${settingsState.dirty ? '' : 'disabled'}>Save</button></div>`;
+}
+function settingsSave() {
+  if (settingsState.view === 'legacy') {
+    try { localStorage.setItem('nba2k17-legacy-v2', JSON.stringify(settingsState.legacyDraft)); } catch (e) {}
+    engineCache = {}; renderLegacy(); renderDraft();
+  }
+  if (settingsState.view === 'badges') badgeDraftSave();
+  if (settingsState.view === 'mainteams') writeJSON(MAIN_TEAM_KEY, settingsState.mainDraft || {});
+  settingsState.dirty = false; renderSettings();
+}
+function settingsDiscard(quiet) {
+  if (settingsState.view === 'legacy') settingsState.legacyDraft = legacyWeights();
+  if (settingsState.view === 'badges') badgeDraftDiscard();
+  if (settingsState.view === 'mainteams') settingsState.mainDraft = { ...mainTeamOverrides() };
+  settingsState.dirty = false;
+  if (!quiet) renderSettings();
+}
 function renderSettings() {
+  const el = document.getElementById('settingsContent');
+  const back = title => `<div class="settings-sub-head">${backButton('Settings', 'settingsBack()')}<h2>${title}</h2></div>`;
+  if (settingsState.view === 'legacy') {
+    const w = settingsState.legacyDraft || legacyWeights();
+    el.innerHTML = back('Legacy Formula') + `<div class="chart-card"><div class="card-head"><div class="chart-title">${icon('trophy')} Legacy Formula</div><button class="card-link" onclick="legacyDraftReset()">Reset to defaults</button></div>
+      <p class="muted" style="margin-bottom:12px">The points system behind the Legacy Ranking. A repeat of the same honor is worth its base points × a multiplier that starts at 1 and drops each time, down to the lowest multiplier. Changes take effect when you tap Save.</p>
+      ${LEGACY_SCHEMA.map(g => `<div class="weight-group"><div class="weight-title">${g.group}</div><div class="weights">${g.items.map(([k, label]) => `<label class="weight"><span>${label}</span>
+        <input type="number" id="w-${k}" min="0" step="${LEGACY_DEFAULTS[k] < 1 ? 0.05 : 1}" value="${w[k]}" onchange="legacyDraftSet('${k}', this.value)"></label>`).join('')}</div></div>`).join('')}</div>` + saveBarHtml();
+    return;
+  }
+  if (settingsState.view === 'badges') { el.innerHTML = back('Badges') + badgeSettingsHtml() + saveBarHtml(); return; }
+  if (settingsState.view === 'mainteams') { el.innerHTML = back('Main Teams') + mainTeamsHtml() + saveBarHtml(); return; }
   const res = dataCheckResults;
   const freshKeys = new Set(newDataProblems().map(dcKey));
   const by = l => res.filter(r => r.level === l);
   const groups = [['error', 'Numbers that can\'t all be right'], ['warn', 'Worth a look'], ['info', 'Spelling and gaps']];
-  const w = legacyWeights();
-  document.getElementById('settingsContent').innerHTML = `
+  const changedW = Object.keys(LEGACY_DEFAULTS).filter(k => legacyWeights()[k] !== LEGACY_DEFAULTS[k]).length;
+  const link = (v, ic, title, sub) => `<button type="button" class="settings-link" onclick="openSettingsView('${v}')">${icon(ic)}<span><b>${title}</b><small>${sub}</small></span><span class="settings-arrow" aria-hidden="true">›</span></button>`;
+  el.innerHTML = `
+    <div class="settings-links">
+      ${link('legacy', 'trophy', 'Legacy Formula', changedW ? `${changedW} value${changedW === 1 ? '' : 's'} changed from the defaults` : 'The points behind the Legacy Ranking')}
+      ${link('badges', 'star', 'Badges', `${activeBadges().length} of ${BADGES.length} on · switch on or off, rename, change levels`)}
+      ${link('mainteams', 'jersey', 'Main Teams', (() => { const n = Object.keys(mainTeamOverrides()).length; return n ? `${n} chosen by you · the team colour of each player page` : 'The team colour of each player page'; })())}
+    </div>
     <div class="chart-card"><div class="card-head"><div class="chart-title">${icon('list')} Data Check</div><button class="card-link" onclick="updateDataCheckDot();renderSettings()">Run again</button></div>
       <div class="dc-summary">${groups.map(([l, t]) => `<div class="dc-pill dc-${l}"><b>${by(l).length}</b><span>${t}</span></div>`).join('')}</div>
       ${groups.map(([l, t]) => by(l).length ? `<details class="dc-group" ${l === 'error' ? 'open' : ''}><summary>${t} (${by(l).length})</summary>
         <div class="table-wrap dc-table"><table><thead><tr><th>Sheet</th><th>Cell</th><th>Problem</th></tr></thead><tbody>
         ${by(l).map(r => `<tr><td>${r.sheet}</td><td class="nowrap">${r.cell || '—'}</td><td class="dc-msg">${freshKeys.has(dcKey(r)) ? '<span class="dc-new">New</span> ' : ''}${r.msg}</td></tr>`).join('')}</tbody></table></div></details>` : '').join('')}
       ${res.length ? '' : '<p class="muted">No problems found.</p>'}</div>
-    <div class="chart-card"><div class="card-head"><div class="chart-title">${icon('trophy')} Legacy Formula</div><button class="card-link" onclick="resetLegacyWeights()">Reset to defaults</button></div>
-      <p class="muted" style="margin-bottom:12px">The points system behind the Legacy Ranking. A repeat of the same honor is worth its base points × a multiplier that starts at 1 and drops each time, down to the lowest multiplier. Changes apply straight away and are saved in this browser.</p>
-      ${LEGACY_SCHEMA.map(g => `<div class="weight-group"><div class="weight-title">${g.group}</div><div class="weights">${g.items.map(([k, label]) => `<label class="weight"><span>${label}</span>
-        <input type="number" id="w-${k}" min="0" step="${LEGACY_DEFAULTS[k] < 1 ? 0.05 : 1}" value="${w[k]}" onchange="saveLegacyWeight('${k}', this.value)"></label>`).join('')}</div></div>`).join('')}</div>
     <div class="chart-card"><div class="chart-title">${icon('star')} Appearance</div>
       <div class="seg theme-seg">${[['system', 'Match phone'], ['light', 'Light'], ['dark', 'Dark']].map(([v, l]) => `<button class="${themeChoice() === v ? 'active' : ''}" onclick="setTheme('${v}')">${l}</button>`).join('')}</div></div>
     <div class="chart-card"><div class="chart-title">${icon('file')} Saved Workbook</div><p id="settingsSaved" class="muted"></p>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn-primary" onclick="showLoadOverlay()">Load a new workbook</button>${readJSON(RECAP_KEY)?.groups?.length ? '<button class="icon-btn" onclick="showRecap()">Show last update recap</button>' : ''}<button class="icon-btn" onclick="forgetSavedWorkbook();renderSettings()">Forget saved file</button></div></div>`;
-  getSavedWorkbook().then(saved => { const el = document.getElementById('settingsSaved'); if (el) el.textContent = saved ? `${saved.name}, saved ${new Date(saved.savedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })} on this device.` : 'No workbook saved on this device.'; });
+  getSavedWorkbook().then(saved => { const s2 = document.getElementById('settingsSaved'); if (s2) s2.textContent = saved ? `${saved.name}, saved ${new Date(saved.savedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })} on this device.` : 'No workbook saved on this device.'; });
 }
-function saveLegacyWeight(k, v) {
-  const w = legacyWeights(); w[k] = Math.max(0, Number(v) || 0);
-  try { localStorage.setItem('nba2k17-legacy-v2', JSON.stringify(w)); } catch (e) {}
-  engineCache = {};
-  renderLegacy(); renderDraft();
+// Settings → Main Teams: each player's team colour, picked by the rule unless chosen here
+function mainTeamsHtml() {
+  const d = settingsState.mainDraft || {}, q = (settingsState.mainQ || '').toLowerCase(), show = settingsState.mainShow;
+  const rows = everyPlayer().filter(p => new Set(playerTeams(p)).size > 1).map(p => ({ p, auto: autoMainTeam(p) }))
+    .filter(r => !q || r.p.Player.toLowerCase().includes(q))
+    .filter(r => show === 'all' || (show === 'tied' ? /tied|Titles there|Awards/.test(r.auto.why) : show === 'chosen' ? d[r.p.Player] : true))
+    .sort((a, b) => a.p.Player.localeCompare(b.p.Player));
+  return `<div class="chart-card" id="mainTeams"><div class="chart-title">${icon('jersey')} Main Teams</div>
+    <p class="muted" style="margin-bottom:10px">Each player page takes the colour and logo of his main team. The rule picks it: a retired number, then Finals as a listed star (title 2 points, conference title 1), then awards won there, then other titles (not a last-team ring), then his first team. Choose a team here to change it. Players with one team are not listed.</p>
+    <div class="toolbar mt-toolbar"><div class="search-wrap"><span class="icon"><svg class="ic"><use href="#i-search"/></svg></span><input type="text" id="mtSearch" placeholder="Search players..." value="${(settingsState.mainQ || '').replace(/"/g, '&quot;')}" oninput="settingsState.mainQ=this.value;refreshMainTeams()" aria-label="Search players"></div>
+      <div class="seg">${[['tied', 'Close calls'], ['chosen', 'Chosen by you'], ['all', 'All']].map(([k, l]) => `<button class="${show === k ? 'active' : ''}" onclick="settingsState.mainShow='${k}';refreshMainTeams()">${l}</button>`).join('')}</div></div>
+    <div class="mt-list">${rows.map(({ p, auto }) => { const pick = d[p.Player] || '';
+      return `<div class="mt-row"><div class="mt-who">${nameLink(p.Player)}<small class="muted">${pick ? 'Chosen by you' : `${shortTeam(auto.team)} · ${auto.why}`}</small></div>
+        <select id="mt-${playerSlug(p.Player)}" aria-label="Main team for ${p.Player.replace(/"/g, '&quot;')}" onchange="setMainTeamDraft('${jsArg(p.Player)}',this.value)">
+          <option value="">Rule: ${auto.team}</option>${[...new Set(playerTeams(p))].map(t => `<option value="${t}"${pick === t ? ' selected' : ''}>${t}</option>`).join('')}</select></div>`; }).join('') || '<p class="muted">Nothing matches.</p>'}</div></div>`;
 }
-function resetLegacyWeights() {
-  try { localStorage.removeItem('nba2k17-legacy-v2'); } catch (e) {}
-  engineCache = {};
-  renderSettings(); renderLegacy(); renderDraft();
+function refreshMainTeams() {
+  const el = document.getElementById('mainTeams'); if (!el) return;
+  const pos = document.activeElement && document.activeElement.id === 'mtSearch' ? document.activeElement.selectionStart : null;
+  el.outerHTML = mainTeamsHtml();
+  if (pos !== null) { const i = document.getElementById('mtSearch'); i.focus(); i.setSelectionRange(pos, pos); }
 }
+function setMainTeamDraft(player, team) {
+  const d = settingsState.mainDraft || (settingsState.mainDraft = { ...mainTeamOverrides() });
+  if (team) d[player] = team; else delete d[player];
+  markSettingsDirty(); refreshMainTeams();
+}
+function legacyDraftSet(k, v) { settingsState.legacyDraft[k] = Math.max(0, Number(v) || 0); markSettingsDirty(); }
+function legacyDraftReset() { settingsState.legacyDraft = { ...LEGACY_DEFAULTS }; settingsState.dirty = true; renderSettings(); }
 
 // =====================================================================
 // PHONE CARD LISTS

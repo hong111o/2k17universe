@@ -116,6 +116,8 @@ function openPlayerModal(rawName) {
   if (p) openPlayer(p);
 }
 function openPlayer(p, fromHistory) {
+  if (p && p.Player) noteRecent('player', p.Player);
+  queueBalance();
   closeModal();
   closeSearch();
   playerState.p = p; playerState.tab = 'home';
@@ -421,6 +423,7 @@ function finishPlayerHero(root) {
   else { const src = DB.logos && DB.logos[team], who = playerState.p; if (src) logoColor(src).then(c => { if (c && playerState.p === who) { hero.style.setProperty('--tc', c); teamTheme(root, c); } }); }
 }
 function setPlayerTab(tab) {
+  queueBalance();
   playerState.tab = tab;
   const pp = document.getElementById('playerPage');
   pp.querySelectorAll('.pl-tab').forEach(el => el.hidden = el.dataset.tab !== tab);
@@ -433,10 +436,10 @@ const plMore = (tab, label) => `<button class="card-link th-more" onclick="setPl
 // Home: short versions of each tab
 function playerHomeLegacy(p) {
   const L = legacy(p), rk = legacyRankOf(p);
-  const rows = LEGACY_PARTS.map(([k, label]) => ({ label, v: L.parts[k] })).filter(r => r.v > 0).sort((a, b) => b.v - a.v).slice(0, 3);
+  const rows = LEGACY_PARTS.map(([k, label]) => ({ label, v: L.parts[k] })).filter(r => r.v > 0).sort((a, b) => b.v - a.v).slice(0, 8);
   return `<div class="chart-card"><div class="card-head"><div class="chart-title">${icon('chart')} Legacy</div>${plMore('honors', 'Full breakdown')}</div>
     <div class="legacy-total"><b>${Math.round(L.total).toLocaleString()}</b><span>points${rk ? ` · #${rk} of ${everyPlayer().length}` : ''}</span></div>
-    ${rows.length ? `<div class="lg-parts">${rows.map(r => `<div class="lg-part"><span>${r.label}</span><span class="lg-track"><i style="width:${Math.max(2, r.v / rows[0].v * 100)}%"></i></span><b>${Math.round(r.v).toLocaleString()}</b></div>`).join('')}</div>` : ''}</div>`;
+    ${rows.length ? `<div class="lg-parts">${rows.map((r, i) => `<div class="lg-part${i >= 3 ? ' fill-x' : ''}"${i >= 3 ? ' hidden' : ''}><span>${r.label}</span><span class="lg-track"><i style="width:${Math.max(2, r.v / rows[0].v * 100)}%"></i></span><b>${Math.round(r.v).toLocaleString()}</b></div>`).join('')}</div>` : ''}</div>`;
 }
 function playerHomeBadges(p) {
   const list = playerBadges(p); if (!list.length) return '';
@@ -548,6 +551,10 @@ function compareMetrics() {
     { label: 'Badges', get: p => playerBadges(p).length, fmt: v => v, awards: true },
     { label: 'Gold + Legendary badges', get: p => playerBadges(p).filter(x => x.lv === 3 || x.lv === 4).length, fmt: v => v, awards: true },
     { label: 'Grand badges', get: p => playerBadges(p).filter(x => x.lv === 5).length, fmt: v => v, awards: true },
+    { header: 'Eras', awards: true },
+    { label: 'All-Decade teams', get: p => playerDecades(p).length, fmt: v => v, awards: true },
+    { label: 'All-Decade starting five', get: p => playerDecades(p).filter(x => x.role === 'starter').length, fmt: v => v, awards: true },
+    { label: 'Face of an Era', get: p => playerDecades(p).filter(x => x.era).length, fmt: v => v, awards: true },
   ];
 }
 // =====================================================================
@@ -586,7 +593,7 @@ function renderAwards() {
   const span = list.length ? `${seasonLabel(list[0].yr)} to ${seasonLabel(list[list.length - 1].yr)}` : '';
   document.getElementById('awardsSub').textContent = `${list.length} ${awardTab === 'ROY' ? 'Rookies of the Year' : label + ' winners'} from NBA History${span ? ', ' + span : ''}`
     + (guessed ? ` · * ${guessed} from All Players, shown in the first season` : '');
-  document.getElementById('awardsContent').innerHTML = `<div class="player-grid">
+  document.getElementById('awardsContent').innerHTML = `<div class="player-grid aw-grid">
     <div><div class="table-wrap stat-table"><table><thead><tr><th class="stick-1">Season</th><th>${label}</th><th>Team</th>${awardTab === 'ROY' ? '' : `<th class="num" title="Which win of the player's career">Win</th>`}</tr></thead><tbody>${rows || '<tr><td colspan="4" class="muted">No winners recorded.</td></tr>'}</tbody></table></div></div>
     <div>${(() => {
       // Which franchises its winners played for (from the logos beside each name in NBA History)
@@ -701,9 +708,20 @@ function renderCompare() {
     }).join('')}</tr>`;
   }).join('');
   const top = Math.max(...wins);
-  const board = `<div class="cmp-board">${players.map((p, i) => `<div class="cmp-score${wins[i] === top && wins.filter(w => w === top).length === 1 ? ' lead' : ''}">
-      <i class="cmp-swatch" style="background:${colors[i]}"></i><span class="cs-name">${nameLink(p.Player)}</span>
-      <b>${wins[i]}</b><span class="cs-label">categories led</span></div>`).join('')}</div>`;
+  // One header per player, side by side, in his main team's colour (like the player page)
+  const board = `<div class="cmp-heads cmp-h${players.length}">${players.map((p, i) => {
+    const team = mainTeam(p).team, c = team && TEAM_COLORS[team], sp = careerSpan(p.Season), n = k => { const v = getNum(p[k]); return v === -Infinity ? 0 : v; };
+    const yrs = sp ? `${sp[0] - 1}–${sp[1] === Infinity || isActive(p) ? 'now' : sp[1]}` : (p.Season || '');
+    const dec = playerDecades(p), face = dec.filter(x => x.era), b = playerBadges(p), leg = b.filter(x => x.lv === 4).length;
+    const lead = wins[i] === top && wins.filter(w => w === top).length === 1;
+    return `<div class="cmp-hero${lead ? ' lead' : ''}" style="${c ? `--tc:${c};` : ''}--sw:${colors[i]}">
+      ${team ? `<div class="ch-logo${TEAM_LOGO_WHITE.has(team) ? ' tm-logo-white' : ''}">${teamLogo(team)}</div>` : ''}
+      <div class="ch-kicker">${p.Position || ''}<i>|</i>${yrs}</div>
+      <div class="ch-name">${nameLink(p.Player)}</div>
+      <div class="ch-era">${face.length ? `${icon('crown')}<b>Face of an Era</b> · ${face.map(x => x.decade).join(' & ')}` : dec.length ? `${icon('star')}<b>All-Decade</b> · ${dec.length}×` : '&nbsp;'}</div>
+      <div class="ch-chips"><span><b>${n('Champions')}</b> Titles</span><span><b>${n('MVP')}</b> MVP</span><span><b>${b.length}</b> Badges${leg ? ` · ${leg}★` : ''}</span></div>
+      <div class="ch-score"><b>${wins[i]}</b> categories led${lead ? ' · leads' : ''}</div></div>`;
+  }).join('')}</div>`;
   const head = `<thead><tr><th>Stat</th>${players.map((p, i) => `<th><div class="cmp-name"><i class="cmp-swatch" style="background:${colors[i]}"></i><span class="cmp-full">${nameLink(p.Player)}</span><span class="cmp-short">${nameLink(p.Player, { label: p.Player.split(' ').slice(-1)[0] })}</span></div><div class="cmp-sub">${p.Position||''} · ${(() => { const sp = careerSpan(p.Season); return sp ? `${sp[0]}–${sp[1] === Infinity ? 'now' : sp[1]}` : (p.Season || ''); })()}${isActive(p) ? ' · Active' : ''}</div></th>`).join('')}</tr></thead>`;
   out.innerHTML = `${board}
     ${fingerprintHtml(players, colors, { title: 'Fingerprint' })}

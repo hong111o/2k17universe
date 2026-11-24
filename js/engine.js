@@ -274,13 +274,17 @@ function playerDecades(p) {
 }
 // The era a season belongs to (2077–78 is in the 2070s)
 function seasonEra(yr) {
-  const start = Math.floor((Number(yr) - 1) / 10) * 10;
+  const start = Math.floor(Number(yr) / 10) * 10;
   const d = (DB.decades || []).find(x => decadeStart(x) === start);
   return d && eraName(d) ? { name: eraName(d), label: String(d.era).replace(/[\"'“”‘’]/g, '').replace(/\s+/g, ' ').trim(), player: eraPlayer(d), decade: start + 's' } : null;
 }
 const legacyRankOf = p => legacyRanking().find(r => r.p === p)?.rank;
 // Legacy score and rank for any list row (Top 20 and position sheets hold copies of the player)
 const legacyRow = row => { const p = everyPlayer().includes(row) ? row : resolvePlayer(row.Player); return p ? { p, score: legacy(p).total, rank: legacyRankOf(p) } : null; };
+// Badges held by a sheet row's player (count and Legendary count), for player lists
+const badgeRow = row => { const p = everyPlayer().includes(row) ? row : resolvePlayer(row.Player); if (!p || typeof playerBadges !== 'function') return null; const l = playerBadges(p); return { n: l.length, leg: l.filter(x => x.lv === 4).length }; };
+const badgeCell = row => { const b = badgeRow(row); return b && b.n ? `<span title="${b.leg} Legendary">${b.n}${b.leg ? ` <small class="bd-leg">${b.leg}★</small>` : ''}</span>` : '<span class="muted">—</span>'; };
+const badgeSortVal = row => { const b = badgeRow(row); return b ? b.leg * 1000 + b.n : -1; };
 const legacyCell = row => { const l = legacyRow(row); return l ? `<span title="${Math.round(l.score).toLocaleString()} legacy points">#${l.rank}</span>` : '<span class="muted">—</span>'; };
 
 // Closest statistical matches: distance between standardized per-game profiles
@@ -357,7 +361,7 @@ function renderDraft() {
   if (!years.includes(draftYear)) draftYear = years[0];
   const classRows = rows.filter(r => r.d.year === draftYear);
   const firsts = rows.filter(r => r.d.pick === 1 && r.d.round === 1 && r.d.league === 'NBA');
-  const steals = rows.filter(r => r.d.kind === 'undrafted' || r.d.round > 1 || r.d.pick >= 10).sort((a, b) => legacy(b.p).total - legacy(a.p).total).slice(0, 10);
+  const steals = rows.filter(r => r.d.kind === 'undrafted' || r.d.round > 1 || r.d.pick >= 10).sort((a, b) => legacy(b.p).total - legacy(a.p).total).slice(0, 80);
   const bestByClass = years.map(y => rows.filter(r => r.d.year === y).sort((a, b) => legacy(b.p).total - legacy(a.p).total)[0]);
   const deepest = years.map(y => ({ y, n: rows.filter(r => r.d.year === y).length })).sort((a, b) => b.n - a.n)[0];
   const tr = r => `<tr><td class="num">${r.d.year}</td><td>${pickLabel(r.d)}</td><td class="stick-1">${nameLink(r.p.Player)}</td><td>${posBadge(r.p.Position)}</td>
@@ -380,8 +384,8 @@ function renderDraft() {
         <div class="dp-legacy"><b>${Math.round(legacy(r.p).total).toLocaleString()}</b><span>legacy</span></div></div>`).join('')}</div></div>
     <div class="rb-grid">
       <div class="chart-card rb-card rb-years"><div class="chart-title">Every #1 Pick</div>${firsts.map(r => `<div class="rb-row"><span class="rb-rank">${r.d.year}</span><span class="rb-main">${nameLink(r.p.Player)}</span><span class="rb-val">${Math.round(legacy(r.p).total).toLocaleString()}</span><span class="rb-sub">${draftCareer(r.p)}</span></div>`).join('')}</div>
-      <div class="chart-card rb-card"><div class="chart-title">Biggest Steals</div>${withRanks(steals, r => legacy(r.p).total).map(r => `<div class="rb-row"><span class="rb-rank">${r.rank}</span><span class="rb-main">${nameLink(r.p.Player)}</span><span class="rb-val">${Math.round(legacy(r.p).total).toLocaleString()}</span><span class="rb-sub">${draftLabel(r.d)} · ${draftCareer(r.p)}</span></div>`).join('')}</div>
-      <div class="chart-card rb-card rb-years"><div class="chart-title">Best Player of Each Class</div>${bestByClass.slice(0, 15).map(r => `<div class="rb-row"><span class="rb-rank">${r.d.year}</span><span class="rb-main">${nameLink(r.p.Player)}</span><span class="rb-val">${Math.round(legacy(r.p).total).toLocaleString()}</span><span class="rb-sub">${pickLabel(r.d)} · ${draftCareer(r.p)}</span></div>`).join('')}</div>
+      <div class="chart-card rb-card"><div class="chart-title">Biggest Steals</div>${withRanks(steals, r => legacy(r.p).total).map((r, i) => `<div class="rb-row${i >= 10 ? ' fill-x' : ''}"${i >= 10 ? ' hidden' : ''}><span class="rb-rank">${r.rank}</span><span class="rb-main">${nameLink(r.p.Player)}</span><span class="rb-val">${Math.round(legacy(r.p).total).toLocaleString()}</span><span class="rb-sub">${draftLabel(r.d)} · ${draftCareer(r.p)}</span></div>`).join('')}</div>
+      <div class="chart-card rb-card rb-years"><div class="chart-title">Best Player of Each Class</div>${bestByClass.map((r, i) => `<div class="rb-row${i >= 15 ? ' fill-x' : ''}"${i >= 15 ? ' hidden' : ''}><span class="rb-rank">${r.d.year}</span><span class="rb-main">${nameLink(r.p.Player)}</span><span class="rb-val">${Math.round(legacy(r.p).total).toLocaleString()}</span><span class="rb-sub">${pickLabel(r.d)} · ${draftCareer(r.p)}</span></div>`).join('')}</div>
     </div>
     <div class="chart-card"><div class="chart-title">${icon('list')} Every Draft Pick</div>${table(rows)}</div>`;
 }

@@ -12,7 +12,7 @@ const { chromium, devices } = require(process.argv[2] + '/node_modules/playwrigh
   const shot = async (name, full) => { await p.waitForTimeout(350); await p.mouse.move(0, 0); await p.screenshot({ path: `${out}/n-${name}.png`, fullPage: !!full }); };
   // Compare
   await p.evaluate(() => compareWith('Michael Jordan', 'LeBron James')); await p.evaluate(() => cmpSelect(3, 'Kobe Bryant')); await p.evaluate(() => renderCompare());
-  r.board = (await p.locator('.cmp-board').innerText()).replace(/\s+/g, ' ');
+  r.board = (await p.locator('.cmp-heads').innerText()).replace(/\s+/g, ' ');
   await shot('compare', true);
   await p.click('#cmpModeBtn'); await p.click('#cmpModeBtn');
   r.per36 = (await p.locator('.cmp-table tbody tr').nth(1).innerText()).replace(/\s+/g, ' ');

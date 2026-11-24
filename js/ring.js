@@ -31,7 +31,7 @@ function renderRing() {
       ${tile('Honored by 2+ teams', multi.length)}
       ${tile('Honored by 3+ teams', multi.filter(m => m.teams >= 3).length)}
     </div>
-    <div class="player-grid ring-grid">
+    <div class="player-grid ring-grid list-side">
       <div>
         <div class="toolbar ring-toolbar"><div class="search-wrap"><span class="icon"><svg class="ic"><use href="#i-search"/></svg></span><input type="text" placeholder="Search player, number..." oninput="ringState.q=this.value.toLowerCase();renderRingList()" aria-label="Search retired numbers"></div>
           <select onchange="ringState.team=this.value;renderRingList()" aria-label="Team"><option value="">All franchises</option>${teams.map(([t]) => t).sort().map(t => `<option value="${t}">${t}</option>`).join('')}</select>

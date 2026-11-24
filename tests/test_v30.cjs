@@ -20,6 +20,8 @@ const { chromium, devices } = require(process.argv[2] + '/node_modules/playwrigh
     await p.evaluate(() => { location.hash = '#overview'; }); await p.reload(); await p.waitForSelector('#app', { state: 'visible', timeout: 60000 }); await p.waitForTimeout(800);
     R[label + ' recap'] = (await p.locator('#recapCard').innerText().catch(() => 'NONE')).replace(/\n+/g, ' | ').slice(0, 900);
     await p.locator('#homeContent').screenshot({ path: `${out}/v30-home-${label}.png` });
+    // Home shows one of the two at random: put both on the page to check them
+    await p.evaluate(() => { document.querySelectorAll('#archiveCard,#spotlightCard').forEach(e => e.remove()); document.querySelector('#homeContent .home-grid').insertAdjacentHTML('beforeend', archiveCard() + spotlightCard()); });
     R[label + ' archive'] = (await p.locator('#archiveCard').innerText()).replace(/\n+/g, ' | ');
     R[label + ' spot'] = (await p.locator('#spotlightCard').innerText()).replace(/\n+/g, ' | ');
     await p.click('#spotlightCard .card-link'); R[label + ' reroll'] = await p.locator('#spotlightCard').count();

@@ -956,7 +956,7 @@ label.check input{width:16px;height:16px;accent-color:var(--link);}
 .th-face-name{font-family:var(--font-display);font-size:26px;font-weight:800;display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;}
 .th-face-sub{font-size:13px;margin-top:6px;}
 .th-tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.th-tiles > div{background:var(--surface-2);border-radius:8px;padding:10px 12px;}
+.th-tiles > div:not(.fill-x),.th-tiles > .fill-x > div{background:var(--surface-2);border-radius:8px;padding:10px 12px;}
 .th-tiles b{display:block;font-family:var(--font-display);font-size:24px;font-weight:800;line-height:1.1;}
 @media (max-width:640px){.th-strip{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;} .th-strip > div{padding:8px 8px;} .th-strip span{font-size:9.5px;letter-spacing:.04em;} .th-strip b{font-size:17px;} .th-strip small{display:none;} .th-five{grid-template-columns:1fr 1fr;} .th-bars{height:120px;gap:4px;}}
 
@@ -1117,3 +1117,96 @@ button.bd-chip:focus-visible{outline:2px solid var(--link);outline-offset:2px;}
 .season-era{display:inline-flex;align-items:center;gap:6px;margin:2px 0 4px;font-family:var(--font-display);font-weight:700;font-size:18px;color:var(--champ-ink);}
 .season-era .ic{width:18px;height:18px;color:var(--champ);}
 .season-era .player-link,.season-era .name-link{color:inherit;}
+.bd-leg{color:var(--champ-ink);font-weight:700;}
+.tm-era{margin:2px 0 8px;display:flex;flex-direction:column;gap:4px;} .tm-era .pl-era{margin-top:0;font-size:14px;flex-wrap:nowrap;white-space:nowrap;gap:6px;} .tm-era .ic{width:16px;height:16px;} .tm-era b{font-weight:700;} .tm-era .player-link{color:inherit;text-decoration:underline;text-underline-offset:3px;}
+/* Home hero in the champion's colours */
+.hm-hero .player-link,.hm-hero .team-link,.hm-hero .season-link,.hm-hero .name-plain{color:#fff;}
+.hm-aw b .team-link .tlogo{width:20px;height:20px;background:none;padding:0;}
+.hm-kicker{display:flex;align-items:center;gap:8px;font-weight:600;} .hm-kicker i{font-style:normal;opacity:.5;} .hm-kicker .ic{width:18px;height:18px;color:#ffe08a;}
+.hm-team{cursor:pointer;}
+.hm-sub{font-size:15px;color:rgba(255,255,255,.85);margin:0 0 8px;} .hm-sub .season-link{text-decoration:underline;text-underline-offset:3px;}
+.hm-awards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 20px;padding:14px 0 4px;}
+.hm-aw{display:flex;flex-direction:column;min-width:0;} .hm-aw .tm-k{font-size:13px;}
+.hm-aw b{font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:6px;}
+.hm-aw b .tlogo{width:20px;height:20px;flex:none;background:none;padding:0;}
+.hm-x{font-size:13px;color:rgba(255,255,255,.7);}
+.hm-leads{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:10px;}
+.hm-lead{display:flex;flex-direction:column;border-left:3px solid var(--line);padding-left:10px;min-width:0;}
+.hm-lead .hl-u{font-size:12px;font-weight:700;color:var(--ink-3);} .hm-lead b{font-family:var(--font-display);font-size:26px;line-height:1.1;}
+.hm-lead .hl-n{display:flex;align-items:center;gap:5px;font-size:13px;white-space:nowrap;overflow:hidden;} .hm-lead .hl-n .tlogo{width:16px;height:16px;flex:none;}
+@media (max-width:640px){.hm-awards{grid-template-columns:1fr 1fr;gap:10px 12px;} .hm-aw b{font-size:15px;}
+  .hm-leads{grid-template-columns:1fr;gap:0;} .hm-lead{display:grid;grid-template-columns:3em 3.2em minmax(0,1fr);align-items:baseline;border-left:none;padding:7px 0;border-bottom:1px solid var(--line);} .hm-lead b{font-size:20px;}}
+/* Compare: one team-colour header per player, side by side */
+.cmp-heads{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:12px;} .cmp-heads.cmp-h3{grid-template-columns:repeat(3,minmax(0,1fr));}
+.cmp-hero{--tc:var(--hero);position:relative;overflow:hidden;background:var(--tc);color:#fff;border-radius:12px;padding:14px 16px 0;min-width:0;display:flex;flex-direction:column;}
+.cmp-hero .player-link{color:#fff;}
+.ch-logo{position:absolute;right:-14px;top:-10px;opacity:.28;pointer-events:none;} .ch-logo .tlogo{width:110px;height:110px;background:none;padding:0;}
+.ch-kicker{font-size:13px;color:rgba(255,255,255,.85);position:relative;} .ch-kicker i{font-style:normal;opacity:.5;margin:0 6px;}
+.ch-name{font-family:var(--font-display);font-weight:800;font-size:26px;line-height:1.02;margin:4px 0 6px;position:relative;text-wrap:balance;}
+.ch-era{font-size:13px;color:#ffe08a;display:flex;align-items:center;gap:5px;min-height:18px;} .ch-era .ic{width:14px;height:14px;flex:none;}
+.ch-chips{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px;color:rgba(255,255,255,.8);margin:8px 0 10px;} .ch-chips b{color:#fff;font-size:15px;}
+.ch-score{margin:auto -16px 0;padding:8px 16px;background:rgba(0,0,0,.22);border-top:4px solid var(--sw);font-size:13px;color:rgba(255,255,255,.85);}
+.ch-score b{font-family:var(--font-display);font-size:24px;color:#fff;margin-right:4px;vertical-align:-2px;}
+.cmp-hero.lead{box-shadow:0 0 0 3px var(--champ,#e0b23c);}
+@media (max-width:640px){.cmp-heads{gap:8px;} .cmp-hero{padding:12px 12px 0;border-radius:10px;} .ch-name{font-size:21px;} .ch-logo .tlogo{width:84px;height:84px;}
+  .ch-kicker,.ch-era,.ch-chips{font-size:12px;} .ch-chips{gap:2px 8px;} .ch-score{margin:auto -12px 0;padding:7px 12px;} .cmp-heads.cmp-h3 .ch-name{font-size:17px;}}
+/* Home: short hero, awards in one row; season page: the full hero */
+.hm-awrow{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;padding:12px 0 2px;border-top:1px solid rgba(255,255,255,.22);margin-top:6px;font-size:15px;font-weight:600;}
+.hm-awrow em{font-style:normal;font-weight:500;color:rgba(255,255,255,.7);margin-right:2px;} .hm-awrow i{font-style:normal;opacity:.4;}
+.hm-hero:not(.hm-full) .tm-top{border-bottom:none;padding-bottom:4px;}
+.season-head.has-hero{justify-content:flex-end;} .season-head.has-hero > div:first-child{display:none;}
+.hm-note{font-size:12px;margin:8px 0 0;} .hm-note .ic{width:12px;height:12px;}
+.ms-list{display:flex;flex-direction:column;}
+.ms-row{display:grid;grid-template-columns:minmax(0,9.5em) minmax(0,1fr);gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px;align-items:baseline;}
+.ms-row:last-child{border-bottom:none;} .ms-name{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;} .ms-txt{color:var(--ink-2);}
+@media (max-width:640px){.hm-awrow{font-size:14px;} .ms-row{grid-template-columns:1fr;gap:2px;}}
+/* Home as a hub: search, recent shortcuts, a slim season strip */
+.hm-top{margin-bottom:12px;}
+.hm-search{width:100%;display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;font:inherit;font-size:16px;color:var(--ink-3);cursor:text;text-align:left;box-shadow:0 1px 2px rgba(0,0,0,.04);}
+.hm-search .ic{width:20px;height:20px;flex:none;} .hm-search span{flex:1;}
+.hm-search kbd{font:600 12px var(--font-body);border:1px solid var(--line);border-radius:5px;padding:1px 7px;color:var(--ink-3);}
+.hm-search:hover{border-color:var(--ink-3);}
+.hm-recent{display:flex;align-items:center;gap:8px;overflow-x:auto;scrollbar-width:none;padding:10px 0 2px;font-size:13px;} .hm-recent::-webkit-scrollbar{display:none;}
+.hm-chip{flex:none;display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:5px 12px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;}
+.hm-chip .tlogo{width:16px;height:16px;}
+.hm-banner{--tc:var(--hero);width:100%;display:flex;align-items:center;gap:14px;background:var(--tc);color:#fff;border:none;border-radius:12px;padding:12px 18px;margin-bottom:16px;font:inherit;text-align:left;cursor:pointer;}
+.hb-logo .tlogo{width:52px;height:52px;background:none;padding:0;filter:drop-shadow(0 1px 3px rgba(0,0,0,.25));} .hb-logo.tm-logo-white .tlogo{filter:brightness(0) invert(1);}
+.hb-txt{flex:1;min-width:0;display:flex;flex-direction:column;}
+.hb-k{font-size:13px;color:rgba(255,255,255,.8);} .hb-name{font-family:var(--font-display);font-weight:800;font-size:26px;line-height:1.05;text-transform:uppercase;}
+.hb-era{font-size:13px;font-weight:700;color:#ffe08a;display:flex;align-items:center;gap:5px;} .hb-era .ic{width:14px;height:14px;}
+.hb-go{flex:none;font-size:14px;font-weight:600;background:rgba(255,255,255,.18);border-radius:8px;padding:7px 12px;}
+.hm-quiet{display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:14px;color:var(--ink-2);padding:12px 16px;} .hm-quiet .ic{width:16px;height:16px;color:var(--ink-3);}
+@media (max-width:640px){.hm-banner{border-radius:10px;padding:10px 14px;} .hb-logo .tlogo{width:44px;height:44px;} .hb-name{font-size:22px;}}
+/* Balanced cards (wide screens): side-by-side columns and cards end level */
+.fill-x[hidden]{display:none !important;}
+.th-tiles > .fill-x:not([hidden]){display:contents;}
+.player-grid{align-items:stretch;}
+.player-grid > div{display:flex;flex-direction:column;}
+.player-grid > div > .chart-card:last-child{flex:1 0 auto;display:flex;flex-direction:column;}
+.player-grid > div > .chart-card:last-child > .th-tiles{flex:1;align-content:stretch;} .th-tiles > div,.th-tiles > .fill-x > div{display:flex;flex-direction:column;justify-content:center;}
+.home-grid{align-items:stretch;}
+.bal-measure{align-items:start !important;} .bal-measure > *{align-self:start !important;}
+.bal-measure > div > .chart-card:last-child{flex:none !important;}
+/* Decade cards: the summary boxes sit at the bottom of every card in a row */
+.decade-card{display:flex;flex-direction:column;} .decade-card .decade-info{margin-top:auto;}
+.decade-card .decade-info{padding-top:12px;} .decade-card > *:nth-last-child(2){margin-bottom:14px;}
+/* Wide random cards use their width: two columns inside */
+@media (min-width:900px){
+  #spotlightCard .spot{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:32px;align-items:start;}
+  #spotlightCard .spot > .spot-name,#spotlightCard .spot > .spot-sub,#spotlightCard .spot > .spot-stats{grid-column:1;}
+  #spotlightCard .spot > .spot-honors,#spotlightCard .spot > .rank-badges,#spotlightCard .spot > .spot-teams{grid-column:2;}
+  #spotlightCard .spot > .spot-honors{grid-row:1;} #spotlightCard .spot > .rank-badges{grid-row:2;} #spotlightCard .spot > .spot-teams{grid-row:3;}
+  #archiveCard .arch-rows{display:grid;grid-template-columns:1fr 1fr;column-gap:32px;}
+}
+.th-bench{margin-top:10px;font-size:14px;} .th-bench .lu-pos{margin-right:8px;}
+.dc-glory-list{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;} .dc-glory-list b{color:var(--ink-3);font-weight:700;margin-right:2px;} .dc-glory-list em{font-style:normal;color:var(--ink-3);}
+.decade-grid{align-items:stretch;}
+.dc-glory{margin-top:10px;} .dc-glory-list{line-height:1.5;} .dc-glory-k{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-3);}
+/* Long list + sidebar (Ring of Honor, Finals): no stretching; the sidebar stays in view while the list scrolls */
+.list-side{align-items:start;} .list-side > div:last-child{position:sticky;top:72px;}
+.list-side > div > .chart-card:last-child{flex:none;}
+/* Awards: the winners table (it scrolls inside) is as tall as the sidebar beside it */
+.aw-grid > div:first-child{display:flex;flex-direction:column;} .aw-grid > div:first-child > .table-wrap{flex:1 1 0;min-height:420px;max-height:none;margin-bottom:16px;}
+.rb-grid{align-items:stretch;}
+@media (max-width:900px){.list-side > div:last-child{position:static;} .aw-grid > div:first-child > .table-wrap{flex:none;max-height:70vh;}}
+.rb-grid > .rb-wide{grid-column:1/-1;} .rb-cols{columns:3 300px;column-gap:32px;} .rb-cols .rb-row{break-inside:avoid;}
