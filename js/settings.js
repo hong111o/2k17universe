@@ -285,14 +285,16 @@ function mainTeamsHtml() {
   const d = settingsState.mainDraft || {}, q = (settingsState.mainQ || '').toLowerCase(), show = settingsState.mainShow;
   const rows = everyPlayer().filter(p => new Set(playerTeams(p)).size > 1).map(p => ({ p, auto: autoMainTeam(p) }))
     .filter(r => !q || r.p.Player.toLowerCase().includes(q))
-    .filter(r => show === 'all' || (show === 'tied' ? /tied|Titles there|Awards/.test(r.auto.why) : show === 'chosen' ? d[r.p.Player] : true))
+    .filter(r => show === 'all' || (show === 'tied' ? /Tied|Close call/.test(r.auto.why) : show === 'chosen' ? d[r.p.Player] : true))
     .sort((a, b) => a.p.Player.localeCompare(b.p.Player));
   return `<div class="chart-card" id="mainTeams"><div class="chart-title">${icon('jersey')} Main Teams</div>
-    <p class="muted" style="margin-bottom:10px">Each player page takes the colour and logo of his main team. The rule picks it: a retired number, then Finals as a listed star (title 2 points, conference title 1), then awards won there, then other titles (not a last-team ring), then his first team. Choose a team here to change it. Players with one team are not listed.</p>
+    <p class="muted" style="margin-bottom:10px">Each player page takes the colour and logo of his main team. The rule picks it: a retired number first; otherwise the team where he scored most: a title as franchise player 4, co-star 2, second star 1, a Finals lost 1, MVP 3, Finals MVP 2, DPOY 1, ROTY 1, each stat title 0.5; if several teams retired his number, also 0.25 per season with each (years from the Retired # tab). Ties go to other titles there, then his first team. Choose a team here to change it. Players with one team are not listed.</p>
     <div class="toolbar mt-toolbar"><div class="search-wrap"><span class="icon"><svg class="ic"><use href="#i-search"/></svg></span><input type="text" id="mtSearch" placeholder="Search players..." value="${(settingsState.mainQ || '').replace(/"/g, '&quot;')}" oninput="settingsState.mainQ=this.value;refreshMainTeams()" aria-label="Search players"></div>
       <div class="seg">${[['tied', 'Close calls'], ['chosen', 'Chosen by you'], ['all', 'All']].map(([k, l]) => `<button class="${show === k ? 'active' : ''}" onclick="settingsState.mainShow='${k}';refreshMainTeams()">${l}</button>`).join('')}</div></div>
     <div class="mt-list">${rows.map(({ p, auto }) => { const pick = d[p.Player] || '';
-      return `<div class="mt-row"><div class="mt-who">${nameLink(p.Player)}<small class="muted">${pick ? 'Chosen by you' : `${shortTeam(auto.team)} · ${auto.why}`}</small></div>
+      // Close calls (top two within 2 points, or tied) get a tag so they stand out in every view
+      const close = /Close call|Tied/.test(auto.why), tag = close ? `<span class="mt-close" title="The rule's top two teams are within 2 points">${/Tied/.test(auto.why) ? 'Tied' : 'Close call'}</span>` : '';
+      return `<div class="mt-row${close ? ' is-close' : ''}"><div class="mt-who"><span>${nameLink(p.Player)} ${tag}</span><small class="muted">${pick ? `Chosen by you · rule: ${shortTeam(auto.team)}` : `${shortTeam(auto.team)} · ${auto.why.replace('Close call · ', '')}`}</small></div>
         <select id="mt-${playerSlug(p.Player)}" aria-label="Main team for ${p.Player.replace(/"/g, '&quot;')}" onchange="setMainTeamDraft('${jsArg(p.Player)}',this.value)">
           <option value="">Rule: ${auto.team}</option>${[...new Set(playerTeams(p))].map(t => `<option value="${t}"${pick === t ? ' selected' : ''}>${t}</option>`).join('')}</select></div>`; }).join('') || '<p class="muted">Nothing matches.</p>'}</div></div>`;
 }

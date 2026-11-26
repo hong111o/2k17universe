@@ -1217,3 +1217,8 @@ button.bd-chip:focus-visible{outline:2px solid var(--link);outline-offset:2px;}
 .pl-stopbox.is-main::before{content:none;}
 
 @media (max-width:640px){.pl-bglogo{right:-30px;top:-10px;} .pl-bglogo .tlogo{width:210px;height:210px;}}
+/* Main Teams: close calls are tagged so they stand out */
+.mt-close{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.02em;background:#fff1c2;color:#7a5200;vertical-align:1px;}
+.mt-row.is-close{border-color:#e9c46a;}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .mt-close{background:#4a3a10;color:#ffd98a;} :root:not([data-theme="light"]) .mt-row.is-close{border-color:#8a6d1f;}}
+:root[data-theme="dark"] .mt-close{background:#4a3a10;color:#ffd98a;} :root[data-theme="dark"] .mt-row.is-close{border-color:#8a6d1f;}

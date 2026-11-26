@@ -68,23 +68,39 @@ let playerState = { p: null, pool: 'all', tab: 'home' };
 
 // ---------------------------------------------------------------------
 // MAIN TEAM: the team a player is most tied to, which colours his page.
-// 1 retired number (if several teams retired it, the steps below decide among them)
-// 2 Finals as a listed star: title 2 points, conference title 1
-// 3 awards and stat titles won there (MVP, Finals MVP, DPOY, ROTY, stat titles)
-// 4 rotation titles, except one won with his last team once his career is over
-// 5 the first of the tied teams in his career order
+// 1 retired number (if several teams retired it, the score below decides among them)
+// 2 score with each team: a title as franchise player (or the only star) 4, co-star 2,
+//   second star or core 1; a Finals lost as a listed star 1; MVP 3, Finals MVP 2, DPOY 1,
+//   ROTY 1, each stat title 0.5; when 2+ teams retired his number, 0.25 per season there
+//   (years from the Retired # tab)
+// 3 tied: rotation titles, except one won with his last team once his career is over
+// 4 still tied: the first of the tied teams in his career order
 // A team chosen in Settings → Main Teams always wins.
 // ---------------------------------------------------------------------
 const MAIN_TEAM_KEY = 'nba2k17-main-team';
 const mainTeamOverrides = () => readJSON(MAIN_TEAM_KEY) || {};
-function awardTeamCounts() {
-  return cached('awardTeams', () => {
-    const out = {}, add = (p, t) => { if (!p || !t) return; const m = (out[p.Player] = out[p.Player] || {}); m[t] = (m[t] || 0) + 1; };
-    DB.history.forEach(h => { const yr = Number(h.Season); ['MVP', 'FMVP', 'DPOY', 'ROTY'].forEach(k => {
-      if (h[k] && h[k] !== '-' && h[k + 'Team']) coNames(h[k]).forEach(nm => add(resolvePlayer(nm, yr), fullTeamName(h[k + 'Team']))); }); });
-    ['Pts', 'Reb', 'Ast', 'Stl', 'Blk'].forEach(k => DB.statLeaders.forEach(r => { if (r[k + 'Leader']) add(resolvePlayer(r[k + 'Leader'], r.Season), teamByCode(r[k + 'Team'])?.Team); }));
+const MAIN_ROLE_PTS = { 'single core': 4, 'franchise player': 4, 'co-star': 2, 'second star': 1, 'core': 1 };
+const MAIN_AWARD_PTS = { MVP: 3, FMVP: 2, DPOY: 1, ROTY: 1 }, MAIN_STAT_TITLE_PTS = 0.5, MAIN_SEASON_PTS = 0.25;
+// Seasons with a team from the Retired # tab's years, e.g. "2003–2010, 2014–2018" = 11
+function retiredSeasons(p, team) {
+  const r = retiredForTeam(team).find(x => x.player === p.Player);
+  return String((r && r.years) || '').split(',').reduce((s, part) => { const m = part.match(/(\d{4})\D+(\d{4})/); return s + (m ? Math.max(0, m[2] - m[1]) : 0); }, 0);
+}
+// Award and stat-title points each player earned with each team: { player: { team: points } }
+function awardTeamPoints() {
+  return cached('awardTeamPts', () => {
+    const out = {}, add = (p, t, w) => { if (!p || !t) return; const m = (out[p.Player] = out[p.Player] || {}); m[t] = (m[t] || 0) + w; };
+    DB.history.forEach(h => { const yr = Number(h.Season); Object.keys(MAIN_AWARD_PTS).forEach(k => {
+      if (h[k] && h[k] !== '-' && h[k + 'Team']) coNames(h[k]).forEach(nm => add(resolvePlayer(nm, yr), fullTeamName(h[k + 'Team']), MAIN_AWARD_PTS[k])); }); });
+    ['Pts', 'Reb', 'Ast', 'Stl', 'Blk'].forEach(k => DB.statLeaders.forEach(r => { if (r[k + 'Leader']) add(resolvePlayer(r[k + 'Leader'], r.Season), teamByCode(r[k + 'Team'])?.Team, MAIN_STAT_TITLE_PTS); }));
     return out;
   });
+}
+function mainTeamScore(p, t) {
+  const ctx = legacyContext();
+  return (ctx.roles[p.Player] || []).filter(r => finalsTeams(r.yr).champ === t).reduce((s, r) => s + (MAIN_ROLE_PTS[r.label] || 1), 0)
+    + (ctx.ruRoles[p.Player] || []).filter(r => finalsTeams(r.yr).ru === t).length
+    + ((awardTeamPoints()[p.Player] || {})[t] || 0);
 }
 function autoMainTeam(p) {
   const teams = [...new Set(playerTeams(p))].filter(Boolean);
@@ -92,18 +108,20 @@ function autoMainTeam(p) {
   if (teams.length === 1) return { team: teams[0], why: 'His only team' };
   const ret = [...new Set(retiredFor(p).map(r => r.team))].filter(t => teams.includes(t));
   if (ret.length === 1) return { team: ret[0], why: 'Retired his number' };
-  const ctx = legacyContext(), aw = awardTeamCounts()[p.Player] || {};
-  const star = t => (ctx.roles[p.Player] || []).filter(r => finalsTeams(r.yr).champ === t).length;
-  const conf = t => (ctx.ruRoles[p.Player] || []).filter(r => finalsTeams(r.yr).ru === t).length;
-  const last = teams[teams.length - 1], done = !isActive(p);
-  const rotation = t => (done && t === playerTeams(p)[playerTeams(p).length - 1]) ? 0 : Math.max(0, titlesWithTeam(p, t) - star(t));
+  const ctx = legacyContext(), pre = ret.length > 1 ? 'Retired his number · ' : '';
   let pool = ret.length > 1 ? ret : teams;
-  const steps = [['Finals as a star', t => 2 * star(t) + conf(t)], ['Awards won there', t => aw[t] || 0], ['Titles there', rotation]];
-  for (const [why, f] of steps) {
-    const best = Math.max(...pool.map(f)); if (best > 0) pool = pool.filter(t => f(t) === best);
-    if (pool.length === 1) return { team: pool[0], why: (ret.length > 1 ? 'Retired his number · ' : '') + why };
-  }
-  return { team: teams.find(t => pool.includes(t)), why: 'First of the tied teams' + (last ? '' : '') };
+  const sc = Object.fromEntries(pool.map(t => [t, mainTeamScore(p, t) + (ret.length > 1 ? MAIN_SEASON_PTS * retiredSeasons(p, t) : 0)]));
+  const fmt = v => String(Math.round(v * 10) / 10);
+  const ranked = [...pool].sort((a, b) => sc[b] - sc[a]), best = sc[ranked[0]], next = ranked[1];
+  if (best > 0) pool = pool.filter(t => sc[t] === best);
+  if (pool.length === 1) return { team: pool[0], why: pre + (best - sc[next] <= 2 ? 'Close call · ' : 'Score ') + `${fmt(best)} vs ${fmt(sc[next])} (${shortTeam(next)})` };
+  // Tied: rotation titles there (not a ring with his last team once his career is over)
+  const star = t => (ctx.roles[p.Player] || []).filter(r => finalsTeams(r.yr).champ === t).length;
+  const lastT = playerTeams(p)[playerTeams(p).length - 1], done = !isActive(p);
+  const rotation = t => (done && t === lastT) ? 0 : Math.max(0, titlesWithTeam(p, t) - star(t));
+  const b2 = Math.max(...pool.map(rotation));
+  if (b2 > 0) { pool = pool.filter(t => rotation(t) === b2); if (pool.length === 1) return { team: pool[0], why: pre + `Tied at ${fmt(best)} · Titles there` }; }
+  return { team: teams.find(t => pool.includes(t)), why: pre + `Tied at ${fmt(best)} · first of the tied teams` };
 }
 function mainTeam(p) {
   const o = mainTeamOverrides()[p.Player];
