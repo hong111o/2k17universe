@@ -249,7 +249,14 @@ function seasonBannerHtml(yr) {
 // the season page adds every award. No champion yet: the best record leads instead.
 // Season page: the Finals as a split banner, champion on the left, runner-up on the right, series score between
 function finalsBannerHtml(yr) {
-  const { champ, ru } = finalsTeams(yr); if (!champ || !ru) return '';
+  let { champ, ru } = finalsTeams(yr), open = false;
+  // No Finals yet: the best team in each conference, side by side, with "Finals TBD" between
+  if (!champ || !ru) {
+    const st = seasonStandings(yr), top = c => st.filter(r => r.conf === c).sort((a, b) => b.raw - a.raw)[0];
+    const e = top('EAST'), w = top('WEST'); if (!e || !w) return '';
+    [champ, ru] = e.raw >= w.raw ? [e.team, w.team] : [w.team, e.team]; open = true;
+  }
+  const stRow = t => seasonStandings(yr).find(r => r.team === t);
   const h = DB.history.find(x => Number(x.Season) === yr) || {}, score = finalsScore(h);
   const label = t => DB.teams.find(x => x.Team === t)?.seasonRecords?.[yr]?.label || t;
   // Both colours are darkened if needed so the white names and codes stay readable
@@ -266,10 +273,21 @@ function finalsBannerHtml(yr) {
   const side = (t, cls) => `<div class="fb-side ${cls}" style="--c:${col[t]}">
       <span class="fb-code" aria-hidden="true">${teamCode(t)}</span>
       <button type="button" class="fb-team${TEAM_LOGO_WHITE.has(t) ? ' tm-logo-white' : ''}" onclick="openTeamModal('${jsArg(t)}')">${teamLogo(t, 'fb-logo')}
-        <span class="fb-city">${label(t).slice(0, label(t).length - shortTeam(label(t)).length).trim()}</span><span class="fb-name">${shortTeam(label(t))}</span></button></div>`;
-  return `<div class="fb${same ? ' fb-alike' : ''}" aria-label="${seasonLabel(yr)} Finals: ${label(champ)} beat ${label(ru)}${score ? ' ' + score : ''}">
+        <span class="fb-city">${label(t).slice(0, label(t).length - shortTeam(label(t)).length).trim()}</span><span class="fb-name">${shortTeam(label(t))}</span>
+        ${stRow(t) ? `<span class="fb-seed">${stRow(t).conf && stRow(t).confRk ? `${confName(stRow(t).conf)} #${stRow(t).confRk} · ` : ''}${stRow(t).w}-${stRow(t).l}</span>` : ''}</button></div>`;
+  // Both names at one size, small enough for the longer one to stay on one line
+  const nameLen = Math.max(...[champ, ru].map(t => shortTeam(label(t)).length)), cityLen = Math.max(...[champ, ru].map(t => label(t).length - shortTeam(label(t)).length));
+  const fit = `--fbn:${Math.min(1, 11 / Math.max(11, nameLen)).toFixed(3)};--fbc:${Math.min(1, 12 / Math.max(12, cityLen)).toFixed(3)}`;
+  return `<div class="fb${same ? ' fb-alike' : ''}${open ? ' fb-open' : ''}" style="${fit}" aria-label="${open ? `${seasonLabel(yr)}: Finals not decided yet; ${label(champ)} and ${label(ru)} lead their conferences` : `${seasonLabel(yr)} Finals: ${label(champ)} beat ${label(ru)}${score ? ' ' + score : ''}`}">
     ${side(champ, 'fb-champ')}<div class="fb-edge" aria-hidden="true"></div>${side(ru, 'fb-ru')}
-    ${score ? `<div class="fb-score"><small>Finals</small><b>${score}</b></div>` : ''}</div>`;
+    ${open ? '<div class="fb-score fb-tbd"><small>Finals</small><b>TBD</b></div>' : score ? `<div class="fb-score"><small>Finals</small><b>${score}</b></div>` : ''}</div>`;
+}
+// Finals banner logos: wide logos (Lakers, Thunder) get less height, so both logos look about the same size
+function evenFbLogos(root) {
+  root.querySelectorAll('.fb-logo').forEach(img => {
+    const set = () => { if (!img.naturalWidth) return; const r = img.naturalWidth / img.naturalHeight; img.style.setProperty('--fbr', (1 / Math.sqrt(Math.max(1, r))).toFixed(3)); };
+    if (img.complete) set(); else img.addEventListener('load', set, { once: true });
+  });
 }
 function seasonHeroHtml(yr, full) {
   const h = DB.history.find(x => Number(x.Season) === yr) || {};
@@ -295,7 +313,7 @@ function seasonHeroHtml(yr, full) {
     <div class="tm-top">
       <div class="tm-id"><div class="tm-kicker hm-kicker">${icon('trophy')}${banner
           // Under the Finals banner: Champions | team | record (the season is in the picker above)
-          ? `<span>Champions</span><i>|</i><span>${tName}</span>${leadRow ? `<i>|</i><span>${leadRow.w}-${leadRow.l}</span>` : ''}`
+          ? `<span>${champ ? 'Champions' : 'Best record'}</span><i>|</i><span>${tName}</span>${leadRow ? `<i>|</i><span>${leadRow.w}-${leadRow.l}</span>` : ''}`
           : `<span>${seasonLabel(yr)} ${champ ? 'Champions' : lead ? 'Best record' : 'Season'}</span>${leadRow ? `<i>|</i><span>${leadRow.w}-${leadRow.l}</span>` : ''}`}</div>
         <h1 class="tm-name">${lead ? `<span class="hm-team" onclick="openTeamModal('${jsArg(lead)}')">${city ? `<span>${city}</span> ` : ''}<span>${nick}</span></span>` : 'Champion not recorded'}</h1>
         <div class="hm-sub">${ru ? `Beat ${teamIn(ru, yr)} ${score} in the Finals` : 'Finals not recorded yet'}${full ? '' : ` · ${seasonLink(yr, 'Season recap')}`}</div>
@@ -594,7 +612,9 @@ function renderSeason() {
   sections.push(`<div class="chart-card"><div class="chart-title">${icon('chart')} Stat Leaders</div>${sl && statRowEntered(sl)
     // Phones: two leaders per row; the team is shown by its nickname so each box stays narrow
     ? `<div class="stats-cards sl-grid" style="margin-bottom:0">${leaders.filter(([, k]) => sl[k]).map(([label, k, tk, unit]) =>
-        tile(label, nameLink(sl[k], {season: yr}), `${sl[unit]} ${unit}${sl[tk] ? ' · ' + teamLink(sl[tk], shortTeam(fullTeamName(sl[tk]))) : ''}`)).join('')}</div>`
+        `<div class="stat-card sl-card"><div class="label">${label}</div><div class="value value-name">${nameLink(sl[k], {season: yr})}</div>
+          <div class="sl-team">${sl[tk] ? teamLink(sl[tk], shortTeam(fullTeamName(sl[tk]))) : '<span class="muted">—</span>'}</div>
+          <div class="sl-num"><b>${sl[unit] === undefined || sl[unit] === '' || isNaN(Number(sl[unit])) ? (sl[unit] ?? '') : Number(sl[unit]).toFixed(1)}</b><span>${unit}</span></div></div>`).join('')}</div>`
     : '<p class="muted">Not entered yet in Season Stat Leader.</p>'}</div>`);
 
   const split = splitStandingsHtml(yr);
@@ -607,6 +627,7 @@ function renderSeason() {
     : '<p class="muted">No All-NBA teams recorded for this season.</p>'}</div>`);
 
   document.getElementById('seasonContent').innerHTML = sections.join('');
+  evenFbLogos(document.getElementById('seasonContent'));
 }
 
 // =====================================================================

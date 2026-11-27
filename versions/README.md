@@ -10,7 +10,6 @@ they are still in the git history if ever needed.
 |---|---|---|
 | `v20.html` | v20: phone app, custom icon, locked table headers | player pages, compare v2, draft, legacy ranking, search, data check |
 | `v22.html` | v22: player pages, compare v2, draft, simple legacy formula, search, data check | points-system legacy formula |
-| `v89.html` | v89: simple badge box | Settings → Badges: switch badges on or off, rename them, change their levels |
 | `v90.html` | v90: Settings → Badges | Legacy Formula and Badges as Settings sub pages with Save and Discard |
 | `v91.html` | v91: Settings sub pages | Grand badges (no levels), 17 new badges switched off, Levels/Grand switch |
 | `v92.html` | v92: Grand badges | new player page: team-colour header, journey, Home/Stats/Career/Honors tabs, main teams, one back button |
@@ -20,6 +19,7 @@ they are still in the git history if ever needed.
 | `v96.html` | v96: badge sort, team eras, Compare and Home redesign, season header, balanced cards | player header: main team logo faded behind, no rainbow frame |
 | `v97.html` | v97: player header with the main team's logo faded behind | main team picked by a points score (titles by role, awards, seasons), close calls tagged in Settings |
 | `v98.html` | v98: main team by points score, close calls tagged | Season Hub Finals banner, plain info card, stat leaders 2 per row on phones |
+| `v99.html` | v99: Season Hub Finals banner, plain info card | aligned banner names, even logos, seed + record, TBD banner, stat leaders name/team/number |
 
 Online: https://hong111o.github.io/2k17universe/versions/v20.html and .../versions/v22.html
 

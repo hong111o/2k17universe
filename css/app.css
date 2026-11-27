@@ -1266,3 +1266,37 @@ button.bd-chip:focus-visible{outline:2px solid var(--link);outline-offset:2px;}
 .fb-edge{position:absolute;top:0;bottom:0;right:0;width:calc(58% + 3px);clip-path:polygon(24% 0,100% 0,100% 100%,0 100%);background:rgba(255,255,255,.55);}
 .fb-alike .fb-edge{width:calc(58% + 6px);background:#fff;}
 .fb-alike .fb-ru{background:linear-gradient(rgba(0,0,0,.36),rgba(0,0,0,.36)),var(--c);}
+/* Stat leaders: three rows in every box: name, team, number */
+.sl-card{display:flex;flex-direction:column;}
+.sl-card .value.value-name{line-height:1.2;}
+.sl-team{display:flex;align-items:center;gap:6px;font-size:14px;margin-top:4px;min-height:22px;} .sl-team .tlogo{width:18px;height:18px;}
+.sl-num{display:flex;align-items:baseline;gap:6px;margin-top:auto;padding-top:8px;}
+.sl-num b{font-family:var(--font-display);font-weight:800;font-size:32px;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-.01em;}
+.sl-num span{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--ink-3);}
+@media (max-width:640px){.sl-team{font-size:13px;} .sl-num b{font-size:26px;}}
+/* Season not decided yet: conference leaders, nobody dimmed, "TBD" between */
+.fb-open .fb-ru{background:var(--c);}
+.fb-seed{font-size:12px;font-weight:600;color:rgba(255,255,255,.85);margin-top:4px;letter-spacing:.02em;}
+.fb-tbd b{font-size:22px;letter-spacing:.04em;}
+@media (max-width:640px){.fb-tbd b{font-size:18px;} .fb-seed{font-size:11px;}}
+.sl-card .value.value-name{line-height:28px;} @media (max-width:640px){.sl-card .value.value-name{line-height:22px;}}
+/* Finals banner: both sides line up from the top (logo, city, name, record on the same rows),
+   names stay on one line at a shared size, logos share one height */
+.fb-side{align-items:flex-start;}
+.fb-team{padding-top:34px;}
+.fb-logo{height:100px;width:auto;max-width:150px;}
+.fb-city{white-space:nowrap;font-size:calc(13px * var(--fbc,1));}
+.fb-name{white-space:nowrap;font-size:calc(22px * var(--fbn,1));}
+.fb-seed{white-space:nowrap;}
+@media (max-width:640px){.fb-team{padding-top:30px;} .fb-logo{height:76px;max-width:118px;}
+  .fb-city{font-size:calc(11px * var(--fbc,1));} .fb-name{font-size:calc(17px * var(--fbn,1));}}
+.fb-logo{height:calc(100px * var(--fbr,1));max-width:none;margin:calc((100px - 100px * var(--fbr,1)) / 2) 0;}
+@media (max-width:640px){.fb-logo{height:calc(76px * var(--fbr,1));margin:calc((76px - 76px * var(--fbr,1)) / 2) 0;}}
+/* Faded team codes sit fully inside the banner (no letters cut off at the edges) */
+.fb-code{font-size:128px;line-height:.78;}
+.fb-champ .fb-code{top:12px;left:14px;} .fb-ru .fb-code{bottom:12px;right:14px;top:auto;}
+@media (max-width:640px){.fb-code{font-size:92px;} .fb-champ .fb-code{top:10px;left:10px;} .fb-ru .fb-code{bottom:10px;right:10px;}}
+/* Team codes touch the banner's top (left side) and bottom (right side) edges, letters in full */
+.fb-code{line-height:1;}
+.fb-champ .fb-code{top:var(--fbct,-.2em);} .fb-ru .fb-code{bottom:var(--fbcb,-.1em);}
+@media (max-width:640px){.fb-champ .fb-code{top:var(--fbct,-.2em);} .fb-ru .fb-code{bottom:var(--fbcb,-.1em);}}
