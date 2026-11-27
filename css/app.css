@@ -1222,3 +1222,47 @@ button.bd-chip:focus-visible{outline:2px solid var(--link);outline-offset:2px;}
 .mt-row.is-close{border-color:#e9c46a;}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .mt-close{background:#4a3a10;color:#ffd98a;} :root:not([data-theme="light"]) .mt-row.is-close{border-color:#8a6d1f;}}
 :root[data-theme="dark"] .mt-close{background:#4a3a10;color:#ffd98a;} :root[data-theme="dark"] .mt-row.is-close{border-color:#8a6d1f;}
+/* Season page: Finals split banner (champion left, runner-up right, series score between) */
+.fb{position:relative;height:230px;margin:-18px -24px 16px;border-radius:12px 12px 0 0;overflow:hidden;background:var(--hero);}
+.fb-side{position:absolute;top:0;bottom:0;background:var(--c);overflow:hidden;display:flex;align-items:center;}
+.fb-champ{left:0;width:56%;justify-content:center;padding-right:8%;}
+.fb-ru{right:0;width:58%;clip-path:polygon(24% 0,100% 0,100% 100%,0 100%);justify-content:center;padding-left:16%;}
+.fb-side::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(0,0,0,.12));pointer-events:none;}
+.fb-code{position:absolute;font-family:var(--font-display);font-weight:800;font-size:150px;line-height:.8;letter-spacing:-.02em;color:rgba(255,255,255,.13);pointer-events:none;white-space:nowrap;}
+.fb-champ .fb-code{top:-6px;left:-6px;} .fb-ru .fb-code{bottom:-14px;right:-8px;}
+.fb-team{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;color:#fff;cursor:pointer;font:inherit;padding:0;}
+.fb-logo{width:110px;height:110px;object-fit:contain;background:none !important;padding:0 !important;filter:drop-shadow(0 3px 8px rgba(0,0,0,.3));}
+.fb-team.tm-logo-white .fb-logo{filter:brightness(0) invert(1) drop-shadow(0 3px 8px rgba(0,0,0,.3));}
+.fb-name{font-family:var(--font-display);font-weight:800;font-size:22px;line-height:1;text-transform:uppercase;margin-top:6px;}
+.fb-role{display:flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:rgba(255,255,255,.8);} .fb-role .ic{width:13px;height:13px;color:#ffe08a;}
+.fb-score{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2;width:88px;height:88px;border-radius:50%;background:rgba(10,16,30,.55);border:2px solid rgba(255,255,255,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);}
+.fb-score small{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.8;}
+.fb-score b{font-family:var(--font-display);font-size:28px;font-weight:800;line-height:1;}
+.has-fb .tm-name,.has-fb .hm-sub,.has-fb .tm-logo{display:none;}
+.has-fb .tm-top{padding-bottom:10px;}
+@media (max-width:640px){.fb{height:190px;margin:-14px -16px 14px;border-radius:0;}
+  .fb-code{font-size:110px;} .fb-logo{width:80px;height:80px;} .fb-name{font-size:17px;}
+  .fb-score{width:70px;height:70px;} .fb-score b{font-size:22px;}}
+.fb-city{font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:rgba(255,255,255,.85);margin-top:8px;line-height:1.1;}
+.fb-city:empty{display:none;} .fb-city + .fb-name{margin-top:0;}
+.fb-team{max-width:100%;text-align:center;} .fb-name{overflow-wrap:anywhere;}
+/* Below the Finals banner: a plain card, so only the two team colours stand out */
+.tm-hero.has-fb{background:var(--surface);color:var(--ink);border:1px solid var(--line);box-shadow:var(--shadow);}
+.has-fb .tm-kicker,.has-fb .hm-kicker{color:var(--ink-2);} .has-fb .hm-kicker i{color:var(--ink-3);}
+.has-fb .hm-kicker .ic{color:var(--champ,#c99212);}
+.has-fb .tm-era .pl-era{color:var(--champ-ink);} .has-fb .tm-era .pl-era span{color:var(--ink-3);}
+.has-fb .tm-top{border-bottom-color:var(--line);}
+.has-fb .tm-k,.has-fb .hm-x{color:var(--ink-3);}
+.has-fb .player-link,.has-fb .team-link,.has-fb .season-link,.has-fb .name-plain{color:var(--ink);}
+.has-fb .player-link:hover,.has-fb .team-link:hover{color:var(--link,#1a5fd0);}
+@media (max-width:640px){.tm-hero.has-fb{border-left:none;border-right:none;box-shadow:none;} .fb-city{font-size:11px;}}
+/* Season page stat leaders: two per row on phones */
+@media (max-width:640px){.sl-grid{grid-template-columns:1fr 1fr !important;gap:8px;}
+  .sl-grid .stat-card{padding:10px 12px;min-width:0;} .sl-grid .value.value-name{font-size:17px;line-height:1.2;}
+  .sl-grid .label{font-size:11px;} .sl-grid .sub{font-size:12px;}}
+/* The runner-up's background is a little darker (its logo and name stay as they are), so the winner reads first */
+.fb-ru{background:linear-gradient(rgba(0,0,0,.2),rgba(0,0,0,.2)),var(--c);}
+/* A thin white edge along the diagonal; stronger when the two colours are alike */
+.fb-edge{position:absolute;top:0;bottom:0;right:0;width:calc(58% + 3px);clip-path:polygon(24% 0,100% 0,100% 100%,0 100%);background:rgba(255,255,255,.55);}
+.fb-alike .fb-edge{width:calc(58% + 6px);background:#fff;}
+.fb-alike .fb-ru{background:linear-gradient(rgba(0,0,0,.36),rgba(0,0,0,.36)),var(--c);}

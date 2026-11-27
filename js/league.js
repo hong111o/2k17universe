@@ -247,6 +247,30 @@ function seasonBannerHtml(yr) {
 }
 // One season's champion in his colours, laid out like the team page. Home shows the short version;
 // the season page adds every award. No champion yet: the best record leads instead.
+// Season page: the Finals as a split banner, champion on the left, runner-up on the right, series score between
+function finalsBannerHtml(yr) {
+  const { champ, ru } = finalsTeams(yr); if (!champ || !ru) return '';
+  const h = DB.history.find(x => Number(x.Season) === yr) || {}, score = finalsScore(h);
+  const label = t => DB.teams.find(x => x.Team === t)?.seasonRecords?.[yr]?.label || t;
+  // Both colours are darkened if needed so the white names and codes stay readable
+  const rgbOf = h => { const m = String(h || '').match(/[0-9a-f]{6}/i); return m ? [0, 2, 4].map(i => parseInt(m[0].slice(i, i + 2), 16)) : null; };
+  // Alike: both very dark, both grey, or close in hue and brightness
+  const hsl = ([r, g, b]) => { r /= 255; g /= 255; b /= 255; const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn;
+    if (!d) return [0, 0, l]; const sat = d / (1 - Math.abs(2 * l - 1)); const h = mx === r ? ((g - b) / d + 6) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; return [h * 60, sat, l]; };
+  const alike = (a, b) => { if (!a || !b) return false; const [h1, s1, l1] = hsl(a), [h2, s2, l2] = hsl(b), dh = Math.min(Math.abs(h1 - h2), 360 - Math.abs(h1 - h2));
+    return (l1 < 0.2 && l2 < 0.2) || (s1 < 0.15 && s2 < 0.15) || (dh < 30 && Math.abs(l1 - l2) < 0.25 && s1 >= 0.15 && s2 >= 0.15); };
+  const cRgb = rgbOf(TEAM_COLORS[champ]); let rRgb = rgbOf(TEAM_COLORS[ru]);
+  // Alike colours keep the real team colours; a white edge on the diagonal and a dimmer runner-up keep them apart
+  const same = alike(cRgb, rRgb);
+  const col = { [champ]: cRgb ? readableTeamColor(cRgb) : 'var(--hero)', [ru]: rRgb ? readableTeamColor(rRgb) : 'var(--hero)' };
+  const side = (t, cls) => `<div class="fb-side ${cls}" style="--c:${col[t]}">
+      <span class="fb-code" aria-hidden="true">${teamCode(t)}</span>
+      <button type="button" class="fb-team${TEAM_LOGO_WHITE.has(t) ? ' tm-logo-white' : ''}" onclick="openTeamModal('${jsArg(t)}')">${teamLogo(t, 'fb-logo')}
+        <span class="fb-city">${label(t).slice(0, label(t).length - shortTeam(label(t)).length).trim()}</span><span class="fb-name">${shortTeam(label(t))}</span></button></div>`;
+  return `<div class="fb${same ? ' fb-alike' : ''}" aria-label="${seasonLabel(yr)} Finals: ${label(champ)} beat ${label(ru)}${score ? ' ' + score : ''}">
+    ${side(champ, 'fb-champ')}<div class="fb-edge" aria-hidden="true"></div>${side(ru, 'fb-ru')}
+    ${score ? `<div class="fb-score"><small>Finals</small><b>${score}</b></div>` : ''}</div>`;
+}
 function seasonHeroHtml(yr, full) {
   const h = DB.history.find(x => Number(x.Season) === yr) || {};
   const { champ, ru } = finalsTeams(yr), st = seasonStandings(yr), champRow = st.find(r => r.team === champ);
@@ -265,9 +289,14 @@ function seasonHeroHtml(yr, full) {
     </div>`
     // Home: the awards in one short row
     : `<div class="hm-awrow">${[['Finals MVP', h.FMVP], ['MVP', h.MVP], ['DPOY', h.DPOY], ['ROTY', h.ROTY]].filter(([, v]) => has(v)).map(([l, v]) => `<span><em>${l}</em> ${who(v)}</span>`).join('<i>|</i>')}</div>`;
-  return `<section class="tm-hero hm-hero${full ? ' hm-full' : ''}" ${color ? `style="--tc:${color}"` : ''}>
+  const banner = full ? finalsBannerHtml(yr) : '';
+  return `<section class="tm-hero hm-hero${full ? ' hm-full' : ''}${banner ? ' has-fb' : ''}" ${color ? `style="--tc:${color}"` : ''}>
+    ${banner}
     <div class="tm-top">
-      <div class="tm-id"><div class="tm-kicker hm-kicker">${icon('trophy')}<span>${seasonLabel(yr)} ${champ ? 'Champions' : lead ? 'Best record' : 'Season'}</span>${leadRow ? `<i>|</i><span>${leadRow.w}-${leadRow.l}</span>` : ''}</div>
+      <div class="tm-id"><div class="tm-kicker hm-kicker">${icon('trophy')}${banner
+          // Under the Finals banner: Champions | team | record (the season is in the picker above)
+          ? `<span>Champions</span><i>|</i><span>${tName}</span>${leadRow ? `<i>|</i><span>${leadRow.w}-${leadRow.l}</span>` : ''}`
+          : `<span>${seasonLabel(yr)} ${champ ? 'Champions' : lead ? 'Best record' : 'Season'}</span>${leadRow ? `<i>|</i><span>${leadRow.w}-${leadRow.l}</span>` : ''}`}</div>
         <h1 class="tm-name">${lead ? `<span class="hm-team" onclick="openTeamModal('${jsArg(lead)}')">${city ? `<span>${city}</span> ` : ''}<span>${nick}</span></span>` : 'Champion not recorded'}</h1>
         <div class="hm-sub">${ru ? `Beat ${teamIn(ru, yr)} ${score} in the Finals` : 'Finals not recorded yet'}${full ? '' : ` · ${seasonLink(yr, 'Season recap')}`}</div>
         ${era ? `<div class="tm-era"><div class="pl-era">${icon('crown')}<b>The ${era.player ? nameLink(era.player.Player, { label: era.name }) : era.name} Era</b><span>· ${era.decade}</span></div></div>` : ''}
@@ -563,8 +592,9 @@ function renderSeason() {
   const leaders = [['Points','PtsLeader','PtsTeam','PPG'],['Rebounds','RebLeader','RebTeam','RPG'],['Assists','AstLeader','AstTeam','APG'],
                    ['Steals','StlLeader','StlTeam','SPG'],['Blocks','BlkLeader','BlkTeam','BPG'],['Minutes','MinLeader','MinTeam','MPG']];
   sections.push(`<div class="chart-card"><div class="chart-title">${icon('chart')} Stat Leaders</div>${sl && statRowEntered(sl)
-    ? `<div class="stats-cards" style="margin-bottom:0">${leaders.filter(([, k]) => sl[k]).map(([label, k, tk, unit]) =>
-        tile(label, nameLink(sl[k], {season: yr}), `${sl[unit]} ${unit}${sl[tk] ? ' · ' + teamLink(sl[tk]) : ''}`)).join('')}</div>`
+    // Phones: two leaders per row; the team is shown by its nickname so each box stays narrow
+    ? `<div class="stats-cards sl-grid" style="margin-bottom:0">${leaders.filter(([, k]) => sl[k]).map(([label, k, tk, unit]) =>
+        tile(label, nameLink(sl[k], {season: yr}), `${sl[unit]} ${unit}${sl[tk] ? ' · ' + teamLink(sl[tk], shortTeam(fullTeamName(sl[tk]))) : ''}`)).join('')}</div>`
     : '<p class="muted">Not entered yet in Season Stat Leader.</p>'}</div>`);
 
   const split = splitStandingsHtml(yr);
