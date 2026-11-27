@@ -331,7 +331,7 @@ function teamHomeHtml(t, seasonInfo, won, lost) {
   if (face) side.push(`<div class="chart-card th-face"><div class="card-head"><div class="chart-title">${icon('star')} Face of the Franchise</div>${more('players', 'Legends')}</div>
     <div class="th-face-name">${nameLink(face.p.Player)} ${posBadge(face.p.Position)}</div>
     <div class="journey-tags">${face.ret.map(r => `<em class="tag-ret">#${r.num} retired</em>`).join('')}${face.titles ? `<em class="tag-gold">${icon('trophy')} ${face.titles} here</em>` : ''}${face.oneTeam ? '<em class="tag-plain">One-team career</em>' : ''}</div>
-    <div class="muted th-face-sub">Career, all teams: ${draftCareer(face.p)}</div></div>`);
+    <div class="muted th-face-sub">Here: ${honorsHereText(face)}</div></div>`);
   // Titles at a glance
   const lastTitle = Number(t['Last Title']) || null, lastFinals = Number(t['Last Finals']) || null;
   const drought = lastTitle && DB.latestSeason ? DB.latestSeason - lastTitle : null;
@@ -424,7 +424,7 @@ function teamHeroHtml(t, won, lost) {
         <h1 class="tm-name">${city ? `<span>${city}</span> ` : ''}<span>${nick}</span></h1>
         ${(() => { const eras = teamEras(name); return eras.length ? `<div class="tm-era">${eras.map(e => `<div class="pl-era">${icon('crown')}<b>Home of the ${e.player ? nameLink(e.player.Player, { label: e.name }) : e.name} Era</b><span>· ${e.decade}</span></div>`).join('')}</div>` : ''; })()}
         ${L && L.badge ? `<span class="tm-badge">${L.badge}</span>` : ''}</div>
-      <div class="tm-logo${TEAM_LOGO_WHITE.has(name) ? ' tm-logo-white' : ''}">${teamLogo(name, 'tm-logo-img')}</div>
+      <div class="tm-logo${TEAM_LOGO_WHITE.has(name) ? ' tm-logo-white' : ''}">${teamLogo(name, 'tm-logo-img', true)}</div>
     </div>
     ${stats ? `<div class="tm-stats">${stats}</div>` : ''}
     <div class="tm-btns"></div>

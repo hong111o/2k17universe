@@ -239,7 +239,7 @@ function seasonBannerHtml(yr) {
   const { champ } = finalsTeams(yr), st = seasonStandings(yr), best = [...st].sort((a, b) => b.raw - a.raw)[0];
   const lead = champ || best?.team, row = st.find(r => r.team === lead), color = lead && TEAM_COLORS[lead], era = seasonEra(yr);
   return `<button type="button" class="hm-banner" ${color ? `style="--tc:${color}"` : ''} onclick="openSeason(${yr})">
-    ${lead ? `<span class="hb-logo${TEAM_LOGO_WHITE.has(lead) ? ' tm-logo-white' : ''}">${teamLogo(lead)}</span>` : ''}
+    ${lead ? `<span class="hb-logo${TEAM_LOGO_WHITE.has(lead) ? ' tm-logo-white' : ''}">${teamLogo(lead, '', true)}</span>` : ''}
     <span class="hb-txt"><span class="hb-k">${seasonLabel(yr)} · ${champ ? 'Champions' : lead ? 'Best record' : 'Latest season'}${row ? ` ${row.w}-${row.l}` : ''}</span>
       <span class="hb-name">${lead ? shortTeam(DB.teams.find(t => t.Team === lead)?.seasonRecords?.[yr]?.label || lead) : 'Season'}</span>
       ${era ? `<span class="hb-era">${icon('crown')} The ${era.name} Era · ${era.decade}</span>` : ''}</span>
@@ -272,7 +272,7 @@ function finalsBannerHtml(yr) {
   const col = { [champ]: cRgb ? readableTeamColor(cRgb) : 'var(--hero)', [ru]: rRgb ? readableTeamColor(rRgb) : 'var(--hero)' };
   const side = (t, cls) => `<div class="fb-side ${cls}" style="--c:${col[t]}">
       <span class="fb-code" aria-hidden="true">${teamCode(t)}</span>
-      <button type="button" class="fb-team${TEAM_LOGO_WHITE.has(t) ? ' tm-logo-white' : ''}" onclick="openTeamModal('${jsArg(t)}')">${teamLogo(t, 'fb-logo')}
+      <button type="button" class="fb-team${TEAM_LOGO_WHITE.has(t) ? ' tm-logo-white' : ''}" onclick="openTeamModal('${jsArg(t)}')">${teamLogo(t, 'fb-logo', true)}
         <span class="fb-city">${label(t).slice(0, label(t).length - shortTeam(label(t)).length).trim()}</span><span class="fb-name">${shortTeam(label(t))}</span>
         ${stRow(t) ? `<span class="fb-seed">${stRow(t).conf && stRow(t).confRk ? `${confName(stRow(t).conf)} #${stRow(t).confRk} · ` : ''}${stRow(t).w}-${stRow(t).l}</span>` : ''}</button></div>`;
   // Both names at one size, small enough for the longer one to stay on one line
@@ -319,7 +319,7 @@ function seasonHeroHtml(yr, full) {
         <div class="hm-sub">${ru ? `Beat ${teamIn(ru, yr)} ${score} in the Finals` : 'Finals not recorded yet'}${full ? '' : ` · ${seasonLink(yr, 'Season recap')}`}</div>
         ${era ? `<div class="tm-era"><div class="pl-era">${icon('crown')}<b>The ${era.player ? nameLink(era.player.Player, { label: era.name }) : era.name} Era</b><span>· ${era.decade}</span></div></div>` : ''}
       </div>
-      ${lead ? `<div class="tm-logo${TEAM_LOGO_WHITE.has(lead) ? ' tm-logo-white' : ''}">${teamLogo(lead, 'tm-logo-img')}</div>` : ''}
+      ${lead ? `<div class="tm-logo${TEAM_LOGO_WHITE.has(lead) ? ' tm-logo-white' : ''}">${teamLogo(lead, 'tm-logo-img', true)}</div>` : ''}
     </div>
     ${awards}
   </section>`;

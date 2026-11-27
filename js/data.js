@@ -439,9 +439,12 @@ function logoFail(img) {
   img.onerror = null;
   if (u) { img.src = u; img.classList.remove('nba-logo'); } else img.remove();
 }
-function teamLogo(team, cls) {
+// Versions of a logo for its own team colour (76ers: the blue "6" and stars turned white), like the
+// all-white Rockets / Raptors / Jazz logos; used where the logo sits on the team's colour
+const LOGO_ON_COLOR = { 'Philadelphia 76ers': '1610612755w' };
+function teamLogo(team, cls, onColor) {
   const full = fullTeamName(team), u = DB.logos && (DB.logos[full] || DB.logos[team]), id = NBA_TEAM_IDS[full];
-  if (id) return `<img class="tlogo nba-logo${cls ? ' ' + cls : ''}" src="${logoUrl(id)}" data-team="${full}" onerror="logoFail(this)" alt="" aria-hidden="true" decoding="async">`;
+  if (id) return `<img class="tlogo nba-logo${cls ? ' ' + cls : ''}" src="${logoUrl(onColor && LOGO_ON_COLOR[full] || id)}" data-team="${full}" onerror="logoFail(this)" alt="" aria-hidden="true" decoding="async">`;
   return u ? `<img class="tlogo${cls ? ' ' + cls : ''}" src="${u}" alt="" aria-hidden="true" decoding="async">` : '';
 }
 // Flags which of a player's team stints are in red (aligned with playerTeams)

@@ -412,25 +412,49 @@ function renderLegacy() {
 }
 
 // =====================================================================
-// FRANCHISE LEGENDS (team popup)
-// Awards are career totals, so a player's honors may come from other teams.
-// Legends are ordered by what ties them to this franchise: a retired number,
-// titles won here (NBA History and red team cells) and a one-team career, then legacy score.
+// FRANCHISE LEGENDS (team page)
+// Ranked only by what a player did with this team: titles here by role, Finals lost here,
+// awards and stat titles won here (the main-team points), titles here as a role player,
+// a number retired here and a one-team career. Career totals elsewhere don't count;
+// legacy score only breaks ties.
 // =====================================================================
+function honorsHere(p, team) {
+  const out = { MVP: 0, FMVP: 0, DPOY: 0, ROTY: 0, stat: 0 };
+  DB.history.forEach(h => { const yr = Number(h.Season); ['MVP', 'FMVP', 'DPOY', 'ROTY'].forEach(k => {
+    if (h[k] && h[k] !== '-' && h[k + 'Team'] && fullTeamName(h[k + 'Team']) === team && coNames(h[k]).some(nm => resolvePlayer(nm, yr) === p)) out[k]++; }); });
+  ['Pts', 'Reb', 'Ast', 'Stl', 'Blk'].forEach(k => DB.statLeaders.forEach(r => { if (r[k + 'Leader'] && teamByCode(r[k + 'Team'])?.Team === team && resolvePlayer(r[k + 'Leader'], r.Season) === p) out.stat++; }));
+  return out;
+}
+// Face of the Franchise chosen in Settings: { team: player }
+const FACE_KEY = 'nba2k17-face';
+const faceOverrides = () => readJSON(FACE_KEY) || {};
+// The ranked list, with a face chosen in Settings moved to the top (marked chosen)
 function franchiseLegends(team) {
-  return everyPlayer().filter(p => playerTeams(p).includes(team)).map(p => {
+  const list = franchiseLegendsAuto(team), pick = faceOverrides()[team], i = pick ? list.findIndex(l => l.p.Player === pick) : -1;
+  return i > 0 ? [{ ...list[i], chosen: true }, ...list.slice(0, i), ...list.slice(i + 1)] : i === 0 ? [{ ...list[0], chosen: true }, ...list.slice(1)] : list;
+}
+function franchiseLegendsAuto(team) {
+  return cached('legends|' + team, () => everyPlayer().filter(p => playerTeams(p).includes(team)).map(p => {
     const titles = titlesWithTeam(p, team), ret = retiredFor(p).filter(r => r.team === team), oneTeam = new Set(playerTeams(p)).size === 1;
-    const L = legacy(p).total;
-    return { p, titles, ret, oneTeam, score: L * (oneTeam ? 1 : 0.5) + titles * 120 + (ret.length ? 300 : 0) };
-  }).sort((a, b) => b.score - a.score);
+    const starTitles = (legacyContext().roles[p.Player] || []).filter(r => finalsTeams(r.yr).champ === team).length;
+    const here = mainTeamScore(p, team) + Math.max(0, titles - starTitles) + (ret.length ? 6 : 0) + (oneTeam ? 2 : 0);
+    return { p, titles, ret, oneTeam, here, honors: honorsHere(p, team), score: here * 10000 + legacy(p).total };
+  }).sort((a, b) => b.score - a.score));
+}
+// "2 titles · 3 MVP · 1 Finals MVP" won with this team
+function honorsHereText(l) {
+  const h = l.honors, parts = [[l.titles, l.titles === 1 ? 'title' : 'titles'], [h.MVP, 'MVP'], [h.FMVP, 'Finals MVP'], [h.DPOY, 'DPOY'], [h.ROTY, 'ROTY'], [h.stat, h.stat === 1 ? 'stat title' : 'stat titles']]
+    .filter(([v]) => v > 0).map(([v, t]) => `${v} ${t}`);
+  return parts.length ? parts.join(' · ') : 'No titles or awards here';
 }
 function legendsHtml(team) {
   const list = franchiseLegends(team);
   if (!list.length) return '';
   const row = (l, i) => `<div class="rb-row"><span class="rb-rank">${i + 1}</span><span class="rb-main">${nameLink(l.p.Player)} ${posBadge(l.p.Position)}
       <span class="journey-tags">${l.ret.map(r => `<em class="tag-ret">#${r.num} retired</em>`).join('')}${l.titles ? `<em class="tag-gold">${icon('trophy')} ${l.titles} here</em>` : ''}${l.oneTeam ? '<em class="tag-plain">One-team career</em>' : ''}${isActive(l.p) ? '<em class="tag-plain">Active</em>' : ''}</span></span>
-      <span class="rb-val">${Math.round(legacy(l.p).total).toLocaleString()}</span><span class="rb-sub">Career, all teams: ${draftCareer(l.p)}</span></div>`;
+      <span class="rb-val" title="Points with this team">${Math.round(l.here * 10) / 10}</span><span class="rb-sub">Here: ${honorsHereText(l)}</span></div>`;
   return `<div class="modal-section"><div class="modal-section-title">${icon('star')} Franchise Legends</div>
     <div class="leader-list">${list.slice(0, 8).map(row).join('')}</div>
+    <p class="muted" style="font-size:12px;margin:6px 0 0">Ranked by what each player did here: titles (4 as the franchise player, 2 co-star, 1 second star or role player), Finals lost 1, MVP 3, Finals MVP 2, DPOY 1, ROTY 1, stat title 0.5, number retired here 6, one-team career 2.</p>
     ${list.length > 8 ? `<details class="more-legends"><summary>All ${list.length} players who played here</summary>${list.slice(8).map((l, i) => row(l, i + 8)).join('')}</details>` : ''}</div>`;
 }

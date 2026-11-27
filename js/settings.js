@@ -208,6 +208,7 @@ function openSettingsView(v) {
   settingsState.view = v; settingsState.dirty = false;
   if (v === 'legacy') settingsState.legacyDraft = legacyWeights();
   if (v === 'badges') badgeDraftStart();
+  if (v === 'faces') { settingsState.faceDraft = { ...faceOverrides() }; settingsState.faceShow = 'close'; }
   if (v === 'mainteams') { settingsState.mainDraft = { ...mainTeamOverrides() }; settingsState.mainQ = ''; settingsState.mainShow = 'tied'; }
   renderSettings(); scrollTo(0, 0);
 }
@@ -234,12 +235,14 @@ function settingsSave() {
   }
   if (settingsState.view === 'badges') badgeDraftSave();
   if (settingsState.view === 'mainteams') writeJSON(MAIN_TEAM_KEY, settingsState.mainDraft || {});
+  if (settingsState.view === 'faces') { writeJSON(FACE_KEY, settingsState.faceDraft || {}); engineCache = {}; }
   settingsState.dirty = false; renderSettings();
 }
 function settingsDiscard(quiet) {
   if (settingsState.view === 'legacy') settingsState.legacyDraft = legacyWeights();
   if (settingsState.view === 'badges') badgeDraftDiscard();
   if (settingsState.view === 'mainteams') settingsState.mainDraft = { ...mainTeamOverrides() };
+  if (settingsState.view === 'faces') settingsState.faceDraft = { ...faceOverrides() };
   settingsState.dirty = false;
   if (!quiet) renderSettings();
 }
@@ -256,6 +259,7 @@ function renderSettings() {
   }
   if (settingsState.view === 'badges') { el.innerHTML = back('Badges') + badgeSettingsHtml() + saveBarHtml(); return; }
   if (settingsState.view === 'mainteams') { el.innerHTML = back('Main Teams') + mainTeamsHtml() + saveBarHtml(); return; }
+  if (settingsState.view === 'faces') { el.innerHTML = back('Faces of the Franchise') + facesHtml() + saveBarHtml(); return; }
   const res = dataCheckResults;
   const freshKeys = new Set(newDataProblems().map(dcKey));
   const by = l => res.filter(r => r.level === l);
@@ -266,6 +270,7 @@ function renderSettings() {
     <div class="settings-links">
       ${link('legacy', 'trophy', 'Legacy Formula', changedW ? `${changedW} value${changedW === 1 ? '' : 's'} changed from the defaults` : 'The points behind the Legacy Ranking')}
       ${link('badges', 'star', 'Badges', `${activeBadges().length} of ${BADGES.length} on · switch on or off, rename, change levels`)}
+      ${link('faces', 'star', 'Faces of the Franchise', (() => { const n = Object.keys(faceOverrides()).length; return n ? `${n} chosen by you · the top legend of each team` : 'The top legend of each team'; })())}
       ${link('mainteams', 'jersey', 'Main Teams', (() => { const n = Object.keys(mainTeamOverrides()).length; return n ? `${n} chosen by you · the team colour of each player page` : 'The team colour of each player page'; })())}
     </div>
     <div class="chart-card"><div class="card-head"><div class="chart-title">${icon('list')} Data Check</div><button class="card-link" onclick="updateDataCheckDot();renderSettings()">Run again</button></div>
@@ -297,6 +302,27 @@ function mainTeamsHtml() {
       return `<div class="mt-row${close ? ' is-close' : ''}"><div class="mt-who"><span>${nameLink(p.Player)} ${tag}</span><small class="muted">${pick ? `Chosen by you · rule: ${shortTeam(auto.team)}` : `${shortTeam(auto.team)} · ${auto.why.replace('Close call · ', '')}`}</small></div>
         <select id="mt-${playerSlug(p.Player)}" aria-label="Main team for ${p.Player.replace(/"/g, '&quot;')}" onchange="setMainTeamDraft('${jsArg(p.Player)}',this.value)">
           <option value="">Rule: ${auto.team}</option>${[...new Set(playerTeams(p))].map(t => `<option value="${t}"${pick === t ? ' selected' : ''}>${t}</option>`).join('')}</select></div>`; }).join('') || '<p class="muted">Nothing matches.</p>'}</div></div>`;
+}
+// Settings → Faces of the Franchise: the rule's pick for each team, or one chosen here
+function facesHtml() {
+  const d = settingsState.faceDraft || {}, show = settingsState.faceShow;
+  const rows = DB.teams.filter(t => !t.defunct).map(t => ({ team: t.Team, list: franchiseLegendsAuto(t.Team) })).filter(r => r.list.length)
+    .map(r => ({ ...r, close: r.list[1] && r.list[0].here - r.list[1].here <= 3 }))
+    .filter(r => show === 'all' || (show === 'close' ? r.close : d[r.team])).sort((a, b) => a.team.localeCompare(b.team));
+  return `<div class="chart-card" id="facesCard"><div class="chart-title">${icon('star')} Faces of the Franchise</div>
+    <p class="muted" style="margin-bottom:10px">Each team's Face of the Franchise is the player who did most with that team: titles (4 as the franchise player, 2 co-star, 1 second star or role player), Finals lost 1, MVP 3, Finals MVP 2, DPOY 1, ROTY 1, stat title 0.5, number retired there 6, one-team career 2. Choose a player here to change it; the choice also leads that team's Franchise Legends and decides the Face of the Franchise badge.</p>
+    <div class="toolbar mt-toolbar"><div class="seg">${[['close', 'Close calls'], ['chosen', 'Chosen by you'], ['all', 'All']].map(([k, l]) => `<button class="${show === k ? 'active' : ''}" onclick="settingsState.faceShow='${k}';refreshFaces()">${l}</button>`).join('')}</div></div>
+    <div class="mt-list">${rows.map(({ team, list, close }) => { const pick = d[team] || '', a = list[0], b = list[1];
+      return `<div class="mt-row${close ? ' is-close' : ''}"><div class="mt-who"><span>${teamLink(team)} ${close ? '<span class="mt-close">Close call</span>' : ''}</span>
+        <small class="muted">${pick ? `Chosen by you · rule: ${a.p.Player}` : `${a.p.Player} ${Math.round(a.here * 10) / 10}${b ? ` vs ${b.p.Player} ${Math.round(b.here * 10) / 10}` : ''}`}</small></div>
+        <select aria-label="Face of the Franchise for ${team}" onchange="setFaceDraft('${jsArg(team)}',this.value)">
+          <option value="">Rule: ${a.p.Player}</option>${list.slice(0, 15).map(l => `<option value="${l.p.Player.replace(/"/g, '&quot;')}"${pick === l.p.Player ? ' selected' : ''}>${l.p.Player} (${Math.round(l.here * 10) / 10})</option>`).join('')}</select></div>`; }).join('') || '<p class="muted">Nothing here yet.</p>'}</div></div>`;
+}
+function refreshFaces() { const el = document.getElementById('facesCard'); if (el) el.outerHTML = facesHtml(); }
+function setFaceDraft(team, player) {
+  const d = settingsState.faceDraft || (settingsState.faceDraft = { ...faceOverrides() });
+  if (player) d[team] = player; else delete d[team];
+  markSettingsDirty(); refreshFaces();
 }
 function refreshMainTeams() {
   const el = document.getElementById('mainTeams'); if (!el) return;
